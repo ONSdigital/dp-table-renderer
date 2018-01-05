@@ -50,6 +50,11 @@ func (api *RendererAPI) renderTable(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, unknownRenderType, http.StatusNotFound)
 		return
 	}
+	if err != nil {
+		log.Error(err, log.Data{"render_request": renderRequest})
+		setErrorCode(w, err)
+		return
+	}
 
 	w.WriteHeader(http.StatusOK)
 	_, err = w.Write(bytes)
