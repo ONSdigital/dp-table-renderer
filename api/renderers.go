@@ -4,15 +4,16 @@ import (
 	"net/http"
 	"github.com/ONSdigital/dp-table-renderer/models"
 	"github.com/ONSdigital/go-ns/log"
+	"github.com/gorilla/mux"
+	"errors"
 )
 
 // Error types
 var (
 	internalError             = "Failed to process the request due to an internal error"
 	badRequest                = "Bad request - Invalid request body"
-	unauthorised              = "Unauthorised, request lacks valid authentication credentials"
+	unknownRenderType         = "Unknown render type"
 	statusBadRequest          = "bad request"
-	statusUnprocessableEntity = "unprocessable entity"
 )
 
 // Content types
@@ -21,6 +22,9 @@ var (
 )
 
 func (api *RendererAPI) renderTable(w http.ResponseWriter, r *http.Request) {
+
+	vars := mux.Vars(r)
+	renderType := vars["render_type"]
 
 	renderRequest, err := models.CreateRenderRequest(r.Body)
 	if err != nil {
@@ -35,8 +39,22 @@ func (api *RendererAPI) renderTable(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	bytes := []byte("<div><table><thead><tr><th>" + renderRequest.Title + "</th></tr></thead></table></div>")
-	setContentType(w, contentHTML)
+	var bytes []byte
+
+	switch renderType {
+	case "html":
+		bytes, err = renderHTML(renderRequest)
+		setContentType(w, contentHTML)
+	default:
+		log.Error(errors.New("Unknown render type"), log.Data{"render_type": renderType})
+		http.Error(w, unknownRenderType, http.StatusNotFound)
+		return
+	}
+	if err != nil {
+		log.Error(err, log.Data{"render_request": renderRequest})
+		setErrorCode(w, err)
+		return
+	}
 
 	w.WriteHeader(http.StatusOK)
 	_, err = w.Write(bytes)
@@ -49,6 +67,10 @@ func (api *RendererAPI) renderTable(w http.ResponseWriter, r *http.Request) {
 	log.Info("Rendered a table", log.Data{"render_request": renderRequest})
 }
 
+func renderHTML(request *models.RenderRequest) ([]byte, error) {
+	bytes := []byte("<div><table><thead><tr><th>" + request.Title + "</th></tr></thead></table></div>")
+	return bytes, nil
+}
 
 func setContentType(w http.ResponseWriter, contentType string) {
 	w.Header().Set("Content-Type", contentType)

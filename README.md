@@ -12,9 +12,15 @@ Given json defining a table, capable of rendering a table in multiple formats
 | HOST                       | http://localhost:23100                    | The host name used to build URLs
 | SHUTDOWN_TIMEOUT           | 5s                                        | The graceful shutdown timeout (`time.Duration` format)
 
+### Endpoints
+
+| url          | Method | Description                                                                      |
+| ---          | ------ | -----------                                                                      |
+| /render/html | POST   | Renders the (json) data provided in the post body as a self-contained html table |
+
 ### Healthchecking
 
-Currently reported on endpoint `/health`
+Currently reported on endpoint `/healthcheck`. There are no other services consumed, so it will always return OK.
 
 ### Contributing
 
