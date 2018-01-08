@@ -18,8 +18,8 @@ var (
 // RenderRequest represents a structure for a table render job
 type RenderRequest struct {
 	Title         string         `json:"title"`
-	Subtitle         string         `json:"subtitle"`
-	Source         string         `json:"source"`
+	Subtitle      string         `json:"subtitle"`
+	Source        string         `json:"source"`
 	TableType     string         `json:"type"`
 	Filename      string         `json:"filename"`
 	Uri           string         `json:"uri"`
@@ -28,7 +28,7 @@ type RenderRequest struct {
 	ColumnFormats []ColumnFormat `json:"column_formats"`
 	CellFormats   []CellFormat   `json:"cell_formats"`
 	Data          [][]string     `json:"data"`
-	Footnotes          []string     `json:"footnotes"`
+	Footnotes     []string       `json:"footnotes"`
 }
 
 // RowFormat allows us to specify that a row contains headings, and provide a style for html
