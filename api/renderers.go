@@ -68,7 +68,7 @@ func (api *RendererAPI) renderTable(w http.ResponseWriter, r *http.Request) {
 }
 
 func renderHTML(request *models.RenderRequest) ([]byte, error) {
-	bytes := []byte("<div><table><thead><tr><th>" + request.Title + "</th></tr></thead></table></div>")
+	bytes := []byte("<div><table><caption>" + request.Title + "</caption></table></div>")
 	return bytes, nil
 }
 
