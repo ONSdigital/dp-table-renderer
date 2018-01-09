@@ -14,6 +14,8 @@ func RenderHTML(request *models.RenderRequest) ([]byte, error) {
 
 	startTable(request, &buf)
 
+	writeTableBody(request, &buf)
+
 	buf.WriteString("</table>\n")
 	buf.WriteString("</div>\n")
 	return buf.Bytes(), nil
@@ -29,5 +31,15 @@ func startTable(request *models.RenderRequest, buf *bytes.Buffer) {
 	}
 	if len(caption) > 0 {
 		fmt.Fprintf(buf, "<caption>%s</caption>\n", caption)
+	}
+}
+
+func writeTableBody(request *models.RenderRequest, buf *bytes.Buffer) {
+	for _, row := range request.Data {
+		buf.WriteString("<tr>")
+		for _, col := range row {
+			fmt.Fprintf(buf, "<td>%s</td>", col)
+		}
+		buf.WriteString("</tr>\n")
 	}
 }

@@ -36,6 +36,8 @@ func TestRenderHTML(t *testing.T) {
 		So(getAttribute(node, "class"), ShouldEqual, "table-renderer")
 		table := findNode(node, atom.Table)
 		So(table, ShouldNotBeNil)
+		rows := findNodes(table, atom.Tr)
+		So(len(rows), ShouldEqual, 14)
 	})
 }
 
@@ -127,4 +129,16 @@ func findNode(n *html.Node, a atom.Atom) *html.Node {
 		}
 	}
 	return nil
+}
+
+// returns all child nodes of the given type
+func findNodes(n *html.Node, a atom.Atom) []*html.Node {
+	var result []*html.Node
+	for c := n.FirstChild; c != nil; c = c.NextSibling {
+		if c.DataAtom == a {
+			result = append(result, c)
+		}
+		result = append(result, findNodes(c, a)...)
+	}
+	return result
 }

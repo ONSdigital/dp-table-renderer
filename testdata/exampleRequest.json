@@ -9,8 +9,8 @@
     {"row": 0, "style_class": "emphasis", "style": "text-color: blue", "heading": true}
   ],
   "column_formats": [
-    {"col": 0, "align": "right", "style": "width: 20em", "heading": true},
-    {"col": 1, "align": "right", "style_class": "emphasis", "style": "width: 20em", "heading": true}
+    {"col": 0, "align": "right", "style": "width: 5em", "heading": true},
+    {"col": 1, "align": "right", "style_class": "emphasis", "style": "width: 4em", "heading": true}
   ],
   "cell_formats": [
     {"row": 0, "col": 0, "align": "middle", "colspan": 2},
