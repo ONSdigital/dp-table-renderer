@@ -22,7 +22,7 @@ type RenderRequest struct {
 	Source        string         `json:"source"`
 	TableType     string         `json:"type"`
 	Filename      string         `json:"filename"`
-	Uri           string         `json:"uri"`
+	URI           string         `json:"uri"`
 	StyleClass    string         `json:"style_class"`
 	RowFormats    []RowFormat    `json:"row_formats"`
 	ColumnFormats []ColumnFormat `json:"column_formats"`
@@ -61,7 +61,7 @@ type CellFormat struct {
 	Colspan       int    `json:"colspan"`
 }
 
-// CreateFilter manages the creation of a filter from a reader
+// CreateRenderRequest manages the creation of a filter from a reader
 func CreateRenderRequest(reader io.Reader) (*RenderRequest, error) {
 	bytes, err := ioutil.ReadAll(reader)
 	if err != nil {
