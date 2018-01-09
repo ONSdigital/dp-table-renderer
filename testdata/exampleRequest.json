@@ -2,6 +2,7 @@
   "filename": "abcd1234",
   "title": "This is an example table",
   "subtitle": "with a subtitle",
+  "source": "Office for National Statistics",
   "type": "new-table",
   "uri": "/path/to/the/table/json",
   "style_class": "foo bar",
@@ -35,7 +36,8 @@
   ],
   "footnotes": [
     "Footnotes are indexed from 1",
-    "And can be referenced from any data element or title using square brackets: [1]"
+    "And can be referenced from any data element or title using square brackets: [ 1 ]",
+    "Note that when cells include rowspan or colspan you should still include all the cells in data - the merged cells should be null or empty string"
   ]
 
 }

@@ -1,9 +1,9 @@
 package testdata
 
 import (
-	"testing"
-	"path/filepath"
 	"io/ioutil"
+	"path/filepath"
+	"testing"
 )
 
 // LoadExampleRequest reads the example request from examplerequest.json

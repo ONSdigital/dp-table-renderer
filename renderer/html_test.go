@@ -1,15 +1,16 @@
-package renderer
+package renderer_test
 
 import (
+	"bytes"
 	"testing"
 
+	"fmt"
+
 	"github.com/ONSdigital/dp-table-renderer/models"
+	"github.com/ONSdigital/dp-table-renderer/renderer"
+	"github.com/ONSdigital/dp-table-renderer/testdata"
 	. "github.com/smartystreets/goconvey/convey"
 	"golang.org/x/net/html"
-
-	"bytes"
-
-	"github.com/ONSdigital/dp-table-renderer/testdata"
 	"golang.org/x/net/html/atom"
 )
 
@@ -22,43 +23,64 @@ func TestRenderHTML(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		response, err := RenderHTML(renderRequest)
-		So(err, ShouldBeNil)
-		nodes, err := html.ParseFragment(bytes.NewReader(response), &html.Node{
-			Type:     html.ElementNode,
-			Data:     "body",
-			DataAtom: atom.Body,
-		})
-		So(err, ShouldBeNil)
-		So(len(nodes), ShouldBeGreaterThanOrEqualTo, 1)
-		node := nodes[0]
-		So(node.DataAtom, ShouldEqual, atom.Div)
-		So(getAttribute(node, "class"), ShouldEqual, "table-renderer")
-		table := findNode(node, atom.Table)
+		div, responseHTML := invokeRenderHTML(renderRequest)
+
+		So(getAttribute(div, "class"), ShouldEqual, "table-renderer")
+		So(getAttribute(div, "id"), ShouldEqual, "table_"+renderRequest.Filename)
+
+		// the table
+		table := findNode(div, atom.Table)
 		So(table, ShouldNotBeNil)
+		// with caption
+		So(findNode(table, atom.Caption), ShouldNotBeNil)
+		// and correct number of rows
 		rows := findNodes(table, atom.Tr)
-		So(len(rows), ShouldEqual, 14)
+		So(len(rows), ShouldEqual, len(renderRequest.Data))
+
+		// the footer - source
+		footer := findNode(div, atom.Footer)
+		So(footer, ShouldNotBeNil)
+		source := findNodeWithAttributes(footer, atom.P, map[string]string{"class": "table-source"})
+		So(source, ShouldNotBeNil)
+		So(source.FirstChild.Data, ShouldResemble, "Source: "+renderRequest.Source)
+		// footnotes
+		notes := findNodeWithAttributes(footer, atom.P, map[string]string{"class": "table-notes"})
+		So(notes, ShouldNotBeNil)
+		So(notes.FirstChild.Data, ShouldResemble, "Notes")
+		footnotes := findNodes(footer, atom.Li)
+		So(len(footnotes), ShouldEqual, len(renderRequest.Footnotes))
+
+		// new line characters are converted to <br/> tags
+		So(responseHTML, ShouldContainSubstring, "CPIH 12-<br/>month rate")
 	})
 }
 
-func TestStartTable(t *testing.T) {
+func invokeRenderHTML(renderRequest *models.RenderRequest) (*html.Node, string) {
+	response, err := renderer.RenderHTML(renderRequest)
+	So(err, ShouldBeNil)
+	nodes, err := html.ParseFragment(bytes.NewReader(response), &html.Node{
+		Type:     html.ElementNode,
+		Data:     "body",
+		DataAtom: atom.Body,
+	})
+	So(err, ShouldBeNil)
+	So(len(nodes), ShouldBeGreaterThanOrEqualTo, 1)
+	// the containing div
+	node := nodes[0]
+	So(node.DataAtom, ShouldEqual, atom.Div)
+	return node, string(response)
+}
+
+func TestRenderHTML_Table(t *testing.T) {
 	t.Parallel()
 	Convey("A table should be described by its subtitle", t, func() {
 		request := models.RenderRequest{Filename: "filename", Title: "Heading", Subtitle: "Subtitle"}
-		var buf bytes.Buffer
+		div, _ := invokeRenderHTML(&request)
 
-		startTable(&request, &buf)
-		nodes, err := html.ParseFragment(bytes.NewReader(buf.Bytes()), &html.Node{
-			Type:     html.ElementNode,
-			Data:     "body",
-			DataAtom: atom.Body,
-		})
-		So(err, ShouldBeNil)
-		So(len(nodes), ShouldBeGreaterThanOrEqualTo, 1)
+		table := findNode(div, atom.Table)
+		So(table, ShouldNotBeNil)
+		So(getAttribute(table, "id"), ShouldBeEmpty)
 
-		table := nodes[0]
-		So(table.DataAtom, ShouldEqual, atom.Table)
-		So(getAttribute(table, "id"), ShouldEqual, "table_filename")
 		So(getAttribute(table, "aria-describedby"), ShouldEqual, "table_filename_description")
 		caption := findNode(table, atom.Caption)
 		So(caption, ShouldNotBeNil)
@@ -67,22 +89,15 @@ func TestStartTable(t *testing.T) {
 		So(span, ShouldNotBeNil)
 		So(span.FirstChild.Data, ShouldEqual, "Subtitle")
 		So(getAttribute(span, "id"), ShouldEqual, "table_filename_description")
+		So(getAttribute(span, "class"), ShouldEqual, "table_subtitle")
 	})
 
 	Convey("A table without subtitle should not have aria-describedby", t, func() {
-		request := models.RenderRequest{Filename: "filename", Title: "Heading"}
-		var buf bytes.Buffer
+		request := models.RenderRequest{Filename: "myId", Title: "Heading"}
+		div, _ := invokeRenderHTML(&request)
 
-		startTable(&request, &buf)
-		nodes, err := html.ParseFragment(bytes.NewReader(buf.Bytes()), &html.Node{
-			Type:     html.ElementNode,
-			Data:     "body",
-			DataAtom: atom.Body,
-		})
-		So(err, ShouldBeNil)
-		So(len(nodes), ShouldBeGreaterThanOrEqualTo, 1)
-
-		table := nodes[0]
+		table := findNode(div, atom.Table)
+		So(table, ShouldNotBeNil)
 		So(getAttribute(table, "aria-describedby"), ShouldEqual, "")
 		caption := findNode(table, atom.Caption)
 		So(caption, ShouldNotBeNil)
@@ -90,24 +105,94 @@ func TestStartTable(t *testing.T) {
 	})
 
 	Convey("A table without title or subtitle should not have a caption", t, func() {
-		request := models.RenderRequest{Filename: "filename"}
-		var buf bytes.Buffer
+		request := models.RenderRequest{Filename: "myId"}
+		div, _ := invokeRenderHTML(&request)
 
-		startTable(&request, &buf)
-		nodes, err := html.ParseFragment(bytes.NewReader(buf.Bytes()), &html.Node{
-			Type:     html.ElementNode,
-			Data:     "body",
-			DataAtom: atom.Body,
-		})
-		So(err, ShouldBeNil)
-		So(len(nodes), ShouldBeGreaterThanOrEqualTo, 1)
-
-		table := nodes[0]
+		table := findNode(div, atom.Table)
+		So(table, ShouldNotBeNil)
 		So(getAttribute(table, "aria-describedby"), ShouldEqual, "")
+		So(getAttribute(table, "id"), ShouldBeEmpty)
 		So(findNode(table, atom.Caption), ShouldBeNil)
 	})
 }
 
+func TestRenderHTML_Footer(t *testing.T) {
+	Convey("A renderRequest without a source or footnotes should not have source or notes paragraphs", t, func() {
+		request := models.RenderRequest{Filename: "myId"}
+		div, _ := invokeRenderHTML(&request)
+
+		footer := findNode(div, atom.Footer)
+		So(footer, ShouldNotBeNil)
+		So(findNodeWithAttributes(footer, atom.P, map[string]string{"class": "table-source"}), ShouldBeNil)
+		So(findNodeWithAttributes(footer, atom.P, map[string]string{"class": "table-notes"}), ShouldBeNil)
+		So(len(findNodes(footer, atom.Li)), ShouldBeZeroValue)
+	})
+
+	Convey("Footnotes should render as li elements with id", t, func() {
+		request := models.RenderRequest{Filename: "myId", Footnotes: []string{"Note1", "Note2"}}
+		div, _ := invokeRenderHTML(&request)
+
+		footer := findNode(div, atom.Footer)
+		So(footer, ShouldNotBeNil)
+
+		p := findNodeWithAttributes(footer, atom.P, map[string]string{"class": "table-notes"})
+		So(p, ShouldNotBeNil)
+		So(p.FirstChild.Data, ShouldResemble, "Notes")
+
+		list := findNode(footer, atom.Ol)
+		So(list, ShouldNotBeNil)
+		notes := findNodes(list, atom.Li)
+		So(len(notes), ShouldEqual, len(request.Footnotes))
+		for i, note := range request.Footnotes {
+			So(getAttribute(notes[i], "id"), ShouldEqual, fmt.Sprintf("table_%s_note_%d", request.Filename, i+1))
+			So(notes[i].FirstChild.Data, ShouldResemble, note)
+		}
+	})
+
+	Convey("Footnotes should be properly parsed", t, func() {
+		request := models.RenderRequest{Filename: "myId", Footnotes: []string{"Note1", "Note2\nOn Two Lines"}}
+		_, result := invokeRenderHTML(&request)
+
+		So(result, ShouldContainSubstring, "Note2<br/>On Two Lines")
+	})
+}
+
+func TestRenderHTML_FootnoteLinks(t *testing.T) {
+	Convey("A renderRequest with references to footnotes should convert those to links", t, func() {
+		request := models.RenderRequest{Filename: "myId", Footnotes: []string{"Note1", "Note2"}, Data: [][]string{{"Cell 1[1]", "Cell[2] 2[1]"}, {"Cell 3[3]", "Cell[0]"}}}
+		div, raw := invokeRenderHTML(&request)
+
+		links := findNodesWithAttributes(div, atom.A, map[string]string{"class": "footnote-link"})
+		So(len(links), ShouldEqual, 3)
+		for _, link := range links {
+			So(getAttribute(link, "aria-describedby"), ShouldResemble, "table_"+request.Filename+"_notes")
+		}
+		So(getAttribute(links[0], "href"), ShouldEqual, "#table_myId_note_1")
+		So(getAttribute(links[1], "href"), ShouldEqual, "#table_myId_note_2")
+		So(getAttribute(links[2], "href"), ShouldEqual, "#table_myId_note_1")
+
+		p := findNodeWithAttributes(div, atom.P, map[string]string{"class": "table-notes", "id": "table_" + request.Filename + "_notes"})
+		So(p, ShouldNotBeNil)
+
+		So(raw, ShouldNotContainSubstring, "Cell 1[1]")
+		So(raw, ShouldNotContainSubstring, "Cell[2] 2[1]")
+		So(raw, ShouldContainSubstring, "Cell 3[3]")
+		So(raw, ShouldContainSubstring, "Cell[0]")
+	})
+
+	Convey("Multiple references to the same footnote in the same value should all be converted to links", t, func() {
+		request := models.RenderRequest{Filename: "myId", Footnotes: []string{"Note1", "Note2"}, Title: "This contains [1] links[1]"}
+		div, _ := invokeRenderHTML(&request)
+
+		links := findNodesWithAttributes(div, atom.A, map[string]string{"class": "footnote-link"})
+		So(len(links), ShouldEqual, 2)
+		for _, link := range links {
+			So(getAttribute(link, "href"), ShouldEqual, "#table_myId_note_1")
+		}
+	})
+}
+
+// find an attribute for the node - returns empty string if not found
 func getAttribute(node *html.Node, key string) string {
 	for _, attr := range node.Attr {
 		if attr.Key == key {
@@ -119,11 +204,16 @@ func getAttribute(node *html.Node, key string) string {
 
 // depth-first search for the first node of the given type
 func findNode(n *html.Node, a atom.Atom) *html.Node {
+	return findNodeWithAttributes(n, a, nil)
+}
+
+// depth-first search for the first node of the given type with the given attributes
+func findNodeWithAttributes(n *html.Node, a atom.Atom, attr map[string]string) *html.Node {
 	for c := n.FirstChild; c != nil; c = c.NextSibling {
-		if c.DataAtom == a {
+		if c.DataAtom == a && hasAttributes(c, attr) {
 			return c
 		}
-		gc := findNode(c, a)
+		gc := findNodeWithAttributes(c, a, attr)
 		if gc != nil {
 			return gc
 		}
@@ -131,14 +221,29 @@ func findNode(n *html.Node, a atom.Atom) *html.Node {
 	return nil
 }
 
+// return true if the given node has all the attribute values
+func hasAttributes(n *html.Node, attr map[string]string) bool {
+	for key, value := range attr {
+		if getAttribute(n, key) != value {
+			return false
+		}
+	}
+	return true
+}
+
 // returns all child nodes of the given type
 func findNodes(n *html.Node, a atom.Atom) []*html.Node {
+	return findNodesWithAttributes(n, a, nil)
+}
+
+// returns all child nodes of the given type with the given attributes
+func findNodesWithAttributes(n *html.Node, a atom.Atom, attr map[string]string) []*html.Node {
 	var result []*html.Node
 	for c := n.FirstChild; c != nil; c = c.NextSibling {
-		if c.DataAtom == a {
+		if c.DataAtom == a && hasAttributes(c, attr) {
 			result = append(result, c)
 		}
-		result = append(result, findNodes(c, a)...)
+		result = append(result, findNodesWithAttributes(c, a, attr)...)
 	}
 	return result
 }
