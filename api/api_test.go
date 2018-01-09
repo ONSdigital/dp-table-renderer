@@ -3,25 +3,26 @@ package api
 import (
 	"testing"
 
-	"github.com/gorilla/mux"
-	"strings"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"strings"
+
+	"github.com/gorilla/mux"
 	. "github.com/smartystreets/goconvey/convey"
-	"io/ioutil"
 )
 
 var (
-	host          = "http://localhost:80"
-	renderHtmlUrl = host + "/render/html"
-	requestBody   = `{"title":"table_title", "type":"table_type"}`
+	host        = "http://localhost:80"
+	requestURL  = host + "/render/html"
+	requestBody = `{"title":"table_title", "type":"table_type"}`
 )
 
 func TestSuccessfullyRenderTable(t *testing.T) {
 	t.Parallel()
 	Convey("Successfully render an html table", t, func() {
 		reader := strings.NewReader(requestBody)
-		r, err := http.NewRequest("POST", renderHtmlUrl, reader)
+		r, err := http.NewRequest("POST", requestURL, reader)
 		So(err, ShouldBeNil)
 
 		w := httptest.NewRecorder()
@@ -51,7 +52,7 @@ func TestRejectInvalidRequest(t *testing.T) {
 
 	Convey("When an invalid json message is sent, a bad request is returned", t, func() {
 		reader := strings.NewReader("{")
-		r, err := http.NewRequest("POST", renderHtmlUrl, reader)
+		r, err := http.NewRequest("POST", requestURL, reader)
 		So(err, ShouldBeNil)
 
 		w := httptest.NewRecorder()

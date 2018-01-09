@@ -1,19 +1,20 @@
 package api
 
 import (
+	"errors"
 	"net/http"
+
 	"github.com/ONSdigital/dp-table-renderer/models"
 	"github.com/ONSdigital/go-ns/log"
 	"github.com/gorilla/mux"
-	"errors"
 )
 
 // Error types
 var (
-	internalError             = "Failed to process the request due to an internal error"
-	badRequest                = "Bad request - Invalid request body"
-	unknownRenderType         = "Unknown render type"
-	statusBadRequest          = "bad request"
+	internalError     = "Failed to process the request due to an internal error"
+	badRequest        = "Bad request - Invalid request body"
+	unknownRenderType = "Unknown render type"
+	statusBadRequest  = "bad request"
 )
 
 // Content types

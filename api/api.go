@@ -3,19 +3,18 @@ package api
 import (
 	"context"
 
+	"github.com/ONSdigital/dp-table-renderer/health"
 	"github.com/ONSdigital/go-ns/log"
 	"github.com/ONSdigital/go-ns/server"
 	"github.com/gorilla/mux"
-	"github.com/ONSdigital/dp-table-renderer/health"
 )
 
 var httpServer *server.Server
 
-
 // RendererAPI manages rendering tables from json
 type RendererAPI struct {
-	host          string
-	router        *mux.Router
+	host   string
+	router *mux.Router
 }
 
 // CreateRendererAPI manages all the routes configured to the renderer
@@ -45,7 +44,6 @@ func routes(host string, router *mux.Router) *RendererAPI {
 	api.router.HandleFunc("/render/{render_type}", api.renderTable).Methods("POST")
 	return &api
 }
-
 
 // Close represents the graceful shutting down of the http server
 func Close(ctx context.Context) error {

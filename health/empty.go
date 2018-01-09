@@ -1,13 +1,14 @@
 package health
 
 import (
-	"net/http"
 	"encoding/json"
+	"net/http"
+
 	"github.com/ONSdigital/go-ns/log"
 )
 
 type healthResponse struct {
-	Status      string         `json:"status"`
+	Status string `json:"status"`
 }
 
 // EmptyHealthcheck is responsible for returning the (empty) health status to the user
