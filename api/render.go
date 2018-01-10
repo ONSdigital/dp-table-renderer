@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/ONSdigital/dp-table-renderer/models"
+	"github.com/ONSdigital/dp-table-renderer/renderer"
 	"github.com/ONSdigital/go-ns/log"
 	"github.com/gorilla/mux"
 )
@@ -44,7 +45,7 @@ func (api *RendererAPI) renderTable(w http.ResponseWriter, r *http.Request) {
 
 	switch renderType {
 	case "html":
-		bytes, err = renderHTML(renderRequest)
+		bytes, err = renderer.RenderHTML(renderRequest)
 		setContentType(w, contentHTML)
 	default:
 		log.Error(errors.New("Unknown render type"), log.Data{"render_type": renderType})
@@ -66,11 +67,6 @@ func (api *RendererAPI) renderTable(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Info("Rendered a table", log.Data{"render_request": renderRequest})
-}
-
-func renderHTML(request *models.RenderRequest) ([]byte, error) {
-	bytes := []byte("<div><table><caption>" + request.Title + "</caption></table></div>")
-	return bytes, nil
 }
 
 func setContentType(w http.ResponseWriter, contentType string) {
