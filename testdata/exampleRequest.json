@@ -2,6 +2,7 @@
   "filename": "abcd1234",
   "title": "This is an example table",
   "subtitle": "with a subtitle",
+  "source": "Office for National Statistics",
   "type": "new-table",
   "uri": "/path/to/the/table/json",
   "style_class": "foo bar",
@@ -9,8 +10,8 @@
     {"row": 0, "style_class": "emphasis", "style": "text-color: blue", "heading": true}
   ],
   "column_formats": [
-    {"col": 0, "align": "right", "style": "width: 20em", "heading": true},
-    {"col": 1, "align": "right", "style_class": "emphasis", "style": "width: 20em", "heading": true}
+    {"col": 0, "align": "right", "style": "width: 5em", "heading": true},
+    {"col": 1, "align": "right", "style_class": "emphasis", "style": "width: 4em", "heading": true}
   ],
   "cell_formats": [
     {"row": 0, "col": 0, "align": "middle", "colspan": 2},
@@ -35,7 +36,8 @@
   ],
   "footnotes": [
     "Footnotes are indexed from 1",
-    "And can be referenced from any data element or title using square brackets: [1]"
+    "And can be referenced from any data element or title using square brackets: [ 1 ]",
+    "Note that when cells include rowspan or colspan you should still include all the cells in data - the merged cells should be null or empty string"
   ]
 
 }

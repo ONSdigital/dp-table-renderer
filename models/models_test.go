@@ -42,7 +42,7 @@ func TestCreateRenderRequestWithValidJSON(t *testing.T) {
 		So(len(request.ColumnFormats), ShouldEqual, 2)
 		So(len(request.CellFormats), ShouldEqual, 3)
 		So(len(request.Data), ShouldEqual, 14)
-		So(len(request.Footnotes), ShouldEqual, 2)
+		So(len(request.Footnotes), ShouldEqual, 3)
 	})
 
 }
