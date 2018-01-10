@@ -50,8 +50,8 @@ func TestRenderHTML(t *testing.T) {
 		footnotes := findNodes(footer, atom.Li)
 		So(len(footnotes), ShouldEqual, len(renderRequest.Footnotes))
 
-		// new line characters are converted to <br/> tags
-		So(responseHTML, ShouldContainSubstring, "CPIH 12-<br/>month rate")
+		// new line characters are converted to <br /> tags
+		So(responseHTML, ShouldContainSubstring, "CPIH 12-<br />month rate")
 	})
 }
 
@@ -114,6 +114,24 @@ func TestRenderHTML_Table(t *testing.T) {
 		So(getAttribute(table, "id"), ShouldBeEmpty)
 		So(findNode(table, atom.Caption), ShouldBeNil)
 	})
+
+	Convey("A table with unbalanced cell counts is still rendered", t, func() {
+		cells := [][]string{
+			{"Cell 1", "Cell 2", "Cell 3"},
+			{"Cell 1", "Cell 2", "Cell 3", "Cell 4"},
+			{"Cell 1", "Cell 2", "Cell 3", "Cell 4", "Cell 5"}}
+		formats := []models.ColumnFormat{{Column: 0, Width: "10em"}}
+		request := models.RenderRequest{Filename: "myId", Data: cells, ColumnFormats: formats}
+		div, _ := invokeRenderHTML(&request)
+		table := findNode(div, atom.Table)
+		So(table, ShouldNotBeNil)
+
+		rows := findNodes(table, atom.Tr)
+		So(len(rows), ShouldEqual, len(request.Data))
+		for i, row := range rows {
+			So(len(findNodes(row, atom.Td)), ShouldEqual, len(cells[i]))
+		}
+	})
 }
 
 func TestRenderHTML_Footer(t *testing.T) {
@@ -153,7 +171,7 @@ func TestRenderHTML_Footer(t *testing.T) {
 		request := models.RenderRequest{Filename: "myId", Footnotes: []string{"Note1", "Note2\nOn Two Lines"}}
 		_, result := invokeRenderHTML(&request)
 
-		So(result, ShouldContainSubstring, "Note2<br/>On Two Lines")
+		So(result, ShouldContainSubstring, "Note2<br />On Two Lines")
 	})
 }
 
@@ -189,6 +207,65 @@ func TestRenderHTML_FootnoteLinks(t *testing.T) {
 		for _, link := range links {
 			So(getAttribute(link, "href"), ShouldEqual, "#table_myId_note_1")
 		}
+	})
+}
+
+func TestRenderHTML_ColumnFormats(t *testing.T) {
+	Convey("A renderRequest with column formats should output colgroup", t, func() {
+		formats := []models.ColumnFormat{{Column: 0, Width: "10em"}, {Column: 2, Align: "right"}}
+		request := models.RenderRequest{Filename: "myId", ColumnFormats: formats, Data: [][]string{{"Cell 1", "Cell 2", "Cell 3", "Cell 4"}}}
+		div, _ := invokeRenderHTML(&request)
+		table := findNode(div, atom.Table)
+
+		colgroup := findNode(table, atom.Colgroup)
+		So(colgroup, ShouldNotBeNil)
+		cols := findNodes(colgroup, atom.Col)
+		So(len(cols), ShouldEqual, len(request.Data[0]))
+		So(getAttribute(cols[0], "style"), ShouldEqual, "width: 10em")
+		So(getAttribute(cols[1], "style"), ShouldBeEmpty)
+		So(getAttribute(cols[2], "class"), ShouldEqual, "right")
+		So(getAttribute(cols[3], "class"), ShouldBeEmpty)
+	})
+
+	Convey("If there are no column formats then there should be no colgroup element", t, func() {
+		request := models.RenderRequest{Filename: "myId", Data: [][]string{{"Cell 1", "Cell 2", "Cell 3", "Cell 4"}}}
+		div, _ := invokeRenderHTML(&request)
+		table := findNode(div, atom.Table)
+
+		So(findNode(table, atom.Colgroup), ShouldBeNil)
+	})
+
+	Convey("Columns flagged as headers should create scoped th elements in each row", t, func() {
+		formats := []models.ColumnFormat{{Column: 0, Heading: true}}
+		cells := [][]string{{"Cell 1", "Cell 2", "Cell 3", "Cell 4"}, {"Cell 1", "Cell 2", "Cell 3", "Cell 4"}}
+		request := models.RenderRequest{Filename: "myId", ColumnFormats: formats, Data: cells}
+		div, _ := invokeRenderHTML(&request)
+		table := findNode(div, atom.Table)
+
+		rows := findNodes(table, atom.Tr)
+		So(len(rows), ShouldEqual, len(cells))
+		for _, row := range rows {
+			header := findNode(row, atom.Th)
+			So(header, ShouldNotBeNil)
+			So(getAttribute(header, "scope"), ShouldEqual, "row")
+			So(header.FirstChild.Data, ShouldResemble, "Cell 1")
+			So(len(findNodes(row, atom.Td)), ShouldEqual, 3)
+		}
+	})
+
+	Convey("Column formats beyond the count of columns are ignored", t, func() {
+		formats := []models.ColumnFormat{{Column: 0, Heading: true}, {Column: 5, Heading: true}}
+		cells := [][]string{{"Cell 1", "Cell 2", "Cell 3", "Cell 4"}, {"Cell 1", "Cell 2", "Cell 3", "Cell 4"}}
+		request := models.RenderRequest{Filename: "myId", ColumnFormats: formats, Data: cells}
+		div, _ := invokeRenderHTML(&request)
+		table := findNode(div, atom.Table)
+
+		colgroup := findNode(table, atom.Colgroup)
+		So(colgroup, ShouldNotBeNil)
+		cols := findNodes(colgroup, atom.Col)
+		So(len(cols), ShouldEqual, len(request.Data[0]))
+
+		// todo
 	})
 }
 

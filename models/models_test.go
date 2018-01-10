@@ -37,12 +37,12 @@ func TestCreateRenderRequestWithValidJSON(t *testing.T) {
 		So(err, ShouldBeNil)
 		So(request.ValidateRenderRequest(), ShouldBeNil)
 		So(request.Title, ShouldEqual, "This is an example table")
-		So(request.TableType, ShouldEqual, "new-table")
+		So(request.TableType, ShouldEqual, "generated-table")
 		So(len(request.RowFormats), ShouldEqual, 1)
 		So(len(request.ColumnFormats), ShouldEqual, 2)
 		So(len(request.CellFormats), ShouldEqual, 3)
 		So(len(request.Data), ShouldEqual, 14)
-		So(len(request.Footnotes), ShouldEqual, 3)
+		So(len(request.Footnotes), ShouldEqual, 4)
 	})
 
 }

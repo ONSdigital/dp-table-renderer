@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/ONSdigital/dp-table-renderer/models"
+	"github.com/ONSdigital/go-ns/log"
 )
 
 var (
@@ -16,13 +17,22 @@ var (
 	footnoteLink = regexp.MustCompile(`\[[0-9+]\]`)
 )
 
+// Contains details of the table that need to be calculated once from the request and cached
+type tableModel struct {
+	request *models.RenderRequest
+	columns []models.ColumnFormat
+}
+
 // RenderHTML returns an HTML representation of the table generated from the given request
 func RenderHTML(request *models.RenderRequest) ([]byte, error) {
 	var buf bytes.Buffer
 	fmt.Fprintf(&buf, "<div class=\"table-renderer\" id=\"table_%s\">\n", request.Filename)
 
+	model := createModel(request)
+
 	startTable(request, &buf)
-	writeTableBody(request, &buf)
+	writeColumnGroup(model, &buf)
+	writeTableBody(model, &buf)
 	buf.WriteString("</table>\n")
 
 	writeFooter(request, &buf)
@@ -31,10 +41,11 @@ func RenderHTML(request *models.RenderRequest) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
+// write the table and caption tags
 func startTable(request *models.RenderRequest, buf *bytes.Buffer) {
 	caption := request.Title
 	if len(request.Subtitle) > 0 {
-		caption += fmt.Sprintf("<br/><span id=\"table_%s_description\" class=\"table_subtitle\">%s</span>", request.Filename, parseValue(request, request.Subtitle))
+		caption += fmt.Sprintf("<br /><span id=\"table_%s_description\" class=\"table_subtitle\">%s</span>", request.Filename, parseValue(request, request.Subtitle))
 		fmt.Fprintf(buf, "<table aria-describedby=\"table_%s_description\">\n", request.Filename)
 	} else {
 		fmt.Fprintf(buf, "<table>\n")
@@ -44,16 +55,41 @@ func startTable(request *models.RenderRequest, buf *bytes.Buffer) {
 	}
 }
 
-func writeTableBody(request *models.RenderRequest, buf *bytes.Buffer) {
+// writes the colgroup element if necessary, applying style to columns
+func writeColumnGroup(model *tableModel, buf *bytes.Buffer) {
+	if len(model.request.ColumnFormats) > 0 {
+		buf.WriteString("<colgroup>\n")
+		for _, col := range model.columns {
+			buf.WriteString("<col")
+			if len(col.Align) > 0 {
+				fmt.Fprintf(buf, " class=\"%s\"", col.Align)
+			}
+			if len(col.Width) > 0 {
+				fmt.Fprintf(buf, " style=\"width: %s\"", col.Width)
+			}
+			buf.WriteString(" />")
+		}
+		buf.WriteString("</colgroup>\n")
+	}
+}
+
+// write the rows of the table
+func writeTableBody(model *tableModel, buf *bytes.Buffer) {
+	request := model.request
 	for _, row := range request.Data {
 		buf.WriteString("<tr>")
-		for _, col := range row {
-			fmt.Fprintf(buf, "<td>%s</td>", parseValue(request, col))
+		for i, col := range row {
+			if model.columns[i].Heading {
+				fmt.Fprintf(buf, "<th scope=\"row\">%s</th>", parseValue(request, col))
+			} else {
+				fmt.Fprintf(buf, "<td>%s</td>", parseValue(request, col))
+			}
 		}
 		buf.WriteString("</tr>\n")
 	}
 }
 
+// write a footer element with Source and footnotes
 func writeFooter(request *models.RenderRequest, buf *bytes.Buffer) {
 	buf.WriteString("<footer>\n")
 	if len(request.Source) > 0 {
@@ -70,9 +106,9 @@ func writeFooter(request *models.RenderRequest, buf *bytes.Buffer) {
 	buf.WriteString("</footer>\n")
 }
 
-// Replaces \n with <br/> and wraps [1] with a link to the footnote
+// Replaces \n with <br /> and wraps [1] with a link to the footnote
 func parseValue(request *models.RenderRequest, value string) string {
-	value = newLine.ReplaceAllLiteralString(value, "<br/>")
+	value = newLine.ReplaceAllLiteralString(value, "<br />")
 	if len(request.Footnotes) > 0 && footnoteLink.MatchString(value) {
 		for i := range request.Footnotes {
 			n := i + 1
@@ -81,4 +117,37 @@ func parseValue(request *models.RenderRequest, value string) string {
 		}
 	}
 	return value
+}
+
+
+// Creates a tableModel containing calculations that are referenced more than once while rendering the table
+func createModel(request *models.RenderRequest) *tableModel {
+	m := tableModel{request:request}
+	m.columns = indexColumnFormats(request)
+	return &m
+}
+// indexes the ColumnFormats so that columns[i] gives the correct format for column i
+func indexColumnFormats(request *models.RenderRequest) []models.ColumnFormat {
+	// find the maximum number of columns in the data - should be the same in every row, but don't trust that
+	count := 0
+	for i, _ := range request.Data {
+		n := len(request.Data[i])
+		if (n > count) {
+			count = n
+		}
+	}
+	// create default ColumnFormats
+	columns := make([]models.ColumnFormat, count)
+	for i,_ := range columns {
+		columns[i] = models.ColumnFormat{Column:i}
+	}
+	// replace with actual ColumnFormats where they exist
+	for _, format := range request.ColumnFormats {
+		if (format.Column >= count) {
+			log.Debug("ColumnFormat specified for non-existent column", log.Data{"filename": request.Filename, "ColumnFormat": format, "column_count": count})
+		} else {
+			columns[format.Column] = format
+		}
+	}
+	return columns
 }
