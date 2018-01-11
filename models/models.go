@@ -52,7 +52,6 @@ type CellFormat struct {
 	Column        int    `json:"col"`
 	Align         string `json:"align"`
 	VerticalAlign string `json:"vertical_align"`
-	Heading       bool   `json:"heading"`
 	Rowspan       int    `json:"rowspan"`
 	Colspan       int    `json:"colspan"`
 }

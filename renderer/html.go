@@ -23,6 +23,16 @@ var (
 type tableModel struct {
 	request *models.RenderRequest
 	columns []models.ColumnFormat
+	rows    []models.RowFormat
+	cells   map[int]map[int]*cellModel
+}
+
+// contains details of a cell that requires special handling
+type cellModel struct {
+	skip    bool
+	colspan int
+	rowspan int
+	style   string
 }
 
 // RenderHTML returns an HTML representation of the table generated from the given request
@@ -75,6 +85,16 @@ func setAttribute(node *html.Node, key string, val string) {
 	node.Attr = append(node.Attr, html.Attribute{Key: key, Val: val})
 }
 
+func replaceAttribute(node *html.Node, key string, val string) {
+	var attr []html.Attribute
+	for _, a := range node.Attr {
+		if a.Key != key {
+			attr = append(attr, a)
+		}
+	}
+	node.Attr = append(attr, html.Attribute{Key: key, Val: val})
+}
+
 func attr(key string, val string) html.Attribute {
 	return html.Attribute{Key: key, Val: val}
 }
@@ -83,7 +103,7 @@ func text(text string) *html.Node {
 	return &html.Node{Type: html.TextNode, Data: text}
 }
 
-// createTable creates a table node with a caption
+// addTable creates a table node with a caption and adds it to the given node
 func addTable(request *models.RenderRequest, parent *html.Node) *html.Node {
 	table := createNode("table", atom.Table, "\n")
 
@@ -132,19 +152,47 @@ func addColumnGroup(model *tableModel, table *html.Node) {
 
 // adds all rows to the table. Rows contain th or td cells as appropriate.
 func addRows(model *tableModel, table *html.Node) {
-	request := model.request
-	for _, row := range request.Data {
+	for rowIdx, row := range model.request.Data {
 		tr := createNode("tr", atom.Tr)
 		table.AppendChild(tr)
-		for i, col := range row {
-			if model.columns[i].Heading {
-				tr.AppendChild(createNode("th", atom.Th, attr("scope", "row"), parseValue(request, col)))
-			} else {
-				tr.AppendChild(createNode("td", atom.Td, parseValue(request, col)))
-			}
+		for colIdx, col := range row {
+			addTableCell(model, tr, col, rowIdx, colIdx)
 		}
 		table.AppendChild(text("\n"))
 	}
+}
+
+// adds an individual table cell to the given tr node
+func addTableCell(model *tableModel, tr *html.Node, colText string, rowIdx int, colIdx int) {
+	cell := model.cells[rowIdx][colIdx]
+	if cell!= nil && cell.skip {
+		return
+	}
+	if cell == nil {
+		cell = &cellModel{}
+	}
+	value := parseValue(model.request, colText)
+	var node *html.Node
+	if model.rows[rowIdx].Heading {
+		node = createNode("th", atom.Th, attr("scope", "col"), value)
+		if cell.colspan > 1 {
+			replaceAttribute(node, "scope", "colgroup")
+		}
+	} else if model.columns[colIdx].Heading {
+		node = createNode("th", atom.Th, attr("scope", "row"), value)
+		if cell.rowspan > 1 {
+			replaceAttribute(node, "scope", "rowgroup")
+		}
+	} else {
+		node = createNode("td", atom.Td, value)
+	}
+	if cell.colspan > 1 {
+		setAttribute(node, "colspan", fmt.Sprintf("%d", cell.colspan))
+	}
+	if cell.rowspan > 1 {
+		setAttribute(node, "rowspan", fmt.Sprintf("%d", cell.rowspan))
+	}
+	tr.AppendChild(node)
 }
 
 // addFooter adds a footer to the given element, containing the source and footnotes
@@ -217,6 +265,8 @@ func replaceValues(request *models.RenderRequest, value string, hasBr bool, hasF
 func createModel(request *models.RenderRequest) *tableModel {
 	m := tableModel{request: request}
 	m.columns = indexColumnFormats(request)
+	m.rows = indexRowFormats(request)
+	m.cells = createCellModels(request)
 	return &m
 }
 
@@ -244,4 +294,70 @@ func indexColumnFormats(request *models.RenderRequest) []models.ColumnFormat {
 		}
 	}
 	return columns
+}
+
+// indexes the RowFormats so that rows[i] gives the correct format for row i
+func indexRowFormats(request *models.RenderRequest) []models.RowFormat {
+	count := len(request.Data)
+	// create default RowFormats
+	rows := make([]models.RowFormat, count)
+	for i := range rows {
+		rows[i] = models.RowFormat{Row: i}
+	}
+	// replace with actual RowFormats where they exist
+	for _, format := range request.RowFormats {
+		if format.Row >= count || format.Row < 0 {
+			log.Debug("RowFormat specified for non-existent row", log.Data{"filename": request.Filename, "RowFormat": format, "row_count": count})
+		} else {
+			rows[format.Row] = format
+		}
+	}
+	return rows
+}
+
+// creates a map with one cellModel for each cell that requires special handling
+func createCellModels(request *models.RenderRequest) map[int]map[int]*cellModel {
+	m := make(map[int]map[int]*cellModel)
+	for _, format := range request.CellFormats {
+		cell := getCellModel(m, format.Row, format.Column)
+		cell.colspan = format.Colspan
+		cell.rowspan = format.Rowspan
+		if len(format.Align) > 0 || len(format.VerticalAlign) > 0 {
+			cell.style = strings.Trim(format.Align+" "+format.VerticalAlign, " ")
+		}
+		// if we have merged cells, find those that need to be skipped in the output
+		colspan := min(format.Colspan, 1)
+		rowspan := min(format.Rowspan, 1)
+		for c := 0; c < colspan; c++ {
+			for r := 0; r < rowspan; r++ {
+				if (c + r) > 0 {
+					otherCell := getCellModel(m, format.Row+r, format.Column+c)
+					otherCell.skip = true
+				}
+			}
+		}
+	}
+	return m
+}
+
+func min(a int, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
+
+// getCellModel finds the requested cellModel from the map, creating the cellModel and parent map if necessary
+func getCellModel(m map[int]map[int]*cellModel, r int, c int) *cellModel {
+	row, exists := m[r]
+	if !exists {
+		row = make(map[int]*cellModel)
+		m[r] = row
+	}
+	cell, exists := row[c]
+	if !exists {
+		cell = &cellModel{}
+		row[c] = cell
+	}
+	return cell
 }

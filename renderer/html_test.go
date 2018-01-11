@@ -253,6 +253,47 @@ func TestRenderHTML_ColumnFormats(t *testing.T) {
 		}
 	})
 
+	Convey("Columns flagged as headers should have the correct scope when in a header row", t, func() {
+		colFormats := []models.ColumnFormat{{Column: 0, Heading: true}}
+		rowFormats := []models.RowFormat{{Row: 0, Heading: true}}
+		cells := [][]string{{"Cell 1", "Cell 2", "Cell 3", "Cell 4"}, {"Cell 1", "Cell 2", "Cell 3", "Cell 4"}}
+		request := models.RenderRequest{Filename: "myId", ColumnFormats: colFormats, RowFormats: rowFormats, Data: cells}
+		div, _ := invokeRenderHTML(&request)
+		table := findNode(div, atom.Table)
+
+		rows := findNodes(table, atom.Tr)
+		So(len(rows), ShouldEqual, len(cells))
+		headers := findNodes(rows[0], atom.Th)
+		So(len(headers), ShouldEqual, len(cells[0]))
+		for _, col := range headers {
+			So(getAttribute(col, "scope"), ShouldEqual, "col")
+		}
+		rowHeaders := findNodes(rows[1], atom.Th)
+		So(len(rowHeaders), ShouldEqual, 1)
+		So(getAttribute(rowHeaders[0], "scope"), ShouldEqual, "row")
+	})
+
+	Convey("Columns with colspan flagged as headers should have the correct scope when in a header row", t, func() {
+		colFormats := []models.ColumnFormat{{Column: 0, Heading: true}}
+		rowFormats := []models.RowFormat{{Row: 0, Heading: true}}
+		cellFormats := []models.CellFormat{{Row: 0, Column:0, Colspan:2}}
+		cells := [][]string{{"Cell 1", "Cell 2", "Cell 3", "Cell 4"}, {"Cell 1", "Cell 2", "Cell 3", "Cell 4"}}
+		request := models.RenderRequest{Filename: "myId", ColumnFormats: colFormats, RowFormats: rowFormats, CellFormats: cellFormats, Data: cells}
+		div, _ := invokeRenderHTML(&request)
+		table := findNode(div, atom.Table)
+
+		rows := findNodes(table, atom.Tr)
+		So(len(rows), ShouldEqual, len(cells))
+		headers := findNodes(rows[0], atom.Th)
+		So(len(headers), ShouldEqual, len(cells[0]) - 1)
+		So(getAttribute(headers[0], "scope"), ShouldEqual, "colgroup")
+		So(getAttribute(headers[1], "scope"), ShouldEqual, "col")
+
+		rowHeaders := findNodes(rows[1], atom.Th)
+		So(len(rowHeaders), ShouldEqual, 1)
+		So(getAttribute(rowHeaders[0], "scope"), ShouldEqual, "row")
+	})
+
 	Convey("Column formats beyond the count of columns are ignored", t, func() {
 		formats := []models.ColumnFormat{{Column: -1, Width: "5em"},{Column: 5, Width: "5em"}}
 		cells := [][]string{{"Cell 1", "Cell 2", "Cell 3", "Cell 4"}, {"Cell 1", "Cell 2", "Cell 3", "Cell 4"}}
