@@ -254,7 +254,7 @@ func TestRenderHTML_ColumnFormats(t *testing.T) {
 	})
 
 	Convey("Column formats beyond the count of columns are ignored", t, func() {
-		formats := []models.ColumnFormat{{Column: 5, Width: "5em"}}
+		formats := []models.ColumnFormat{{Column: -1, Width: "5em"},{Column: 5, Width: "5em"}}
 		cells := [][]string{{"Cell 1", "Cell 2", "Cell 3", "Cell 4"}, {"Cell 1", "Cell 2", "Cell 3", "Cell 4"}}
 		request := models.RenderRequest{Filename: "myId", ColumnFormats: formats, Data: cells}
 		div, _ := invokeRenderHTML(&request)

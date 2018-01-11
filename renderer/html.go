@@ -83,7 +83,6 @@ func text(text string) *html.Node {
 	return &html.Node{Type: html.TextNode, Data: text}
 }
 
-
 // createTable creates a table node with a caption
 func addTable(request *models.RenderRequest, parent *html.Node) *html.Node {
 	table := createNode("table", atom.Table, "\n")
@@ -110,7 +109,7 @@ func addTable(request *models.RenderRequest, parent *html.Node) *html.Node {
 	return table
 }
 
-// addColumnGroup adds a columnGroup, if required, to the given table
+// addColumnGroup adds a columnGroup, if required, to the given table. Cols in the colgroup specify column width and alignment.
 func addColumnGroup(model *tableModel, table *html.Node) {
 	if len(model.request.ColumnFormats) > 0 {
 		colgroup := createNode("colgroup", atom.Colgroup)
@@ -131,7 +130,7 @@ func addColumnGroup(model *tableModel, table *html.Node) {
 	}
 }
 
-// adds all rows to the table
+// adds all rows to the table. Rows contain th or td cells as appropriate.
 func addRows(model *tableModel, table *html.Node) {
 	request := model.request
 	for _, row := range request.Data {
@@ -238,7 +237,7 @@ func indexColumnFormats(request *models.RenderRequest) []models.ColumnFormat {
 	}
 	// replace with actual ColumnFormats where they exist
 	for _, format := range request.ColumnFormats {
-		if format.Column >= count {
+		if format.Column >= count || format.Column < 0 {
 			log.Debug("ColumnFormat specified for non-existent column", log.Data{"filename": request.Filename, "ColumnFormat": format, "column_count": count})
 		} else {
 			columns[format.Column] = format
