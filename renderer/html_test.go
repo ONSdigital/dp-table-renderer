@@ -50,8 +50,8 @@ func TestRenderHTML(t *testing.T) {
 		footnotes := findNodes(footer, atom.Li)
 		So(len(footnotes), ShouldEqual, len(renderRequest.Footnotes))
 
-		// new line characters are converted to <br /> tags
-		So(responseHTML, ShouldContainSubstring, "CPIH 12-<br />month rate")
+		// new line characters are converted to <br/> tags
+		So(responseHTML, ShouldContainSubstring, "CPIH 12-<br/>month rate")
 	})
 }
 
@@ -89,7 +89,7 @@ func TestRenderHTML_Table(t *testing.T) {
 		So(span, ShouldNotBeNil)
 		So(span.FirstChild.Data, ShouldEqual, "Subtitle")
 		So(getAttribute(span, "id"), ShouldEqual, "table_filename_description")
-		So(getAttribute(span, "class"), ShouldEqual, "table_subtitle")
+		So(getAttribute(span, "class"), ShouldEqual, "table-subtitle")
 	})
 
 	Convey("A table without subtitle should not have aria-describedby", t, func() {
@@ -171,13 +171,13 @@ func TestRenderHTML_Footer(t *testing.T) {
 		request := models.RenderRequest{Filename: "myId", Footnotes: []string{"Note1", "Note2\nOn Two Lines"}}
 		_, result := invokeRenderHTML(&request)
 
-		So(result, ShouldContainSubstring, "Note2<br />On Two Lines")
+		So(result, ShouldContainSubstring, "Note2<br/>On Two Lines")
 	})
 }
 
 func TestRenderHTML_FootnoteLinks(t *testing.T) {
 	Convey("A renderRequest with references to footnotes should convert those to links", t, func() {
-		request := models.RenderRequest{Filename: "myId", Footnotes: []string{"Note1", "Note2"}, Data: [][]string{{"Cell 1[1]", "Cell[2] 2[1]"}, {"Cell 3[3]", "Cell[0]"}}}
+		request := models.RenderRequest{Filename: "myId", Footnotes: []string{"Note1", "Note2"}, Data: [][]string{{"Cell 1[1]", "Cell[2] 2[1]"}, {"Cell 3[3]", "Cell[0][]"}}}
 		div, raw := invokeRenderHTML(&request)
 
 		links := findNodesWithAttributes(div, atom.A, map[string]string{"class": "footnote-link"})
@@ -195,7 +195,7 @@ func TestRenderHTML_FootnoteLinks(t *testing.T) {
 		So(raw, ShouldNotContainSubstring, "Cell 1[1]")
 		So(raw, ShouldNotContainSubstring, "Cell[2] 2[1]")
 		So(raw, ShouldContainSubstring, "Cell 3[3]")
-		So(raw, ShouldContainSubstring, "Cell[0]")
+		So(raw, ShouldContainSubstring, "Cell[0][]")
 	})
 
 	Convey("Multiple references to the same footnote in the same value should all be converted to links", t, func() {
@@ -254,7 +254,7 @@ func TestRenderHTML_ColumnFormats(t *testing.T) {
 	})
 
 	Convey("Column formats beyond the count of columns are ignored", t, func() {
-		formats := []models.ColumnFormat{{Column: 0, Heading: true}, {Column: 5, Heading: true}}
+		formats := []models.ColumnFormat{{Column: 5, Width: "5em"}}
 		cells := [][]string{{"Cell 1", "Cell 2", "Cell 3", "Cell 4"}, {"Cell 1", "Cell 2", "Cell 3", "Cell 4"}}
 		request := models.RenderRequest{Filename: "myId", ColumnFormats: formats, Data: cells}
 		div, _ := invokeRenderHTML(&request)
@@ -264,8 +264,9 @@ func TestRenderHTML_ColumnFormats(t *testing.T) {
 		So(colgroup, ShouldNotBeNil)
 		cols := findNodes(colgroup, atom.Col)
 		So(len(cols), ShouldEqual, len(request.Data[0]))
-
-		// todo
+		for _, col := range cols {
+			So(getAttribute(col, "style"), ShouldBeEmpty)
+		}
 	})
 }
 
