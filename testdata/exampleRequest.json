@@ -2,18 +2,19 @@
   "filename": "abcd1234",
   "title": "This is an example table",
   "subtitle": "with a subtitle",
-  "type": "new-table",
+  "source": "Office for National Statistics",
+  "type": "generated-table",
   "uri": "/path/to/the/table/json",
   "style_class": "foo bar",
   "row_formats": [
-    {"row": 0, "style_class": "emphasis", "style": "text-color: blue", "heading": true}
+    {"row": 0, "heading": true}
   ],
   "column_formats": [
-    {"col": 0, "align": "right", "style": "width: 20em", "heading": true},
-    {"col": 1, "align": "right", "style_class": "emphasis", "style": "width: 20em", "heading": true}
+    {"col": 0, "align": "right", "width": "5em", "heading": true},
+    {"col": 1, "align": "right", "width": "4em", "heading": true}
   ],
   "cell_formats": [
-    {"row": 0, "col": 0, "align": "middle", "colspan": 2},
+    {"row": 0, "col": 0, "align": "center", "colspan": 2},
     {"row": 1, "col": 0, "align": "left", "vertical_align": "top", "rowspan": 2},
     {"row": 3, "col": 0, "align": "left", "vertical_align": "top", "rowspan": 11}
   ],
@@ -35,7 +36,9 @@
   ],
   "footnotes": [
     "Footnotes are indexed from 1",
-    "And can be referenced from any data element or title using square brackets: [1]"
+    "And can be referenced from any data element or title using square brackets: [ 1 ]",
+    "Note that when cells include rowspan or colspan you should still include all the cells in data - the merged cells should be null or empty string",
+    "The align/vertical-align properties of row column and cell formats are output in html as class attributes"
   ]
 
 }
