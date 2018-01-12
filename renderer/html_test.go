@@ -253,8 +253,49 @@ func TestRenderHTML_ColumnFormats(t *testing.T) {
 		}
 	})
 
+	Convey("Columns flagged as headers should have the correct scope when in a header row", t, func() {
+		colFormats := []models.ColumnFormat{{Column: 0, Heading: true}}
+		rowFormats := []models.RowFormat{{Row: 0, Heading: true}}
+		cells := [][]string{{"Cell 1", "Cell 2", "Cell 3", "Cell 4"}, {"Cell 1", "Cell 2", "Cell 3", "Cell 4"}}
+		request := models.RenderRequest{Filename: "myId", ColumnFormats: colFormats, RowFormats: rowFormats, Data: cells}
+		div, _ := invokeRenderHTML(&request)
+		table := findNode(div, atom.Table)
+
+		rows := findNodes(table, atom.Tr)
+		So(len(rows), ShouldEqual, len(cells))
+		headers := findNodes(rows[0], atom.Th)
+		So(len(headers), ShouldEqual, len(cells[0]))
+		for _, col := range headers {
+			So(getAttribute(col, "scope"), ShouldEqual, "col")
+		}
+		rowHeaders := findNodes(rows[1], atom.Th)
+		So(len(rowHeaders), ShouldEqual, 1)
+		So(getAttribute(rowHeaders[0], "scope"), ShouldEqual, "row")
+	})
+
+	Convey("Columns with colspan flagged as headers should have the correct scope when in a header row", t, func() {
+		colFormats := []models.ColumnFormat{{Column: 0, Heading: true}}
+		rowFormats := []models.RowFormat{{Row: 0, Heading: true}}
+		cellFormats := []models.CellFormat{{Row: 0, Column: 0, Colspan: 2}}
+		cells := [][]string{{"Cell 1", "Cell 2", "Cell 3", "Cell 4"}, {"Cell 1", "Cell 2", "Cell 3", "Cell 4"}}
+		request := models.RenderRequest{Filename: "myId", ColumnFormats: colFormats, RowFormats: rowFormats, CellFormats: cellFormats, Data: cells}
+		div, _ := invokeRenderHTML(&request)
+		table := findNode(div, atom.Table)
+
+		rows := findNodes(table, atom.Tr)
+		So(len(rows), ShouldEqual, len(cells))
+		headers := findNodes(rows[0], atom.Th)
+		So(len(headers), ShouldEqual, len(cells[0])-1)
+		So(getAttribute(headers[0], "scope"), ShouldEqual, "colgroup")
+		So(getAttribute(headers[1], "scope"), ShouldEqual, "col")
+
+		rowHeaders := findNodes(rows[1], atom.Th)
+		So(len(rowHeaders), ShouldEqual, 1)
+		So(getAttribute(rowHeaders[0], "scope"), ShouldEqual, "row")
+	})
+
 	Convey("Column formats beyond the count of columns are ignored", t, func() {
-		formats := []models.ColumnFormat{{Column: -1, Width: "5em"},{Column: 5, Width: "5em"}}
+		formats := []models.ColumnFormat{{Column: -1, Width: "5em"}, {Column: 5, Width: "5em"}}
 		cells := [][]string{{"Cell 1", "Cell 2", "Cell 3", "Cell 4"}, {"Cell 1", "Cell 2", "Cell 3", "Cell 4"}}
 		request := models.RenderRequest{Filename: "myId", ColumnFormats: formats, Data: cells}
 		div, _ := invokeRenderHTML(&request)
@@ -267,6 +308,82 @@ func TestRenderHTML_ColumnFormats(t *testing.T) {
 		for _, col := range cols {
 			So(getAttribute(col, "style"), ShouldBeEmpty)
 		}
+	})
+}
+
+func TestRenderHTML_MergeCells(t *testing.T) {
+	Convey("A renderRequest with merged cells should have the correct number of cells", t, func() {
+		cellFormats := []models.CellFormat{
+			{Row: 0, Column: 0, Colspan: 2, Rowspan: 2},
+			{Row: 0, Column: 3, Colspan: 2},
+			{Row: 3, Column: 3, Rowspan: 2}}
+		cells := [][]string{
+			{"0A", "0B", "0C", "0D", "0E"},
+			{"1A", "1B", "1C", "1D", "1E"},
+			{"2A", "2B", "2C", "2D", "2E"},
+			{"3A", "3B", "3C", "3D", "3E"},
+			{"4A", "4B", "4C", "4D", "4E"}}
+		request := models.RenderRequest{Filename: "myId", CellFormats: cellFormats, Data: cells}
+		div, raw := invokeRenderHTML(&request)
+		table := findNode(div, atom.Table)
+
+		rows := findNodes(table, atom.Tr)
+		So(len(rows), ShouldEqual, len(cells))
+		So(len(findNodes(rows[0], atom.Td)), ShouldEqual, 3)
+		So(len(findNodes(rows[1], atom.Td)), ShouldEqual, 3)
+		So(len(findNodes(rows[2], atom.Td)), ShouldEqual, 5)
+		So(len(findNodes(rows[3], atom.Td)), ShouldEqual, 5)
+		So(len(findNodes(rows[4], atom.Td)), ShouldEqual, 4)
+
+		So(raw, ShouldNotContainSubstring, "0B")
+		So(raw, ShouldNotContainSubstring, "0E")
+		So(raw, ShouldNotContainSubstring, "1A")
+		So(raw, ShouldNotContainSubstring, "1B")
+		So(raw, ShouldNotContainSubstring, "4D")
+	})
+}
+
+func TestRenderHTML_ColumnAndRowAlignment(t *testing.T) {
+	Convey("A renderRequest with various alignments should have correct classes", t, func() {
+		rowFormats := []models.RowFormat{{Row: 0, VerticalAlign: "top"}}
+		colFormats := []models.ColumnFormat{{Column: 0, Align: "right"}}
+		cellFormats := []models.CellFormat{{Row: 0, Column: 0, VerticalAlign: "bottom", Align: "left"}}
+		cells := [][]string{{"Cell 1", "Cell 2", "Cell 3", "Cell 4"}}
+		request := models.RenderRequest{Filename: "myId", ColumnFormats: colFormats, RowFormats: rowFormats, CellFormats: cellFormats, Data: cells}
+		div, _ := invokeRenderHTML(&request)
+		table := findNode(div, atom.Table)
+
+		colgroup := findNode(table, atom.Colgroup)
+		So(colgroup, ShouldNotBeNil)
+		cols := findNodes(colgroup, atom.Col)
+		So(len(cols), ShouldEqual, len(request.Data[0]))
+		So(getAttribute(cols[0], "class"), ShouldEqual, "right")
+
+		rows := findNodes(table, atom.Tr)
+		So(len(rows), ShouldEqual, len(cells))
+		So(getAttribute(rows[0], "class"), ShouldEqual, "top")
+
+		td := findNodes(rows[0], atom.Td)
+		So(len(td), ShouldEqual, len(request.Data[0]))
+		So(getAttribute(td[0], "class"), ShouldContainSubstring, "bottom")
+		So(getAttribute(td[0], "class"), ShouldContainSubstring, "left")
+		So(getAttribute(td[1], "class"), ShouldBeEmpty)
+	})
+}
+
+func TestRenderHTML_RowHeight(t *testing.T) {
+	Convey("A renderRequest with row height should have correct style", t, func() {
+		rowFormats := []models.RowFormat{{Row: 0, Height: "5em"}}
+		cells := [][]string{{"Cell 1", "Cell 2", "Cell 3", "Cell 4"}, {"Cell 1", "Cell 2", "Cell 3", "Cell 4"}}
+		request := models.RenderRequest{Filename: "myId", RowFormats: rowFormats, Data: cells}
+		div, _ := invokeRenderHTML(&request)
+		table := findNode(div, atom.Table)
+
+		rows := findNodes(table, atom.Tr)
+		So(len(rows), ShouldEqual, len(cells))
+		So(getAttribute(rows[0], "style"), ShouldEqual, "height: 5em")
+		So(getAttribute(rows[1], "style"), ShouldBeEmpty)
+
 	})
 }
 

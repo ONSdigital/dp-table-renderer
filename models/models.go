@@ -33,9 +33,10 @@ type RenderRequest struct {
 
 // RowFormat allows us to specify that a row contains headings, and provide a style for html
 type RowFormat struct {
-	Row     int    `json:"row"` // the index of the row the format applies to
-	Heading bool   `json:"heading"`
-	Height  string `json:"height"`
+	Row           int    `json:"row"` // the index of the row the format applies to
+	VerticalAlign string `json:"vertical_align"`
+	Heading       bool   `json:"heading"`
+	Height        string `json:"height"`
 }
 
 // ColumnFormat allows us to specify that a column contains headings, specify alignment and provide a style for html
@@ -52,7 +53,6 @@ type CellFormat struct {
 	Column        int    `json:"col"`
 	Align         string `json:"align"`
 	VerticalAlign string `json:"vertical_align"`
-	Heading       bool   `json:"heading"`
 	Rowspan       int    `json:"rowspan"`
 	Colspan       int    `json:"colspan"`
 }

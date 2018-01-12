@@ -29,7 +29,7 @@ func CreateRendererAPI(host, bindAddr string, errorChan chan error) {
 	go func() {
 		log.Debug("Starting table renderer...", nil)
 		if err := httpServer.ListenAndServe(); err != nil {
-			log.ErrorC("Table renderer http server returned error", err, nil)
+			log.ErrorC("Main", err, log.Data{"MethodInError": "httpServer.ListenAndServe()"})
 			errorChan <- err
 		}
 	}()
