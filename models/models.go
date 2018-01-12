@@ -31,6 +31,19 @@ type RenderRequest struct {
 	Footnotes     []string       `json:"footnotes"`
 }
 
+// ParseRequest represents a request to convert an html table (plus supporting data) into the correct RenderRequest format
+type ParseRequest struct {
+	Title      string   `json:"title"`
+	Subtitle   string   `json:"subtitle"`
+	Source     string   `json:"source"`
+	Filename   string   `json:"filename"`
+	URI        string   `json:"uri"`
+	Footnotes  []string `json:"footnotes"`
+	TableHTML  string   `json:"table_html"`
+	HeaderRows int      `json:"header_rows"`
+	HeaderCols int      `json:"header_cols"`
+}
+
 // RowFormat allows us to specify that a row contains headings, and provide a style for html
 type RowFormat struct {
 	Row           int    `json:"row"` // the index of the row the format applies to
@@ -57,7 +70,7 @@ type CellFormat struct {
 	Colspan       int    `json:"colspan"`
 }
 
-// CreateRenderRequest manages the creation of a filter from a reader
+// CreateRenderRequest manages the creation of a RenderRequest from a reader
 func CreateRenderRequest(reader io.Reader) (*RenderRequest, error) {
 	bytes, err := ioutil.ReadAll(reader)
 	if err != nil {
@@ -65,6 +78,43 @@ func CreateRenderRequest(reader io.Reader) (*RenderRequest, error) {
 	}
 
 	var request RenderRequest
+	err = json.Unmarshal(bytes, &request)
+	if err != nil {
+		return nil, ErrorParsingBody
+	}
+
+	// This should be the last check before returning RenderRequest
+	if len(bytes) == 2 {
+		return &request, ErrorNoData
+	}
+
+	return &request, nil
+}
+
+// ValidateRenderRequest checks the content of the request structure
+func (rr *RenderRequest) ValidateRenderRequest() error {
+
+	var missingFields []string
+
+	if len(rr.Filename) == 0 {
+		missingFields = append(missingFields, "filename")
+	}
+
+	if missingFields != nil {
+		return fmt.Errorf("Missing mandatory fields: %v", missingFields)
+	}
+
+	return nil
+}
+
+// CreateParseRequest manages the creation of a ParseRequest from a reader
+func CreateParseRequest(reader io.Reader) (*ParseRequest, error) {
+	bytes, err := ioutil.ReadAll(reader)
+	if err != nil {
+		return nil, ErrorReadingBody
+	}
+
+	var request ParseRequest
 	err = json.Unmarshal(bytes, &request)
 	if err != nil {
 		return nil, ErrorParsingBody
@@ -78,12 +128,17 @@ func CreateRenderRequest(reader io.Reader) (*RenderRequest, error) {
 	return &request, nil
 }
 
-// ValidateRenderRequest checks the content of the request structure
-func (rr *RenderRequest) ValidateRenderRequest() error {
+// ValidateParseRequest checks the content of the request structure
+func (pr *ParseRequest) ValidateParseRequest() error {
 
 	var missingFields []string
 
-	// checking of required fields here!
+	if len(pr.Filename) == 0 {
+		missingFields = append(missingFields, "filename")
+	}
+	if len(pr.TableHTML) == 0 {
+		missingFields = append(missingFields, "table_html")
+	}
 
 	if missingFields != nil {
 		return fmt.Errorf("Missing mandatory fields: %v", missingFields)

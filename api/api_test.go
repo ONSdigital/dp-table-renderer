@@ -15,7 +15,9 @@ import (
 var (
 	host        = "http://localhost:80"
 	requestURL  = host + "/render/html"
-	requestBody = `{"title":"table_title", "type":"table_type"}`
+	requestBody = `{"title":"table_title", "filename": "file_name", "type":"table_type"}`
+	parseURL    = host + "/parse/html"
+	parseBody   = `{"title":"table_title", "filename": "file_name", "table_html":"<table></table>"}`
 )
 
 func TestSuccessfullyRenderTable(t *testing.T) {
@@ -30,6 +32,24 @@ func TestSuccessfullyRenderTable(t *testing.T) {
 		api.router.ServeHTTP(w, r)
 		So(w.Code, ShouldEqual, http.StatusOK)
 		So(w.Header().Get("Content-Type"), ShouldEqual, "text/html")
+		So(w.Body.String(), ShouldContainSubstring, "<table")
+		So(w.Body.String(), ShouldContainSubstring, "table_title")
+	})
+
+}
+
+func TestSuccessfullyParseTable(t *testing.T) {
+	t.Parallel()
+	Convey("Successfully parse an html table", t, func() {
+		reader := strings.NewReader(parseBody)
+		r, err := http.NewRequest("POST", parseURL, reader)
+		So(err, ShouldBeNil)
+
+		w := httptest.NewRecorder()
+		api := routes(host, mux.NewRouter())
+		api.router.ServeHTTP(w, r)
+		So(w.Code, ShouldEqual, http.StatusOK)
+		So(w.Header().Get("Content-Type"), ShouldEqual, "application/json")
 		So(w.Body.String(), ShouldContainSubstring, "<table")
 		So(w.Body.String(), ShouldContainSubstring, "table_title")
 	})

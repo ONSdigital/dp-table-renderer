@@ -160,7 +160,7 @@ func addRows(model *tableModel, table *html.Node) {
 			setAttribute(tr, "class", model.rows[rowIdx].VerticalAlign)
 		}
 		if len(model.rows[rowIdx].Height) > 0 {
-			setAttribute(tr, "style", "height: " + model.rows[rowIdx].Height)
+			setAttribute(tr, "style", "height: "+model.rows[rowIdx].Height)
 		}
 		for colIdx, col := range row {
 			addTableCell(model, tr, col, rowIdx, colIdx)
