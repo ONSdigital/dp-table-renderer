@@ -160,7 +160,7 @@ func addRows(model *tableModel, table *html.Node) {
 			setAttribute(tr, "class", model.rows[rowIdx].VerticalAlign)
 		}
 		if len(model.rows[rowIdx].Height) > 0 {
-			setAttribute(tr, "style", model.rows[rowIdx].Height)
+			setAttribute(tr, "style", "height: " + model.rows[rowIdx].Height)
 		}
 		for colIdx, col := range row {
 			addTableCell(model, tr, col, rowIdx, colIdx)
@@ -265,7 +265,7 @@ func replaceValues(request *models.RenderRequest, value string, hasBr bool, hasF
 		DataAtom: atom.Body,
 	})
 	if err != nil {
-		log.ErrorC("Unable to parse value!", err, log.Data{"filename": request.Filename, "value": original})
+		log.ErrorC(request.Filename, err, log.Data{"replaceValues": "Unable to parse value!", "value": original})
 		return []*html.Node{{Type: html.TextNode, Data: original}}
 	}
 	return nodes

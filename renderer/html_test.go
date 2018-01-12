@@ -381,7 +381,7 @@ func TestRenderHTML_RowHeight(t *testing.T) {
 
 		rows := findNodes(table, atom.Tr)
 		So(len(rows), ShouldEqual, len(cells))
-		So(getAttribute(rows[0], "style"), ShouldEqual, "5em")
+		So(getAttribute(rows[0], "style"), ShouldEqual, "height: 5em")
 		So(getAttribute(rows[1], "style"), ShouldBeEmpty)
 
 	})

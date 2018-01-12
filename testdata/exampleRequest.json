@@ -7,7 +7,8 @@
   "uri": "/path/to/the/table/json",
   "style_class": "foo bar",
   "row_formats": [
-    {"row": 0, "heading": true}
+    {"row": 0, "heading": true},
+    {"row": 1, "height": "5em", "vertical_align": "top"}
   ],
   "column_formats": [
     {"col": 0, "align": "right", "width": "5em", "heading": true},
@@ -15,7 +16,7 @@
   ],
   "cell_formats": [
     {"row": 0, "col": 0, "align": "center", "colspan": 2},
-    {"row": 1, "col": 0, "align": "left", "vertical_align": "top", "rowspan": 2},
+    {"row": 1, "col": 1, "align": "left", "vertical_align": "middle", "rowspan": 2},
     {"row": 3, "col": 0, "align": "left", "vertical_align": "top", "rowspan": 11}
   ],
   "data": [
