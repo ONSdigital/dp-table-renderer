@@ -33,15 +33,19 @@ type RenderRequest struct {
 
 // ParseRequest represents a request to convert an html table (plus supporting data) into the correct RenderRequest format
 type ParseRequest struct {
-	Title      string   `json:"title"`
-	Subtitle   string   `json:"subtitle"`
-	Source     string   `json:"source"`
-	Filename   string   `json:"filename"`
-	URI        string   `json:"uri"`
-	Footnotes  []string `json:"footnotes"`
-	TableHTML  string   `json:"table_html"`
-	HeaderRows int      `json:"header_rows"`
-	HeaderCols int      `json:"header_cols"`
+	Title              string   `json:"title"`
+	Subtitle           string   `json:"subtitle"`
+	Source             string   `json:"source"`
+	Filename           string   `json:"filename"`
+	URI                string   `json:"uri"`
+	Footnotes          []string `json:"footnotes"`
+	TableHTML          string   `json:"table_html"`
+	HeaderRows         int      `json:"header_rows"`
+	HeaderCols         int      `json:"header_cols"`
+	currentTableWidth  int      `json:"current_table_width"` // used to convert column width from pixels to %
+	currentTableHeight int      `json:"current_table_height"` // used to convert row height from pixels to %
+	singleEmHeight     int      `json:"single_em_height"`    // used to convert height/width from pixels to em. The height of the following: <div style="display: none; font-size: 1em; margin: 0; padding:0; height: auto; line-height: 1; border:0;">m</div>
+	sizeUnits          string   `json:"size_units"`          // 'em' or '%' - the desired unit for widths/heights
 }
 
 // RowFormat allows us to specify that a row contains headings, and provide a style for html
