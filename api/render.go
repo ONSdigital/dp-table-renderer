@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/ONSdigital/dp-table-renderer/models"
-	"github.com/ONSdigital/dp-table-renderer/renderer"
+	"github.com/ONSdigital/dp-table-renderer/jsontohtml"
 	"github.com/ONSdigital/go-ns/log"
 	"github.com/gorilla/mux"
 )
@@ -45,7 +45,7 @@ func (api *RendererAPI) renderTable(w http.ResponseWriter, r *http.Request) {
 
 	switch renderType {
 	case "html":
-		bytes, err = renderer.RenderHTML(renderRequest)
+		bytes, err = jsontohtml.RenderHTML(renderRequest)
 		setContentType(w, contentHTML)
 	default:
 		log.Error(errors.New("Unknown render type"), log.Data{"render_type": renderType})

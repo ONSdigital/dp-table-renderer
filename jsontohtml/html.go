@@ -1,4 +1,4 @@
-package renderer
+package jsontohtml
 
 import (
 	"bytes"
@@ -58,52 +58,6 @@ func RenderHTML(request *models.RenderRequest) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-// createNode creates an html Node and sets attributes or adds child nodes according to the type of each value
-func createNode(data string, dataAtom atom.Atom, values ...interface{}) *html.Node {
-	node := &html.Node{
-		Type:     html.ElementNode,
-		Data:     data,
-		DataAtom: dataAtom,
-	}
-	for _, value := range values {
-		switch v := value.(type) {
-		case html.Attribute:
-			node.Attr = append(node.Attr, v)
-		case *html.Node:
-			node.AppendChild(v)
-		case []*html.Node:
-			for _, c := range v {
-				node.AppendChild(c)
-			}
-		case string:
-			node.AppendChild(&html.Node{Type: html.TextNode, Data: v})
-		}
-	}
-	return node
-}
-
-func setAttribute(node *html.Node, key string, val string) {
-	node.Attr = append(node.Attr, html.Attribute{Key: key, Val: val})
-}
-
-func replaceAttribute(node *html.Node, key string, val string) {
-	var attr []html.Attribute
-	for _, a := range node.Attr {
-		if a.Key != key {
-			attr = append(attr, a)
-		}
-	}
-	node.Attr = append(attr, html.Attribute{Key: key, Val: val})
-}
-
-func attr(key string, val string) html.Attribute {
-	return html.Attribute{Key: key, Val: val}
-}
-
-func text(text string) *html.Node {
-	return &html.Node{Type: html.TextNode, Data: text}
-}
-
 // addTable creates a table node with a caption and adds it to the given node
 func addTable(request *models.RenderRequest, parent *html.Node) *html.Node {
 	table := createNode("table", atom.Table, "\n")
@@ -121,7 +75,7 @@ func addTable(request *models.RenderRequest, parent *html.Node) *html.Node {
 			caption.AppendChild(createNode("br", atom.Br))
 			caption.AppendChild(subtitle)
 
-			setAttribute(table, "aria-describedby", subtitleID)
+			addAttribute(table, "aria-describedby", subtitleID)
 		}
 		table.AppendChild(caption)
 		table.AppendChild(text("\n"))
@@ -138,10 +92,10 @@ func addColumnGroup(model *tableModel, table *html.Node) {
 		for _, col := range model.columns {
 			node := createNode("col", atom.Col)
 			if len(col.Align) > 0 {
-				setAttribute(node, "class", col.Align)
+				addAttribute(node, "class", col.Align)
 			}
 			if len(col.Width) > 0 {
-				setAttribute(node, "style", "width: "+col.Width)
+				addAttribute(node, "style", "width: "+col.Width)
 			}
 			colgroup.AppendChild(node)
 		}
@@ -157,10 +111,10 @@ func addRows(model *tableModel, table *html.Node) {
 		tr := createNode("tr", atom.Tr)
 		table.AppendChild(tr)
 		if len(model.rows[rowIdx].VerticalAlign) > 0 {
-			setAttribute(tr, "class", model.rows[rowIdx].VerticalAlign)
+			addAttribute(tr, "class", model.rows[rowIdx].VerticalAlign)
 		}
 		if len(model.rows[rowIdx].Height) > 0 {
-			setAttribute(tr, "style", "height: "+model.rows[rowIdx].Height)
+			addAttribute(tr, "style", "height: "+model.rows[rowIdx].Height)
 		}
 		for colIdx, col := range row {
 			addTableCell(model, tr, col, rowIdx, colIdx)
@@ -194,13 +148,13 @@ func addTableCell(model *tableModel, tr *html.Node, colText string, rowIdx int, 
 		node = createNode("td", atom.Td, value)
 	}
 	if cell.colspan > 1 {
-		setAttribute(node, "colspan", fmt.Sprintf("%d", cell.colspan))
+		addAttribute(node, "colspan", fmt.Sprintf("%d", cell.colspan))
 	}
 	if cell.rowspan > 1 {
-		setAttribute(node, "rowspan", fmt.Sprintf("%d", cell.rowspan))
+		addAttribute(node, "rowspan", fmt.Sprintf("%d", cell.rowspan))
 	}
 	if len(cell.class) > 0 {
-		setAttribute(node, "class", cell.class)
+		addAttribute(node, "class", cell.class)
 	}
 	tr.AppendChild(node)
 }

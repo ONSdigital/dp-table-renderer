@@ -1,4 +1,4 @@
-package renderer_test
+package jsontohtml
 
 import (
 	"bytes"
@@ -7,7 +7,6 @@ import (
 	"fmt"
 
 	"github.com/ONSdigital/dp-table-renderer/models"
-	"github.com/ONSdigital/dp-table-renderer/renderer"
 	"github.com/ONSdigital/dp-table-renderer/testdata"
 	. "github.com/smartystreets/goconvey/convey"
 	"golang.org/x/net/html"
@@ -56,7 +55,7 @@ func TestRenderHTML(t *testing.T) {
 }
 
 func invokeRenderHTML(renderRequest *models.RenderRequest) (*html.Node, string) {
-	response, err := renderer.RenderHTML(renderRequest)
+	response, err := RenderHTML(renderRequest)
 	So(err, ShouldBeNil)
 	nodes, err := html.ParseFragment(bytes.NewReader(response), &html.Node{
 		Type:     html.ElementNode,
@@ -385,60 +384,4 @@ func TestRenderHTML_RowHeight(t *testing.T) {
 		So(getAttribute(rows[1], "style"), ShouldBeEmpty)
 
 	})
-}
-
-// find an attribute for the node - returns empty string if not found
-func getAttribute(node *html.Node, key string) string {
-	for _, attr := range node.Attr {
-		if attr.Key == key {
-			return attr.Val
-		}
-	}
-	return ""
-}
-
-// depth-first search for the first node of the given type
-func findNode(n *html.Node, a atom.Atom) *html.Node {
-	return findNodeWithAttributes(n, a, nil)
-}
-
-// depth-first search for the first node of the given type with the given attributes
-func findNodeWithAttributes(n *html.Node, a atom.Atom, attr map[string]string) *html.Node {
-	for c := n.FirstChild; c != nil; c = c.NextSibling {
-		if c.DataAtom == a && hasAttributes(c, attr) {
-			return c
-		}
-		gc := findNodeWithAttributes(c, a, attr)
-		if gc != nil {
-			return gc
-		}
-	}
-	return nil
-}
-
-// return true if the given node has all the attribute values
-func hasAttributes(n *html.Node, attr map[string]string) bool {
-	for key, value := range attr {
-		if getAttribute(n, key) != value {
-			return false
-		}
-	}
-	return true
-}
-
-// returns all child nodes of the given type
-func findNodes(n *html.Node, a atom.Atom) []*html.Node {
-	return findNodesWithAttributes(n, a, nil)
-}
-
-// returns all child nodes of the given type with the given attributes
-func findNodesWithAttributes(n *html.Node, a atom.Atom, attr map[string]string) []*html.Node {
-	var result []*html.Node
-	for c := n.FirstChild; c != nil; c = c.NextSibling {
-		if c.DataAtom == a && hasAttributes(c, attr) {
-			result = append(result, c)
-		}
-		result = append(result, findNodesWithAttributes(c, a, attr)...)
-	}
-	return result
 }
