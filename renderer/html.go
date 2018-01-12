@@ -15,8 +15,9 @@ import (
 )
 
 var (
-	newLine      = regexp.MustCompile(`\n`)
-	footnoteLink = regexp.MustCompile(`\[[0-9+]]`)
+	newLine        = regexp.MustCompile(`\n`)
+	footnoteLink   = regexp.MustCompile(`\[[0-9+]]`)
+	emptyCellModel = &cellModel{}
 )
 
 // Contains details of the table that need to be calculated once from the request and cached
@@ -32,7 +33,7 @@ type cellModel struct {
 	skip    bool
 	colspan int
 	rowspan int
-	style   string
+	class   string
 }
 
 // RenderHTML returns an HTML representation of the table generated from the given request
@@ -155,6 +156,12 @@ func addRows(model *tableModel, table *html.Node) {
 	for rowIdx, row := range model.request.Data {
 		tr := createNode("tr", atom.Tr)
 		table.AppendChild(tr)
+		if len(model.rows[rowIdx].VerticalAlign) > 0 {
+			setAttribute(tr, "class", model.rows[rowIdx].VerticalAlign)
+		}
+		if len(model.rows[rowIdx].Height) > 0 {
+			setAttribute(tr, "style", model.rows[rowIdx].Height)
+		}
 		for colIdx, col := range row {
 			addTableCell(model, tr, col, rowIdx, colIdx)
 		}
@@ -165,11 +172,11 @@ func addRows(model *tableModel, table *html.Node) {
 // adds an individual table cell to the given tr node
 func addTableCell(model *tableModel, tr *html.Node, colText string, rowIdx int, colIdx int) {
 	cell := model.cells[rowIdx][colIdx]
-	if cell!= nil && cell.skip {
-		return
-	}
 	if cell == nil {
-		cell = &cellModel{}
+		cell = emptyCellModel
+	}
+	if cell.skip {
+		return
 	}
 	value := parseValue(model.request, colText)
 	var node *html.Node
@@ -191,6 +198,9 @@ func addTableCell(model *tableModel, tr *html.Node, colText string, rowIdx int, 
 	}
 	if cell.rowspan > 1 {
 		setAttribute(node, "rowspan", fmt.Sprintf("%d", cell.rowspan))
+	}
+	if len(cell.class) > 0 {
+		setAttribute(node, "class", cell.class)
 	}
 	tr.AppendChild(node)
 }
@@ -323,7 +333,7 @@ func createCellModels(request *models.RenderRequest) map[int]map[int]*cellModel 
 		cell.colspan = format.Colspan
 		cell.rowspan = format.Rowspan
 		if len(format.Align) > 0 || len(format.VerticalAlign) > 0 {
-			cell.style = strings.Trim(format.Align+" "+format.VerticalAlign, " ")
+			cell.class = strings.Trim(format.Align+" "+format.VerticalAlign, " ")
 		}
 		// if we have merged cells, find those that need to be skipped in the output
 		colspan := min(format.Colspan, 1)
