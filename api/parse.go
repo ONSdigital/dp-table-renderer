@@ -44,5 +44,5 @@ func (api *RendererAPI) parseHTML(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Info("Parseed a table", log.Data{"parse_request": parseRequest})
+	log.Info("Parsed a table", log.Data{"parse_request": parseRequest})
 }
