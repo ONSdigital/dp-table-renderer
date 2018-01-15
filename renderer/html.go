@@ -85,16 +85,13 @@ func addTable(request *models.RenderRequest, parent *html.Node) *html.Node {
 	return table
 }
 
-// addColumnGroup adds a columnGroup, if required, to the given table. Cols in the colgroup specify column width and alignment.
+// addColumnGroup adds a columnGroup, if required, to the given table. Cols in the colgroup specify column width.
 func addColumnGroup(model *tableModel, table *html.Node) {
 	if len(model.request.ColumnFormats) > 0 {
 		colgroup := h.CreateNode("colgroup", atom.Colgroup)
 
 		for _, col := range model.columns {
 			node := h.CreateNode("col", atom.Col)
-			if len(col.Align) > 0 {
-				h.AddAttribute(node, "class", col.Align)
-			}
 			if len(col.Width) > 0 {
 				h.AddAttribute(node, "style", "width: "+col.Width)
 			}
@@ -154,8 +151,11 @@ func addTableCell(model *tableModel, tr *html.Node, colText string, rowIdx int, 
 	if cell.rowspan > 1 {
 		h.AddAttribute(node, "rowspan", fmt.Sprintf("%d", cell.rowspan))
 	}
+	if len(model.columns[colIdx].Align) > 0 {
+		h.AddAttribute(node, "class", model.columns[colIdx].Align)
+	}
 	if len(cell.class) > 0 {
-		h.AddAttribute(node, "class", cell.class)
+		h.ReplaceAttribute(node, "class", strings.Trim(h.GetAttribute(node, "class") + " " + cell.class, " "))
 	}
 	tr.AppendChild(node)
 }
