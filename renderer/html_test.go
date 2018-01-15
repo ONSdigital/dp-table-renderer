@@ -214,7 +214,10 @@ func TestRenderHTML_FootnoteLinks(t *testing.T) {
 func TestRenderHTML_ColumnFormats(t *testing.T) {
 	Convey("A renderRequest with column formats should output colgroup", t, func() {
 		formats := []models.ColumnFormat{{Column: 0, Width: "10em"}, {Column: 2, Align: "right"}}
-		request := models.RenderRequest{Filename: "myId", ColumnFormats: formats, Data: [][]string{{"Cell 1", "Cell 2", "Cell 3", "Cell 4"}}}
+		request := models.RenderRequest{Filename: "myId", ColumnFormats: formats,
+			Data: [][]string{
+				{"Cell 1", "Cell 2", "Cell 3", "Cell 4"},
+				{"Cell 1", "Cell 2", "Cell 3", "Cell 4"}}}
 		div, _ := invokeRenderHTML(&request)
 		table := FindNode(div, atom.Table)
 
@@ -224,8 +227,15 @@ func TestRenderHTML_ColumnFormats(t *testing.T) {
 		So(len(cols), ShouldEqual, len(request.Data[0]))
 		So(GetAttribute(cols[0], "style"), ShouldEqual, "width: 10em")
 		So(GetAttribute(cols[1], "style"), ShouldBeEmpty)
-		So(GetAttribute(cols[2], "class"), ShouldEqual, "right")
+		So(GetAttribute(cols[2], "class"), ShouldBeEmpty)
 		So(GetAttribute(cols[3], "class"), ShouldBeEmpty)
+
+		rows := FindNodes(table, atom.Tr)
+		for _, row := range rows {
+			cells := FindNodes(row, atom.Td)
+			So(len(cells), ShouldEqual, len(request.Data[0]))
+			So(GetAttribute(cells[2], "class"), ShouldEqual, "right")
+		}
 	})
 
 	Convey("If there are no column formats then there should be no colgroup element", t, func() {
@@ -348,7 +358,7 @@ func TestRenderHTML_ColumnAndRowAlignment(t *testing.T) {
 	Convey("A renderRequest with various alignments should have correct classes", t, func() {
 		rowFormats := []models.RowFormat{{Row: 0, VerticalAlign: "top"}}
 		colFormats := []models.ColumnFormat{{Column: 0, Align: "right"}}
-		cellFormats := []models.CellFormat{{Row: 0, Column: 0, VerticalAlign: "bottom", Align: "left"}}
+		cellFormats := []models.CellFormat{{Row: 0, Column: 0, VerticalAlign: "bottom"}}
 		cells := [][]string{{"Cell 1", "Cell 2", "Cell 3", "Cell 4"}}
 		request := models.RenderRequest{Filename: "myId", ColumnFormats: colFormats, RowFormats: rowFormats, CellFormats: cellFormats, Data: cells}
 		div, _ := invokeRenderHTML(&request)
@@ -358,7 +368,6 @@ func TestRenderHTML_ColumnAndRowAlignment(t *testing.T) {
 		So(colgroup, ShouldNotBeNil)
 		cols := FindNodes(colgroup, atom.Col)
 		So(len(cols), ShouldEqual, len(request.Data[0]))
-		So(GetAttribute(cols[0], "class"), ShouldEqual, "right")
 
 		rows := FindNodes(table, atom.Tr)
 		So(len(rows), ShouldEqual, len(cells))
@@ -367,7 +376,7 @@ func TestRenderHTML_ColumnAndRowAlignment(t *testing.T) {
 		td := FindNodes(rows[0], atom.Td)
 		So(len(td), ShouldEqual, len(request.Data[0]))
 		So(GetAttribute(td[0], "class"), ShouldContainSubstring, "bottom")
-		So(GetAttribute(td[0], "class"), ShouldContainSubstring, "left")
+		So(GetAttribute(td[0], "class"), ShouldContainSubstring, "right")
 		So(GetAttribute(td[1], "class"), ShouldBeEmpty)
 	})
 }
