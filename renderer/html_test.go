@@ -1,4 +1,4 @@
-package jsontohtml
+package renderer_test
 
 import (
 	"bytes"
@@ -6,7 +6,9 @@ import (
 
 	"fmt"
 
+	. "github.com/ONSdigital/dp-table-renderer/htmlutil"
 	"github.com/ONSdigital/dp-table-renderer/models"
+	"github.com/ONSdigital/dp-table-renderer/renderer"
 	"github.com/ONSdigital/dp-table-renderer/testdata"
 	. "github.com/smartystreets/goconvey/convey"
 	"golang.org/x/net/html"
@@ -24,29 +26,29 @@ func TestRenderHTML(t *testing.T) {
 
 		div, responseHTML := invokeRenderHTML(renderRequest)
 
-		So(getAttribute(div, "class"), ShouldEqual, "table-renderer")
-		So(getAttribute(div, "id"), ShouldEqual, "table_"+renderRequest.Filename)
+		So(GetAttribute(div, "class"), ShouldEqual, "table-renderer")
+		So(GetAttribute(div, "id"), ShouldEqual, "table_"+renderRequest.Filename)
 
 		// the table
-		table := findNode(div, atom.Table)
+		table := FindNode(div, atom.Table)
 		So(table, ShouldNotBeNil)
 		// with caption
-		So(findNode(table, atom.Caption), ShouldNotBeNil)
+		So(FindNode(table, atom.Caption), ShouldNotBeNil)
 		// and correct number of rows
-		rows := findNodes(table, atom.Tr)
+		rows := FindNodes(table, atom.Tr)
 		So(len(rows), ShouldEqual, len(renderRequest.Data))
 
 		// the footer - source
-		footer := findNode(div, atom.Footer)
+		footer := FindNode(div, atom.Footer)
 		So(footer, ShouldNotBeNil)
-		source := findNodeWithAttributes(footer, atom.P, map[string]string{"class": "table-source"})
+		source := FindNodeWithAttributes(footer, atom.P, map[string]string{"class": "table-source"})
 		So(source, ShouldNotBeNil)
 		So(source.FirstChild.Data, ShouldResemble, "Source: "+renderRequest.Source)
 		// footnotes
-		notes := findNodeWithAttributes(footer, atom.P, map[string]string{"class": "table-notes"})
+		notes := FindNodeWithAttributes(footer, atom.P, map[string]string{"class": "table-notes"})
 		So(notes, ShouldNotBeNil)
 		So(notes.FirstChild.Data, ShouldResemble, "Notes")
-		footnotes := findNodes(footer, atom.Li)
+		footnotes := FindNodes(footer, atom.Li)
 		So(len(footnotes), ShouldEqual, len(renderRequest.Footnotes))
 
 		// new line characters are converted to <br/> tags
@@ -55,7 +57,7 @@ func TestRenderHTML(t *testing.T) {
 }
 
 func invokeRenderHTML(renderRequest *models.RenderRequest) (*html.Node, string) {
-	response, err := RenderHTML(renderRequest)
+	response, err := renderer.RenderHTML(renderRequest)
 	So(err, ShouldBeNil)
 	nodes, err := html.ParseFragment(bytes.NewReader(response), &html.Node{
 		Type:     html.ElementNode,
@@ -76,42 +78,42 @@ func TestRenderHTML_Table(t *testing.T) {
 		request := models.RenderRequest{Filename: "filename", Title: "Heading", Subtitle: "Subtitle"}
 		div, _ := invokeRenderHTML(&request)
 
-		table := findNode(div, atom.Table)
+		table := FindNode(div, atom.Table)
 		So(table, ShouldNotBeNil)
-		So(getAttribute(table, "id"), ShouldBeEmpty)
+		So(GetAttribute(table, "id"), ShouldBeEmpty)
 
-		So(getAttribute(table, "aria-describedby"), ShouldEqual, "table_filename_description")
-		caption := findNode(table, atom.Caption)
+		So(GetAttribute(table, "aria-describedby"), ShouldEqual, "table_filename_description")
+		caption := FindNode(table, atom.Caption)
 		So(caption, ShouldNotBeNil)
 		So(caption.FirstChild.Data, ShouldEqual, "Heading")
-		span := findNode(caption, atom.Span)
+		span := FindNode(caption, atom.Span)
 		So(span, ShouldNotBeNil)
 		So(span.FirstChild.Data, ShouldEqual, "Subtitle")
-		So(getAttribute(span, "id"), ShouldEqual, "table_filename_description")
-		So(getAttribute(span, "class"), ShouldEqual, "table-subtitle")
+		So(GetAttribute(span, "id"), ShouldEqual, "table_filename_description")
+		So(GetAttribute(span, "class"), ShouldEqual, "table-subtitle")
 	})
 
 	Convey("A table without subtitle should not have aria-describedby", t, func() {
 		request := models.RenderRequest{Filename: "myId", Title: "Heading"}
 		div, _ := invokeRenderHTML(&request)
 
-		table := findNode(div, atom.Table)
+		table := FindNode(div, atom.Table)
 		So(table, ShouldNotBeNil)
-		So(getAttribute(table, "aria-describedby"), ShouldEqual, "")
-		caption := findNode(table, atom.Caption)
+		So(GetAttribute(table, "aria-describedby"), ShouldEqual, "")
+		caption := FindNode(table, atom.Caption)
 		So(caption, ShouldNotBeNil)
-		So(findNode(caption, atom.Span), ShouldBeNil)
+		So(FindNode(caption, atom.Span), ShouldBeNil)
 	})
 
 	Convey("A table without title or subtitle should not have a caption", t, func() {
 		request := models.RenderRequest{Filename: "myId"}
 		div, _ := invokeRenderHTML(&request)
 
-		table := findNode(div, atom.Table)
+		table := FindNode(div, atom.Table)
 		So(table, ShouldNotBeNil)
-		So(getAttribute(table, "aria-describedby"), ShouldEqual, "")
-		So(getAttribute(table, "id"), ShouldBeEmpty)
-		So(findNode(table, atom.Caption), ShouldBeNil)
+		So(GetAttribute(table, "aria-describedby"), ShouldEqual, "")
+		So(GetAttribute(table, "id"), ShouldBeEmpty)
+		So(FindNode(table, atom.Caption), ShouldBeNil)
 	})
 
 	Convey("A table with unbalanced cell counts is still rendered", t, func() {
@@ -122,13 +124,13 @@ func TestRenderHTML_Table(t *testing.T) {
 		formats := []models.ColumnFormat{{Column: 0, Width: "10em"}}
 		request := models.RenderRequest{Filename: "myId", Data: cells, ColumnFormats: formats}
 		div, _ := invokeRenderHTML(&request)
-		table := findNode(div, atom.Table)
+		table := FindNode(div, atom.Table)
 		So(table, ShouldNotBeNil)
 
-		rows := findNodes(table, atom.Tr)
+		rows := FindNodes(table, atom.Tr)
 		So(len(rows), ShouldEqual, len(request.Data))
 		for i, row := range rows {
-			So(len(findNodes(row, atom.Td)), ShouldEqual, len(cells[i]))
+			So(len(FindNodes(row, atom.Td)), ShouldEqual, len(cells[i]))
 		}
 	})
 }
@@ -138,30 +140,30 @@ func TestRenderHTML_Footer(t *testing.T) {
 		request := models.RenderRequest{Filename: "myId"}
 		div, _ := invokeRenderHTML(&request)
 
-		footer := findNode(div, atom.Footer)
+		footer := FindNode(div, atom.Footer)
 		So(footer, ShouldNotBeNil)
-		So(findNodeWithAttributes(footer, atom.P, map[string]string{"class": "table-source"}), ShouldBeNil)
-		So(findNodeWithAttributes(footer, atom.P, map[string]string{"class": "table-notes"}), ShouldBeNil)
-		So(len(findNodes(footer, atom.Li)), ShouldBeZeroValue)
+		So(FindNodeWithAttributes(footer, atom.P, map[string]string{"class": "table-source"}), ShouldBeNil)
+		So(FindNodeWithAttributes(footer, atom.P, map[string]string{"class": "table-notes"}), ShouldBeNil)
+		So(len(FindNodes(footer, atom.Li)), ShouldBeZeroValue)
 	})
 
 	Convey("Footnotes should render as li elements with id", t, func() {
 		request := models.RenderRequest{Filename: "myId", Footnotes: []string{"Note1", "Note2"}}
 		div, _ := invokeRenderHTML(&request)
 
-		footer := findNode(div, atom.Footer)
+		footer := FindNode(div, atom.Footer)
 		So(footer, ShouldNotBeNil)
 
-		p := findNodeWithAttributes(footer, atom.P, map[string]string{"class": "table-notes"})
+		p := FindNodeWithAttributes(footer, atom.P, map[string]string{"class": "table-notes"})
 		So(p, ShouldNotBeNil)
 		So(p.FirstChild.Data, ShouldResemble, "Notes")
 
-		list := findNode(footer, atom.Ol)
+		list := FindNode(footer, atom.Ol)
 		So(list, ShouldNotBeNil)
-		notes := findNodes(list, atom.Li)
+		notes := FindNodes(list, atom.Li)
 		So(len(notes), ShouldEqual, len(request.Footnotes))
 		for i, note := range request.Footnotes {
-			So(getAttribute(notes[i], "id"), ShouldEqual, fmt.Sprintf("table_%s_note_%d", request.Filename, i+1))
+			So(GetAttribute(notes[i], "id"), ShouldEqual, fmt.Sprintf("table_%s_note_%d", request.Filename, i+1))
 			So(notes[i].FirstChild.Data, ShouldResemble, note)
 		}
 	})
@@ -179,16 +181,16 @@ func TestRenderHTML_FootnoteLinks(t *testing.T) {
 		request := models.RenderRequest{Filename: "myId", Footnotes: []string{"Note1", "Note2"}, Data: [][]string{{"Cell 1[1]", "Cell[2] 2[1]"}, {"Cell 3[3]", "Cell[0][]"}}}
 		div, raw := invokeRenderHTML(&request)
 
-		links := findNodesWithAttributes(div, atom.A, map[string]string{"class": "footnote-link"})
+		links := FindNodesWithAttributes(div, atom.A, map[string]string{"class": "footnote-link"})
 		So(len(links), ShouldEqual, 3)
 		for _, link := range links {
-			So(getAttribute(link, "aria-describedby"), ShouldResemble, "table_"+request.Filename+"_notes")
+			So(GetAttribute(link, "aria-describedby"), ShouldResemble, "table_"+request.Filename+"_notes")
 		}
-		So(getAttribute(links[0], "href"), ShouldEqual, "#table_myId_note_1")
-		So(getAttribute(links[1], "href"), ShouldEqual, "#table_myId_note_2")
-		So(getAttribute(links[2], "href"), ShouldEqual, "#table_myId_note_1")
+		So(GetAttribute(links[0], "href"), ShouldEqual, "#table_myId_note_1")
+		So(GetAttribute(links[1], "href"), ShouldEqual, "#table_myId_note_2")
+		So(GetAttribute(links[2], "href"), ShouldEqual, "#table_myId_note_1")
 
-		p := findNodeWithAttributes(div, atom.P, map[string]string{"class": "table-notes", "id": "table_" + request.Filename + "_notes"})
+		p := FindNodeWithAttributes(div, atom.P, map[string]string{"class": "table-notes", "id": "table_" + request.Filename + "_notes"})
 		So(p, ShouldNotBeNil)
 
 		So(raw, ShouldNotContainSubstring, "Cell 1[1]")
@@ -201,10 +203,10 @@ func TestRenderHTML_FootnoteLinks(t *testing.T) {
 		request := models.RenderRequest{Filename: "myId", Footnotes: []string{"Note1", "Note2"}, Title: "This contains [1] links[1]"}
 		div, _ := invokeRenderHTML(&request)
 
-		links := findNodesWithAttributes(div, atom.A, map[string]string{"class": "footnote-link"})
+		links := FindNodesWithAttributes(div, atom.A, map[string]string{"class": "footnote-link"})
 		So(len(links), ShouldEqual, 2)
 		for _, link := range links {
-			So(getAttribute(link, "href"), ShouldEqual, "#table_myId_note_1")
+			So(GetAttribute(link, "href"), ShouldEqual, "#table_myId_note_1")
 		}
 	})
 }
@@ -214,24 +216,24 @@ func TestRenderHTML_ColumnFormats(t *testing.T) {
 		formats := []models.ColumnFormat{{Column: 0, Width: "10em"}, {Column: 2, Align: "right"}}
 		request := models.RenderRequest{Filename: "myId", ColumnFormats: formats, Data: [][]string{{"Cell 1", "Cell 2", "Cell 3", "Cell 4"}}}
 		div, _ := invokeRenderHTML(&request)
-		table := findNode(div, atom.Table)
+		table := FindNode(div, atom.Table)
 
-		colgroup := findNode(table, atom.Colgroup)
+		colgroup := FindNode(table, atom.Colgroup)
 		So(colgroup, ShouldNotBeNil)
-		cols := findNodes(colgroup, atom.Col)
+		cols := FindNodes(colgroup, atom.Col)
 		So(len(cols), ShouldEqual, len(request.Data[0]))
-		So(getAttribute(cols[0], "style"), ShouldEqual, "width: 10em")
-		So(getAttribute(cols[1], "style"), ShouldBeEmpty)
-		So(getAttribute(cols[2], "class"), ShouldEqual, "right")
-		So(getAttribute(cols[3], "class"), ShouldBeEmpty)
+		So(GetAttribute(cols[0], "style"), ShouldEqual, "width: 10em")
+		So(GetAttribute(cols[1], "style"), ShouldBeEmpty)
+		So(GetAttribute(cols[2], "class"), ShouldEqual, "right")
+		So(GetAttribute(cols[3], "class"), ShouldBeEmpty)
 	})
 
 	Convey("If there are no column formats then there should be no colgroup element", t, func() {
 		request := models.RenderRequest{Filename: "myId", Data: [][]string{{"Cell 1", "Cell 2", "Cell 3", "Cell 4"}}}
 		div, _ := invokeRenderHTML(&request)
-		table := findNode(div, atom.Table)
+		table := FindNode(div, atom.Table)
 
-		So(findNode(table, atom.Colgroup), ShouldBeNil)
+		So(FindNode(table, atom.Colgroup), ShouldBeNil)
 	})
 
 	Convey("Columns flagged as headers should create scoped th elements in each row", t, func() {
@@ -239,16 +241,16 @@ func TestRenderHTML_ColumnFormats(t *testing.T) {
 		cells := [][]string{{"Cell 1", "Cell 2", "Cell 3", "Cell 4"}, {"Cell 1", "Cell 2", "Cell 3", "Cell 4"}}
 		request := models.RenderRequest{Filename: "myId", ColumnFormats: formats, Data: cells}
 		div, _ := invokeRenderHTML(&request)
-		table := findNode(div, atom.Table)
+		table := FindNode(div, atom.Table)
 
-		rows := findNodes(table, atom.Tr)
+		rows := FindNodes(table, atom.Tr)
 		So(len(rows), ShouldEqual, len(cells))
 		for _, row := range rows {
-			header := findNode(row, atom.Th)
+			header := FindNode(row, atom.Th)
 			So(header, ShouldNotBeNil)
-			So(getAttribute(header, "scope"), ShouldEqual, "row")
+			So(GetAttribute(header, "scope"), ShouldEqual, "row")
 			So(header.FirstChild.Data, ShouldResemble, "Cell 1")
-			So(len(findNodes(row, atom.Td)), ShouldEqual, 3)
+			So(len(FindNodes(row, atom.Td)), ShouldEqual, 3)
 		}
 	})
 
@@ -258,18 +260,18 @@ func TestRenderHTML_ColumnFormats(t *testing.T) {
 		cells := [][]string{{"Cell 1", "Cell 2", "Cell 3", "Cell 4"}, {"Cell 1", "Cell 2", "Cell 3", "Cell 4"}}
 		request := models.RenderRequest{Filename: "myId", ColumnFormats: colFormats, RowFormats: rowFormats, Data: cells}
 		div, _ := invokeRenderHTML(&request)
-		table := findNode(div, atom.Table)
+		table := FindNode(div, atom.Table)
 
-		rows := findNodes(table, atom.Tr)
+		rows := FindNodes(table, atom.Tr)
 		So(len(rows), ShouldEqual, len(cells))
-		headers := findNodes(rows[0], atom.Th)
+		headers := FindNodes(rows[0], atom.Th)
 		So(len(headers), ShouldEqual, len(cells[0]))
 		for _, col := range headers {
-			So(getAttribute(col, "scope"), ShouldEqual, "col")
+			So(GetAttribute(col, "scope"), ShouldEqual, "col")
 		}
-		rowHeaders := findNodes(rows[1], atom.Th)
+		rowHeaders := FindNodes(rows[1], atom.Th)
 		So(len(rowHeaders), ShouldEqual, 1)
-		So(getAttribute(rowHeaders[0], "scope"), ShouldEqual, "row")
+		So(GetAttribute(rowHeaders[0], "scope"), ShouldEqual, "row")
 	})
 
 	Convey("Columns with colspan flagged as headers should have the correct scope when in a header row", t, func() {
@@ -279,18 +281,18 @@ func TestRenderHTML_ColumnFormats(t *testing.T) {
 		cells := [][]string{{"Cell 1", "Cell 2", "Cell 3", "Cell 4"}, {"Cell 1", "Cell 2", "Cell 3", "Cell 4"}}
 		request := models.RenderRequest{Filename: "myId", ColumnFormats: colFormats, RowFormats: rowFormats, CellFormats: cellFormats, Data: cells}
 		div, _ := invokeRenderHTML(&request)
-		table := findNode(div, atom.Table)
+		table := FindNode(div, atom.Table)
 
-		rows := findNodes(table, atom.Tr)
+		rows := FindNodes(table, atom.Tr)
 		So(len(rows), ShouldEqual, len(cells))
-		headers := findNodes(rows[0], atom.Th)
+		headers := FindNodes(rows[0], atom.Th)
 		So(len(headers), ShouldEqual, len(cells[0])-1)
-		So(getAttribute(headers[0], "scope"), ShouldEqual, "colgroup")
-		So(getAttribute(headers[1], "scope"), ShouldEqual, "col")
+		So(GetAttribute(headers[0], "scope"), ShouldEqual, "colgroup")
+		So(GetAttribute(headers[1], "scope"), ShouldEqual, "col")
 
-		rowHeaders := findNodes(rows[1], atom.Th)
+		rowHeaders := FindNodes(rows[1], atom.Th)
 		So(len(rowHeaders), ShouldEqual, 1)
-		So(getAttribute(rowHeaders[0], "scope"), ShouldEqual, "row")
+		So(GetAttribute(rowHeaders[0], "scope"), ShouldEqual, "row")
 	})
 
 	Convey("Column formats beyond the count of columns are ignored", t, func() {
@@ -298,14 +300,14 @@ func TestRenderHTML_ColumnFormats(t *testing.T) {
 		cells := [][]string{{"Cell 1", "Cell 2", "Cell 3", "Cell 4"}, {"Cell 1", "Cell 2", "Cell 3", "Cell 4"}}
 		request := models.RenderRequest{Filename: "myId", ColumnFormats: formats, Data: cells}
 		div, _ := invokeRenderHTML(&request)
-		table := findNode(div, atom.Table)
+		table := FindNode(div, atom.Table)
 
-		colgroup := findNode(table, atom.Colgroup)
+		colgroup := FindNode(table, atom.Colgroup)
 		So(colgroup, ShouldNotBeNil)
-		cols := findNodes(colgroup, atom.Col)
+		cols := FindNodes(colgroup, atom.Col)
 		So(len(cols), ShouldEqual, len(request.Data[0]))
 		for _, col := range cols {
-			So(getAttribute(col, "style"), ShouldBeEmpty)
+			So(GetAttribute(col, "style"), ShouldBeEmpty)
 		}
 	})
 }
@@ -324,15 +326,15 @@ func TestRenderHTML_MergeCells(t *testing.T) {
 			{"4A", "4B", "4C", "4D", "4E"}}
 		request := models.RenderRequest{Filename: "myId", CellFormats: cellFormats, Data: cells}
 		div, raw := invokeRenderHTML(&request)
-		table := findNode(div, atom.Table)
+		table := FindNode(div, atom.Table)
 
-		rows := findNodes(table, atom.Tr)
+		rows := FindNodes(table, atom.Tr)
 		So(len(rows), ShouldEqual, len(cells))
-		So(len(findNodes(rows[0], atom.Td)), ShouldEqual, 3)
-		So(len(findNodes(rows[1], atom.Td)), ShouldEqual, 3)
-		So(len(findNodes(rows[2], atom.Td)), ShouldEqual, 5)
-		So(len(findNodes(rows[3], atom.Td)), ShouldEqual, 5)
-		So(len(findNodes(rows[4], atom.Td)), ShouldEqual, 4)
+		So(len(FindNodes(rows[0], atom.Td)), ShouldEqual, 3)
+		So(len(FindNodes(rows[1], atom.Td)), ShouldEqual, 3)
+		So(len(FindNodes(rows[2], atom.Td)), ShouldEqual, 5)
+		So(len(FindNodes(rows[3], atom.Td)), ShouldEqual, 5)
+		So(len(FindNodes(rows[4], atom.Td)), ShouldEqual, 4)
 
 		So(raw, ShouldNotContainSubstring, "0B")
 		So(raw, ShouldNotContainSubstring, "0E")
@@ -350,23 +352,23 @@ func TestRenderHTML_ColumnAndRowAlignment(t *testing.T) {
 		cells := [][]string{{"Cell 1", "Cell 2", "Cell 3", "Cell 4"}}
 		request := models.RenderRequest{Filename: "myId", ColumnFormats: colFormats, RowFormats: rowFormats, CellFormats: cellFormats, Data: cells}
 		div, _ := invokeRenderHTML(&request)
-		table := findNode(div, atom.Table)
+		table := FindNode(div, atom.Table)
 
-		colgroup := findNode(table, atom.Colgroup)
+		colgroup := FindNode(table, atom.Colgroup)
 		So(colgroup, ShouldNotBeNil)
-		cols := findNodes(colgroup, atom.Col)
+		cols := FindNodes(colgroup, atom.Col)
 		So(len(cols), ShouldEqual, len(request.Data[0]))
-		So(getAttribute(cols[0], "class"), ShouldEqual, "right")
+		So(GetAttribute(cols[0], "class"), ShouldEqual, "right")
 
-		rows := findNodes(table, atom.Tr)
+		rows := FindNodes(table, atom.Tr)
 		So(len(rows), ShouldEqual, len(cells))
-		So(getAttribute(rows[0], "class"), ShouldEqual, "top")
+		So(GetAttribute(rows[0], "class"), ShouldEqual, "top")
 
-		td := findNodes(rows[0], atom.Td)
+		td := FindNodes(rows[0], atom.Td)
 		So(len(td), ShouldEqual, len(request.Data[0]))
-		So(getAttribute(td[0], "class"), ShouldContainSubstring, "bottom")
-		So(getAttribute(td[0], "class"), ShouldContainSubstring, "left")
-		So(getAttribute(td[1], "class"), ShouldBeEmpty)
+		So(GetAttribute(td[0], "class"), ShouldContainSubstring, "bottom")
+		So(GetAttribute(td[0], "class"), ShouldContainSubstring, "left")
+		So(GetAttribute(td[1], "class"), ShouldBeEmpty)
 	})
 }
 
@@ -376,12 +378,12 @@ func TestRenderHTML_RowHeight(t *testing.T) {
 		cells := [][]string{{"Cell 1", "Cell 2", "Cell 3", "Cell 4"}, {"Cell 1", "Cell 2", "Cell 3", "Cell 4"}}
 		request := models.RenderRequest{Filename: "myId", RowFormats: rowFormats, Data: cells}
 		div, _ := invokeRenderHTML(&request)
-		table := findNode(div, atom.Table)
+		table := FindNode(div, atom.Table)
 
-		rows := findNodes(table, atom.Tr)
+		rows := FindNodes(table, atom.Tr)
 		So(len(rows), ShouldEqual, len(cells))
-		So(getAttribute(rows[0], "style"), ShouldEqual, "height: 5em")
-		So(getAttribute(rows[1], "style"), ShouldBeEmpty)
+		So(GetAttribute(rows[0], "style"), ShouldEqual, "height: 5em")
+		So(GetAttribute(rows[1], "style"), ShouldBeEmpty)
 
 	})
 }

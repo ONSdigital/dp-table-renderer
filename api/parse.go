@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/ONSdigital/dp-table-renderer/models"
-	"github.com/ONSdigital/dp-table-renderer/jsontohtml"
+	"github.com/ONSdigital/dp-table-renderer/parser"
 	"github.com/ONSdigital/go-ns/log"
 )
 
@@ -28,7 +28,7 @@ func (api *RendererAPI) parseHTML(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	bytes, err := jsontohtml.ParseHTML(parseRequest)
+	bytes, err := parser.ParseHTML(parseRequest)
 	setContentType(w, contentJSON)
 	if err != nil {
 		log.Error(err, log.Data{"parse_request": parseRequest})

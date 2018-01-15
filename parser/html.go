@@ -1,4 +1,4 @@
-package jsontohtml
+package parser
 
 import (
 	"encoding/json"
@@ -8,7 +8,9 @@ import (
 	"errors"
 	"strings"
 
+	h "github.com/ONSdigital/dp-table-renderer/htmlutil"
 	"github.com/ONSdigital/dp-table-renderer/models"
+	"github.com/ONSdigital/dp-table-renderer/renderer"
 	"github.com/go-ns/log"
 	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"
@@ -40,9 +42,9 @@ func ParseHTML(request *models.ParseRequest) ([]byte, error) {
 		Footnotes:  request.Footnotes}
 
 	// todo parse table to requestJSON
-	findNode(sourceTable, atom.Tbody)
+	h.FindNode(sourceTable, atom.Tbody)
 
-	previewHTML, err := RenderHTML(requestJSON)
+	previewHTML, err := renderer.RenderHTML(requestJSON)
 	if err != nil {
 		log.Error(err, log.Data{"message": "Unable to render preview HTML", "ParseRequest": request, "RenderRequest": requestJSON})
 		return nil, err
