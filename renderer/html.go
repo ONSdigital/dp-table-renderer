@@ -8,6 +8,7 @@ import (
 
 	"strings"
 
+	h "github.com/ONSdigital/dp-table-renderer/htmlutil"
 	"github.com/ONSdigital/dp-table-renderer/models"
 	"github.com/ONSdigital/go-ns/log"
 	"golang.org/x/net/html"
@@ -40,9 +41,9 @@ type cellModel struct {
 func RenderHTML(request *models.RenderRequest) ([]byte, error) {
 	model := createModel(request)
 
-	div := createNode("div", atom.Div,
-		attr("class", "table-renderer"),
-		attr("id", "table_"+request.Filename),
+	div := h.CreateNode("div", atom.Div,
+		h.Attr("class", "table-renderer"),
+		h.Attr("id", "table_"+request.Filename),
 		"\n")
 
 	table := addTable(request, div)
@@ -58,73 +59,27 @@ func RenderHTML(request *models.RenderRequest) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-// createNode creates an html Node and sets attributes or adds child nodes according to the type of each value
-func createNode(data string, dataAtom atom.Atom, values ...interface{}) *html.Node {
-	node := &html.Node{
-		Type:     html.ElementNode,
-		Data:     data,
-		DataAtom: dataAtom,
-	}
-	for _, value := range values {
-		switch v := value.(type) {
-		case html.Attribute:
-			node.Attr = append(node.Attr, v)
-		case *html.Node:
-			node.AppendChild(v)
-		case []*html.Node:
-			for _, c := range v {
-				node.AppendChild(c)
-			}
-		case string:
-			node.AppendChild(&html.Node{Type: html.TextNode, Data: v})
-		}
-	}
-	return node
-}
-
-func setAttribute(node *html.Node, key string, val string) {
-	node.Attr = append(node.Attr, html.Attribute{Key: key, Val: val})
-}
-
-func replaceAttribute(node *html.Node, key string, val string) {
-	var attr []html.Attribute
-	for _, a := range node.Attr {
-		if a.Key != key {
-			attr = append(attr, a)
-		}
-	}
-	node.Attr = append(attr, html.Attribute{Key: key, Val: val})
-}
-
-func attr(key string, val string) html.Attribute {
-	return html.Attribute{Key: key, Val: val}
-}
-
-func text(text string) *html.Node {
-	return &html.Node{Type: html.TextNode, Data: text}
-}
-
 // addTable creates a table node with a caption and adds it to the given node
 func addTable(request *models.RenderRequest, parent *html.Node) *html.Node {
-	table := createNode("table", atom.Table, "\n")
+	table := h.CreateNode("table", atom.Table, "\n")
 
 	// add title and subtitle as a caption
 	if len(request.Title) > 0 || len(request.Subtitle) > 0 {
-		caption := createNode("caption", atom.Caption, parseValue(request, request.Title))
+		caption := h.CreateNode("caption", atom.Caption, parseValue(request, request.Title))
 		if len(request.Subtitle) > 0 {
 			subtitleID := fmt.Sprintf("table_%s_description", request.Filename)
-			subtitle := createNode("span", atom.Span,
-				attr("id", subtitleID),
-				attr("class", "table-subtitle"),
+			subtitle := h.CreateNode("span", atom.Span,
+				h.Attr("id", subtitleID),
+				h.Attr("class", "table-subtitle"),
 				parseValue(request, request.Subtitle))
 
-			caption.AppendChild(createNode("br", atom.Br))
+			caption.AppendChild(h.CreateNode("br", atom.Br))
 			caption.AppendChild(subtitle)
 
-			setAttribute(table, "aria-describedby", subtitleID)
+			h.AddAttribute(table, "aria-describedby", subtitleID)
 		}
 		table.AppendChild(caption)
-		table.AppendChild(text("\n"))
+		table.AppendChild(h.Text("\n"))
 	}
 	parent.AppendChild(table)
 	return table
@@ -133,39 +88,39 @@ func addTable(request *models.RenderRequest, parent *html.Node) *html.Node {
 // addColumnGroup adds a columnGroup, if required, to the given table. Cols in the colgroup specify column width and alignment.
 func addColumnGroup(model *tableModel, table *html.Node) {
 	if len(model.request.ColumnFormats) > 0 {
-		colgroup := createNode("colgroup", atom.Colgroup)
+		colgroup := h.CreateNode("colgroup", atom.Colgroup)
 
 		for _, col := range model.columns {
-			node := createNode("col", atom.Col)
+			node := h.CreateNode("col", atom.Col)
 			if len(col.Align) > 0 {
-				setAttribute(node, "class", col.Align)
+				h.AddAttribute(node, "class", col.Align)
 			}
 			if len(col.Width) > 0 {
-				setAttribute(node, "style", "width: "+col.Width)
+				h.AddAttribute(node, "style", "width: "+col.Width)
 			}
 			colgroup.AppendChild(node)
 		}
 
 		table.AppendChild(colgroup)
-		table.AppendChild(text("\n"))
+		table.AppendChild(h.Text("\n"))
 	}
 }
 
 // adds all rows to the table. Rows contain th or td cells as appropriate.
 func addRows(model *tableModel, table *html.Node) {
 	for rowIdx, row := range model.request.Data {
-		tr := createNode("tr", atom.Tr)
+		tr := h.CreateNode("tr", atom.Tr)
 		table.AppendChild(tr)
 		if len(model.rows[rowIdx].VerticalAlign) > 0 {
-			setAttribute(tr, "class", model.rows[rowIdx].VerticalAlign)
+			h.AddAttribute(tr, "class", model.rows[rowIdx].VerticalAlign)
 		}
 		if len(model.rows[rowIdx].Height) > 0 {
-			setAttribute(tr, "style", "height: " + model.rows[rowIdx].Height)
+			h.AddAttribute(tr, "style", "height: "+model.rows[rowIdx].Height)
 		}
 		for colIdx, col := range row {
 			addTableCell(model, tr, col, rowIdx, colIdx)
 		}
-		table.AppendChild(text("\n"))
+		table.AppendChild(h.Text("\n"))
 	}
 }
 
@@ -181,59 +136,59 @@ func addTableCell(model *tableModel, tr *html.Node, colText string, rowIdx int, 
 	value := parseValue(model.request, colText)
 	var node *html.Node
 	if model.rows[rowIdx].Heading {
-		node = createNode("th", atom.Th, attr("scope", "col"), value)
+		node = h.CreateNode("th", atom.Th, h.Attr("scope", "col"), value)
 		if cell.colspan > 1 {
-			replaceAttribute(node, "scope", "colgroup")
+			h.ReplaceAttribute(node, "scope", "colgroup")
 		}
 	} else if model.columns[colIdx].Heading {
-		node = createNode("th", atom.Th, attr("scope", "row"), value)
+		node = h.CreateNode("th", atom.Th, h.Attr("scope", "row"), value)
 		if cell.rowspan > 1 {
-			replaceAttribute(node, "scope", "rowgroup")
+			h.ReplaceAttribute(node, "scope", "rowgroup")
 		}
 	} else {
-		node = createNode("td", atom.Td, value)
+		node = h.CreateNode("td", atom.Td, value)
 	}
 	if cell.colspan > 1 {
-		setAttribute(node, "colspan", fmt.Sprintf("%d", cell.colspan))
+		h.AddAttribute(node, "colspan", fmt.Sprintf("%d", cell.colspan))
 	}
 	if cell.rowspan > 1 {
-		setAttribute(node, "rowspan", fmt.Sprintf("%d", cell.rowspan))
+		h.AddAttribute(node, "rowspan", fmt.Sprintf("%d", cell.rowspan))
 	}
 	if len(cell.class) > 0 {
-		setAttribute(node, "class", cell.class)
+		h.AddAttribute(node, "class", cell.class)
 	}
 	tr.AppendChild(node)
 }
 
 // addFooter adds a footer to the given element, containing the source and footnotes
 func addFooter(request *models.RenderRequest, parent *html.Node) {
-	footer := createNode("footer", atom.Footer, "\n")
+	footer := h.CreateNode("footer", atom.Footer, "\n")
 	if len(request.Source) > 0 {
-		footer.AppendChild(createNode("p", atom.P,
-			attr("class", "table-source"),
+		footer.AppendChild(h.CreateNode("p", atom.P,
+			h.Attr("class", "table-source"),
 			parseValue(request, "Source: "+request.Source)))
-		footer.AppendChild(text("\n"))
+		footer.AppendChild(h.Text("\n"))
 	}
 	if len(request.Footnotes) > 0 {
-		footer.AppendChild(createNode("p", atom.P,
-			attr("class", "table-notes"),
-			attr("id", "table_"+request.Filename+"_notes"),
+		footer.AppendChild(h.CreateNode("p", atom.P,
+			h.Attr("class", "table-notes"),
+			h.Attr("id", "table_"+request.Filename+"_notes"),
 			"Notes"))
-		footer.AppendChild(text("\n"))
-		ol := createNode("ol", atom.Ol, "\n")
+		footer.AppendChild(h.Text("\n"))
+		ol := h.CreateNode("ol", atom.Ol, "\n")
 
 		for i, note := range request.Footnotes {
-			ol.AppendChild(createNode("li", atom.Li,
-				attr("id", fmt.Sprintf("table_%s_note_%d", request.Filename, i+1)),
+			ol.AppendChild(h.CreateNode("li", atom.Li,
+				h.Attr("id", fmt.Sprintf("table_%s_note_%d", request.Filename, i+1)),
 				parseValue(request, note)))
-			ol.AppendChild(text("\n"))
+			ol.AppendChild(h.Text("\n"))
 		}
 
 		footer.AppendChild(ol)
-		footer.AppendChild(text("\n"))
+		footer.AppendChild(h.Text("\n"))
 	}
 	parent.AppendChild(footer)
-	parent.AppendChild(text("\n"))
+	parent.AppendChild(h.Text("\n"))
 }
 
 // Parses the string to replace \n with <br /> and wrap [1] with a link to the footnote
