@@ -37,8 +37,7 @@ func (api *RendererAPI) parseHTML(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	_, err = w.Write(bytes)
-	if err != nil {
+	if _, err = w.Write(bytes); err != nil {
 		log.Error(err, log.Data{"parse_request": parseRequest})
 		setErrorCode(w, err)
 		return
