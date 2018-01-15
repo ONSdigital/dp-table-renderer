@@ -41,6 +41,7 @@ type ParseRequest struct {
 	Footnotes          []string `json:"footnotes"`
 	StyleClass         string   `json:"style_class"`
 	TableHTML          string   `json:"table_html"`
+	IncludeThead       bool     `json:"include_thead"` 		  // if true, any rows in thead will be parsed as if they are in tbody
 	HeaderRows         int      `json:"header_rows"`
 	HeaderCols         int      `json:"header_cols"`
 	CurrentTableWidth  int      `json:"current_table_width"`  // used to convert column width from pixels to %

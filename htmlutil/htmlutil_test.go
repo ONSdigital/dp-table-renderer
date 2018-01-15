@@ -221,7 +221,7 @@ func TestFindNodes(t *testing.T) {
 		node := CreateNode("div", atom.Div,
 			CreateNode("p", atom.P))
 
-		result := FindNode(node, atom.Span)
+		result := FindNodes(node, atom.Span)
 		So(result, ShouldBeNil)
 	})
 }
@@ -242,4 +242,40 @@ func TestFindNodesWithAttributes(t *testing.T) {
 		}
 	})
 
+}
+
+func TestFindAllNodes(t *testing.T) {
+	Convey("FindAllNodes should return the all nodes of all requested types", t, func() {
+
+		node := CreateNode("div", atom.Div,
+			CreateNode("p", atom.P),
+			CreateNode("div", atom.Div, CreateNode("p", atom.P)),
+			CreateNode("span", atom.Span))
+
+		result := FindAllNodes(node, atom.Span, atom.P)
+		So(len(result), ShouldEqual, 3)
+	})
+
+	Convey("FindAllNodes should return nil if there is no child node of the requested type", t, func() {
+
+		node := CreateNode("div", atom.Div,
+			CreateNode("p", atom.P))
+
+		result := FindAllNodes(node, atom.Span, atom.Div)
+		So(result, ShouldBeNil)
+	})
+}
+
+func TestGetText(t *testing.T) {
+	Convey("GetText should return the text content of the node", t, func() {
+
+		node := CreateNode("div", atom.Div,
+			"\n",
+			CreateNode("p", atom.P, "hello "),
+			CreateNode("div", atom.Div, CreateNode("p", atom.P, "world")),
+			CreateNode("span", atom.Span, "!"))
+
+		result := GetText(node)
+		So(result, ShouldEqual, "hello world!")
+	})
 }

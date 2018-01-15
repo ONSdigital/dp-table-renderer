@@ -1,6 +1,9 @@
 package htmlutil
 
 import (
+	"bytes"
+	"strings"
+
 	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"
 )
@@ -109,4 +112,32 @@ func FindNodesWithAttributes(n *html.Node, a atom.Atom, attr map[string]string) 
 		result = append(result, FindNodesWithAttributes(c, a, attr)...)
 	}
 	return result
+}
+
+// FindAllNodes returns all child nodes of any of the given types, in the order in which they are found (a depth-first search)
+func FindAllNodes(n *html.Node, all ...atom.Atom) []*html.Node {
+	var result []*html.Node
+	for c := n.FirstChild; c != nil; c = c.NextSibling {
+		for _, a := range all {
+			if c.DataAtom == a {
+				result = append(result, c)
+				break
+			}
+		}
+		result = append(result, FindAllNodes(c, all...)...)
+	}
+	return result
+}
+
+// GetText returns the text content of the given node, including the text content of all child nodes. Extraneous newline characters are removed.
+func GetText(n *html.Node) string {
+	var buffer bytes.Buffer
+	for c := n.FirstChild; c != nil; c = c.NextSibling {
+		if c.Type == html.TextNode {
+			buffer.WriteString(c.Data)
+		} else {
+			buffer.WriteString(GetText(c))
+		}
+	}
+	return strings.Trim(buffer.String(), "\n")
 }

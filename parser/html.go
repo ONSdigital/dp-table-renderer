@@ -41,8 +41,15 @@ func ParseHTML(request *models.ParseRequest) ([]byte, error) {
 		TableType:  "generated-table",
 		Footnotes:  request.Footnotes}
 
-	// todo parse table to requestJSON
-	h.FindNode(sourceTable, atom.Tbody)
+	cells := getCells(sourceTable)
+	if request.IncludeThead {
+		thead := h.FindNode(sourceTable, atom.Thead)
+		if thead != nil {
+			cells = append(getCells(thead), cells...)
+		}
+	}
+
+	requestJSON.Data = parseData(cells)
 
 	previewHTML, err := renderer.RenderHTML(requestJSON)
 	if err != nil {
@@ -71,6 +78,33 @@ func parseTableToNode(tableHTML string) (*html.Node, error) {
 		return nil, errors.New("table_html could not be parsed into a table element")
 	}
 	return nodes[0], nil
+}
+
+// getCells returns all td and th elements in the given (table) Node, in a 2d array with one array for each row in the table
+func getCells(table *html.Node) [][]*html.Node {
+	var cells [][]*html.Node
+	tbody := h.FindNode(table, atom.Tbody)
+	if tbody == nil {
+		tbody = table
+	}
+	rows := h.FindAllNodes(tbody, atom.Tr)
+	for _, row := range rows {
+		cells = append(cells, h.FindAllNodes(row, atom.Td, atom.Th))
+	}
+	return cells
+}
+
+// parseData extracts the text content of each cell in the given array
+func parseData(cells [][]*html.Node) [][]string {
+	var data [][]string
+	for _, row := range cells {
+		var rowData []string
+		for _, cell := range row {
+			rowData = append(rowData, h.GetText(cell))
+		}
+		data = append(data, rowData)
+	}
+	return data
 }
 
 // marshalResponse marshals the ResponseModel to json, turning off escaping of html
