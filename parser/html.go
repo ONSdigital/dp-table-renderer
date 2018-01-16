@@ -62,18 +62,10 @@ func ParseHTML(request *models.ParseRequest) ([]byte, error) {
 		Footnotes:  request.Footnotes}
 
 	rowFormats := createRowFormats(model)
-	// convert the map to a slice
-	for key, value := range rowFormats {
-		value.Row = key
-		requestJSON.RowFormats = append(requestJSON.RowFormats, value)
-	}
+	requestJSON.RowFormats = convertRowFormatsToSlice(rowFormats)
 
 	colFormats := createColumnFormats(model)
-	// convert the map to a slice
-	for key, value := range colFormats {
-		value.Column = key
-		requestJSON.ColumnFormats = append(requestJSON.ColumnFormats, value)
-	}
+	requestJSON.ColumnFormats = convertColumnFormatsToSlice(colFormats)
 
 	requestJSON.CellFormats = createCellFormats(model, rowFormats, colFormats)
 
@@ -170,13 +162,13 @@ func parseRowAndColumnClasses(cells [][]*html.Node) ([]map[string]int, []map[str
 	for r, row := range cells {
 		rowClasses[r] = make(map[string]int)
 		for c, cell := range row {
+			if len(columnClasses) < c+1 {
+				columnClasses = append(columnClasses, make(map[string]int))
+			}
 			// get all the classes of this cell
 			classes := strings.Split(h.GetAttribute(cell, "class"), " ")
 			for _, class := range classes {
 				if len(class) > 0 {
-					if len(columnClasses) < c+1 {
-						columnClasses = append(columnClasses, make(map[string]int))
-					}
 					// increment the counter for this class in row r and column c
 					rowClasses[r][class]++
 					columnClasses[c][class]++
@@ -241,6 +233,36 @@ func createRowFormats(model *parseModel) map[int]models.RowFormat {
 		rowFormats[i] = format
 	}
 	return rowFormats
+}
+
+// convertRowFormatsToSlice converts the map to an ordered slice
+func convertRowFormatsToSlice(rowFormats map[int]models.RowFormat) []models.RowFormat {
+	var keys []int
+	for k, _ := range rowFormats {
+		keys = append(keys, k)
+	}
+	var slice []models.RowFormat
+	for key := range keys {
+		format := rowFormats[key]
+		format.Row = key
+		slice = append(slice, format)
+	}
+	return slice
+}
+
+// convertColumnFormatsToSlice converts the map to an ordered slice
+func convertColumnFormatsToSlice(colFormats map[int]models.ColumnFormat) []models.ColumnFormat {
+	var keys []int
+	for k, _ := range colFormats {
+		keys = append(keys, k)
+	}
+	var slice []models.ColumnFormat
+	for key := range keys {
+		format := colFormats[key]
+		format.Column = key
+		slice = append(slice, format)
+	}
+	return slice
 }
 
 // createCellFormats assigns rowspan and colspan, and align/vertical align if necessary

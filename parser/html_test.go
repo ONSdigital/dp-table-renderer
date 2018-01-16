@@ -13,9 +13,49 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"
+	"github.com/ONSdigital/dp-table-renderer/testdata"
+	"bytes"
 )
 
 func TestParseHTML(t *testing.T) {
+	Convey("ParseHTML should successfully parse the example request", t, func() {
+
+		request, err := models.CreateParseRequest(bytes.NewReader(testdata.LoadExampleHandsonTable(t)))
+		So(err, ShouldBeNil)
+
+		resultBytes, err := parser.ParseHTML(request)
+
+		So(err, ShouldBeNil)
+		So(resultBytes, ShouldNotBeNil)
+
+		result := parser.ResponseModel{}
+		err = json.Unmarshal(resultBytes, &result)
+		So(err, ShouldBeNil)
+		So(result, ShouldNotBeNil)
+		So(result.JSON, ShouldNotBeNil)
+		So(result.JSON.Filename, ShouldEqual, request.Filename)
+		So(result.JSON.Title, ShouldEqual, request.Title)
+		So(result.JSON.Subtitle, ShouldEqual, request.Subtitle)
+		So(result.JSON.Source, ShouldEqual, request.Source)
+		So(result.JSON.URI, ShouldEqual, request.URI)
+		So(result.JSON.StyleClass, ShouldEqual, request.StyleClass)
+		So(result.JSON.TableType, ShouldEqual, "generated-table")
+		So(result.JSON.Footnotes, ShouldResemble, request.Footnotes)
+		So(result.PreviewHTML, ShouldNotBeNil)
+
+		nodes, err := html.ParseFragment(strings.NewReader(result.PreviewHTML), &html.Node{
+			Type:     html.ElementNode,
+			Data:     "body",
+			DataAtom: atom.Body,
+		})
+		So(err, ShouldBeNil)
+		// PreviewHTML should contain a div that contains a table
+		So(len(nodes), ShouldBeGreaterThanOrEqualTo, 1)
+		node := nodes[0]
+		So(node.DataAtom, ShouldEqual, atom.Div)
+		So(htmlutil.FindNode(node, atom.Table), ShouldNotBeNil)
+	})
+
 	Convey("ParseHTML should create a valid RenderRequest", t, func() {
 
 		request := models.ParseRequest{
