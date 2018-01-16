@@ -199,6 +199,15 @@ func TestRenderHTML_FootnoteLinks(t *testing.T) {
 		So(raw, ShouldContainSubstring, "Cell[0][]")
 	})
 
+	Convey("A renderRequest with lots of footnotes (>10) is handled correctly", t, func() {
+		request := models.RenderRequest{Filename: "myId", Footnotes: []string{"Note1", "Note2", "3", "4", "5", "6", "7", "8", "9", "10", "11"}, Data: [][]string{{"Cell [11]"}}}
+		div, _ := invokeRenderHTML(&request)
+
+		links := FindNodesWithAttributes(div, atom.A, map[string]string{"class": "footnote-link"})
+		So(len(links), ShouldEqual, 1)
+		So(GetAttribute(links[0], "href"), ShouldEqual, "#table_myId_note_11")
+	})
+
 	Convey("Multiple references to the same footnote in the same value should all be converted to links", t, func() {
 		request := models.RenderRequest{Filename: "myId", Footnotes: []string{"Note1", "Note2"}, Title: "This contains [1] links[1]"}
 		div, _ := invokeRenderHTML(&request)

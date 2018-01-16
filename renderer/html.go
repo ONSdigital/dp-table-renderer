@@ -155,7 +155,7 @@ func addTableCell(model *tableModel, tr *html.Node, colText string, rowIdx int, 
 		h.AddAttribute(node, "class", model.columns[colIdx].Align)
 	}
 	if len(cell.class) > 0 {
-		h.ReplaceAttribute(node, "class", strings.Trim(h.GetAttribute(node, "class") + " " + cell.class, " "))
+		h.ReplaceAttribute(node, "class", strings.Trim(h.GetAttribute(node, "class")+" "+cell.class, " "))
 	}
 	tr.AppendChild(node)
 }

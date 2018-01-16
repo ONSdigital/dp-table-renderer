@@ -8,23 +8,25 @@ import (
 	"errors"
 	"strings"
 
+	"fmt"
+	"regexp"
+	"strconv"
+
 	h "github.com/ONSdigital/dp-table-renderer/htmlutil"
 	"github.com/ONSdigital/dp-table-renderer/models"
 	"github.com/ONSdigital/dp-table-renderer/renderer"
 	"github.com/go-ns/log"
 	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"
-	"regexp"
-	"strconv"
 )
 
 // parseModel contains values calculated from the parse request that are used to create the ResponseModel
 type parseModel struct {
 	request       *models.ParseRequest
 	tableNode     *html.Node
-	cells         [][]*html.Node // all cells we want to treat as data
-	rowClasses    []map[string]int // all classes defined in a row, keyed by the row index, with a count of the number of cells having that class
-	columnClasses []map[string]int // all classes defined in a column, keyed by the column index, with a count of the number of cells having that class
+	cells         [][]*html.Node    // all cells we want to treat as data
+	rowClasses    []map[string]int  // all classes defined in a row, keyed by the row index, with a count of the number of cells having that class
+	columnClasses []map[string]int  // all classes defined in a column, keyed by the column index, with a count of the number of cells having that class
 	alignMap      map[string]string // a map of the classes used for alignment in the input html to the correct Alignment values
 	valignMap     map[string]string // a map of the classes used for vertical alignment in the input html to the correct Alignment values
 }
@@ -106,12 +108,14 @@ func parseTableToNode(tableHTML string) (*html.Node, error) {
 	return nodes[0], nil
 }
 
-// createParseModel creates a model, extracting all properties form the input html
+// createParseModel creates a model from the input request, extracting all properties need to define the output from the input html
 func createParseModel(request *models.ParseRequest, tableNode *html.Node) *parseModel {
 	model := parseModel{}
 	model.request = request
 	model.tableNode = tableNode
+
 	model.cells = getCells(tableNode, request.IgnoreFirstRow, request.IgnoreFirstColumn)
+
 	rowClasses, colClasses := parseRowAndColumnClasses(model.cells)
 	model.rowClasses = rowClasses
 	model.columnClasses = colClasses
@@ -174,8 +178,8 @@ func parseRowAndColumnClasses(cells [][]*html.Node) ([]map[string]int, []map[str
 						columnClasses = append(columnClasses, make(map[string]int))
 					}
 					// increment the counter for this class in row r and column c
-					rowClasses[r][class] += 1
-					columnClasses[c][class] += 1
+					rowClasses[r][class]++
+					columnClasses[c][class]++
 				}
 			}
 		}
@@ -260,13 +264,13 @@ func createCellFormats(model *parseModel, rowFormats map[int]models.RowFormat, c
 			for _, class := range classes {
 				// specify vertical align if the cell has an alignment different to that of the row
 				valign := model.valignMap[class]
-				if len(valign) > 0  && valign != rowFormats[r].VerticalAlign {
+				if len(valign) > 0 && valign != rowFormats[r].VerticalAlign {
 					format.VerticalAlign = valign
 					hasData = true
 				}
 				// specify align if the cell has an alignment different to that of the column
 				align := model.alignMap[class]
-				if len(align) > 0  && align != colFormats[c].Align {
+				if len(align) > 0 && align != colFormats[c].Align {
 					format.Align = align
 					hasData = true
 				}
@@ -286,7 +290,36 @@ func extractWidth(model *parseModel, node *html.Node) string {
 	width := widthStylePattern.FindString(h.GetAttribute(node, "style"))
 	width = strings.Trim(strings.Replace(width, "width:", "", -1), " ")
 	width = strings.Replace(width, model.request.ColumnWidthToIgnore, "", -1)
-	// TODO: replace pixel width with % or em
+	// replace pixel width with % or em
+	if strings.HasSuffix(width, "px") {
+		switch units := model.request.SizeUnits; units {
+		case "%":
+			if model.request.CurrentTableWidth > 0 {
+				intWidth, err := strconv.Atoi(strings.Trim(width, "px"))
+				if err == nil {
+					proportion := float32(intWidth) / float32(model.request.CurrentTableWidth)
+					width = fmt.Sprintf("%.0f%%", proportion*100.0)
+				} else {
+					log.ErrorC(model.request.Filename, err, log.Data{"Width not parseable as an integer": width})
+				}
+			} else {
+				log.DebugC(model.request.Filename, "percentage specified as desired width unit, but CurrentTableWidth not provided", nil)
+			}
+		case "em":
+			if model.request.SingleEmHeight > 0 {
+				intWidth, err := strconv.Atoi(strings.Trim(width, "px"))
+				if err == nil {
+					width = fmt.Sprintf("%.fem", float32(intWidth)/model.request.SingleEmHeight)
+				} else {
+					log.ErrorC(model.request.Filename, err, log.Data{"Width not parseable as an integer": width})
+				}
+			} else {
+				log.DebugC(model.request.Filename, "percentage specified as desired width unit, but CurrentTableWidth not provided", nil)
+			}
+		default:
+			log.DebugC(model.request.Filename, "Unknown size unit specified for width: "+units, nil)
+		}
+	}
 	return width
 }
 
