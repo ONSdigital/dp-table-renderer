@@ -17,7 +17,7 @@ import (
 
 var (
 	newLine        = regexp.MustCompile(`\n`)
-	footnoteLink   = regexp.MustCompile(`\[[0-9+]]`)
+	footnoteLink   = regexp.MustCompile(`\[[0-9]+]`)
 	emptyCellModel = &cellModel{}
 )
 

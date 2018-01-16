@@ -15,6 +15,17 @@ var (
 	ErrorNoData      = errors.New("Bad request - Missing data in body")
 )
 
+// valid values for alignments in the various formats
+var (
+	AlignTop = "Top"
+	AlignMiddle = "Middle"
+	AlignBottom = "Bottom"
+	AlignLeft = "Left"
+	AlignCentre = "Centre"
+	AlignRight = "Right"
+)
+
+
 // RenderRequest represents a structure for a table render job
 type RenderRequest struct {
 	Title         string         `json:"title"`
@@ -33,21 +44,33 @@ type RenderRequest struct {
 
 // ParseRequest represents a request to convert an html table (plus supporting data) into the correct RenderRequest format
 type ParseRequest struct {
-	Title              string   `json:"title"`
-	Subtitle           string   `json:"subtitle"`
-	Source             string   `json:"source"`
-	Filename           string   `json:"filename"`
-	URI                string   `json:"uri"`
-	Footnotes          []string `json:"footnotes"`
-	StyleClass         string   `json:"style_class"`
-	TableHTML          string   `json:"table_html"`
-	IncludeThead       bool     `json:"include_thead"` 		  // if true, any rows in thead will be parsed as if they are in tbody
-	HeaderRows         int      `json:"header_rows"`
-	HeaderCols         int      `json:"header_cols"`
-	CurrentTableWidth  int      `json:"current_table_width"`  // used to convert column width from pixels to %
-	CurrentTableHeight int      `json:"current_table_height"` // used to convert row height from pixels to %
-	SingleEmHeight     int      `json:"single_em_height"`     // used to convert height/width from pixels to em. The height of the following: <div style="display: none; font-size: 1em; margin: 0; padding:0; height: auto; line-height: 1; border:0;">m</div>
-	SizeUnits          string   `json:"size_units"`           // 'em' or '%' - the desired unit for widths/heights
+	Title               string   `json:"title"`
+	Subtitle            string   `json:"subtitle"`
+	Source              string   `json:"source"`
+	Filename            string   `json:"filename"`
+	URI                 string   `json:"uri"`
+	Footnotes           []string `json:"footnotes"`
+	StyleClass          string   `json:"style_class"`
+	TableHTML           string   `json:"table_html"`
+	IgnoreFirstRow      bool     `json:"ignore_first_row"`       // if true, the first row is ignored
+	IgnoreFirstColumn   bool     `json:"ignore_first_column"`    // if true, the first cell of each row is ignored
+	HeaderRows          int      `json:"header_rows"`            // the number of header rows (th cells) in the output, after ignoring the first row (if applicable)
+	HeaderCols          int      `json:"header_cols"`            // the number of header columns (th cells) in each row of the output, after ignoring the first column (if applicable)
+	CurrentTableWidth   int      `json:"current_table_width"`    // used to convert column width from pixels to %
+	CurrentTableHeight  int      `json:"current_table_height"`   // used to convert row height from pixels to %
+	SingleEmHeight      float32  `json:"single_em_height"`       // used to convert height/width from pixels to em. The height of the following: <div style="display: none; font-size: 1em; margin: 0; padding:0; height: auto; line-height: 1; border:0;">m</div>
+	SizeUnits           string   `json:"size_units"`             // 'em' or '%' - the desired unit for widths/heights
+	ColumnWidthToIgnore string   `json:"column_width_to_ignore"` // if the source html applies a default column width that shouldn't be included in the output, specify it here. e.g. '50px'
+	AlignmentClasses ParseAlignments   `json:"alignment_classes"` // The names of classes that should be interpreted as defining alignment of cells
+}
+
+type ParseAlignments struct {
+	Top    string `json:"top"`
+	Middle string `json:"middle"`
+	Bottom string `json:"bottom"`
+	Left   string `json:"left"`
+	Right  string `json:"right"`
+	Centre string `json:"centre"`
 }
 
 // RowFormat allows us to specify that a row contains headings, and provide a style for html
