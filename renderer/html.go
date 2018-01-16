@@ -108,8 +108,8 @@ func addRows(model *tableModel, table *html.Node) {
 	for rowIdx, row := range model.request.Data {
 		tr := h.CreateNode("tr", atom.Tr)
 		table.AppendChild(tr)
-		if len(model.rows[rowIdx].VerticalAlign) > 0 {
-			h.AddAttribute(tr, "class", model.rows[rowIdx].VerticalAlign)
+		if len(model.rows[rowIdx].StyleClass) > 0 {
+			h.AddAttribute(tr, "class", model.rows[rowIdx].StyleClass)
 		}
 		if len(model.rows[rowIdx].Height) > 0 {
 			h.AddAttribute(tr, "style", "height: "+model.rows[rowIdx].Height)
@@ -151,8 +151,8 @@ func addTableCell(model *tableModel, tr *html.Node, colText string, rowIdx int, 
 	if cell.rowspan > 1 {
 		h.AddAttribute(node, "rowspan", fmt.Sprintf("%d", cell.rowspan))
 	}
-	if len(model.columns[colIdx].Align) > 0 {
-		h.AddAttribute(node, "class", model.columns[colIdx].Align)
+	if len(model.columns[colIdx].StyleClass) > 0 {
+		h.AddAttribute(node, "class", model.columns[colIdx].StyleClass)
 	}
 	if len(cell.class) > 0 {
 		h.ReplaceAttribute(node, "class", strings.Trim(h.GetAttribute(node, "class") + " " + cell.class, " "))
@@ -287,8 +287,8 @@ func createCellModels(request *models.RenderRequest) map[int]map[int]*cellModel 
 		cell := getCellModel(m, format.Row, format.Column)
 		cell.colspan = format.Colspan
 		cell.rowspan = format.Rowspan
-		if len(format.Align) > 0 || len(format.VerticalAlign) > 0 {
-			cell.class = strings.Trim(format.Align+" "+format.VerticalAlign, " ")
+		if len(format.StyleClass) > 0 {
+			cell.class = strings.Trim(format.StyleClass, " ")
 		}
 		// if we have merged cells, find those that need to be skipped in the output
 		colspan := min(format.Colspan, 1)

@@ -213,7 +213,7 @@ func TestRenderHTML_FootnoteLinks(t *testing.T) {
 
 func TestRenderHTML_ColumnFormats(t *testing.T) {
 	Convey("A renderRequest with column formats should output colgroup", t, func() {
-		formats := []models.ColumnFormat{{Column: 0, Width: "10em"}, {Column: 2, Align: "right"}}
+		formats := []models.ColumnFormat{{Column: 0, Width: "10em"}, {Column: 2, StyleClass: "right"}}
 		request := models.RenderRequest{Filename: "myId", ColumnFormats: formats,
 			Data: [][]string{
 				{"Cell 1", "Cell 2", "Cell 3", "Cell 4"},
@@ -356,8 +356,8 @@ func TestRenderHTML_MergeCells(t *testing.T) {
 
 func TestRenderHTML_ColumnAndRowAlignment(t *testing.T) {
 	Convey("A renderRequest with various alignments should have correct classes", t, func() {
-		rowFormats := []models.RowFormat{{Row: 0, VerticalAlign: "top"}}
-		colFormats := []models.ColumnFormat{{Column: 0, Align: "right"}}
+		rowFormats := []models.RowFormat{{Row: 0, StyleClass: "top"}}
+		colFormats := []models.ColumnFormat{{Column: 0, StyleClass: "right"}}
 		cellFormats := []models.CellFormat{{Row: 0, Column: 0, VerticalAlign: "bottom"}}
 		cells := [][]string{{"Cell 1", "Cell 2", "Cell 3", "Cell 4"}}
 		request := models.RenderRequest{Filename: "myId", ColumnFormats: colFormats, RowFormats: rowFormats, CellFormats: cellFormats, Data: cells}

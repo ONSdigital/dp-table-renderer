@@ -8,16 +8,16 @@
   "style_class": "foo bar",
   "row_formats": [
     {"row": 0, "heading": true},
-    {"row": 1, "height": "5em", "vertical_align": "top"}
+    {"row": 1, "height": "5em", "style_class": "top"}
   ],
   "column_formats": [
-    {"col": 0, "align": "right", "width": "5em", "heading": true},
-    {"col": 1, "align": "right", "width": "4em", "heading": true}
+    {"col": 0, "style_class": "right", "width": "5em", "heading": true},
+    {"col": 1, "style_class": "right", "width": "4em", "heading": true}
   ],
   "cell_formats": [
-    {"row": 0, "col": 0, "align": "center", "colspan": 2},
-    {"row": 1, "col": 1, "align": "left", "vertical_align": "middle", "rowspan": 2},
-    {"row": 3, "col": 0, "align": "left", "vertical_align": "top", "rowspan": 11}
+    {"row": 0, "col": 0, "style_class": "center", "colspan": 2},
+    {"row": 1, "col": 1, "style_class": "left middle", "rowspan": 2},
+    {"row": 3, "col": 0, "style_class": "left top", "rowspan": 11}
   ],
   "data": [
     ["Date",null,"CPIH Index[1]\n(UK, 2015 = 100)","CPIH 12-\nmonth rate ","CPI Index[1]\n(UK, 2015=100)","CPI 12- \nmonth rate","OOH Index[1]\n(UK, 2015=100)","OOH 12-\nmonth rate "],

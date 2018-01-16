@@ -52,26 +52,25 @@ type ParseRequest struct {
 
 // RowFormat allows us to specify that a row contains headings, and provide a style for html
 type RowFormat struct {
-	Row           int    `json:"row"` // the index of the row the format applies to
-	VerticalAlign string `json:"vertical_align"`
-	Heading       bool   `json:"heading"`
-	Height        string `json:"height"`
+	Row        int    `json:"row"` // the index of the row the format applies to
+	StyleClass string `json:"style_class"`
+	Heading    bool   `json:"heading"`
+	Height     string `json:"height"`
 }
 
 // ColumnFormat allows us to specify that a column contains headings, specify alignment and provide a style for html
 type ColumnFormat struct {
-	Column  int    `json:"col"` // the index of the column the format applies to
-	Align   string `json:"align"`
-	Heading bool   `json:"heading"`
-	Width   string `json:"width"`
+	Column     int    `json:"col"` // the index of the column the format applies to
+	StyleClass string `json:"style_class"`
+	Heading    bool   `json:"heading"`
+	Width      string `json:"width"`
 }
 
 // CellFormat allows us to specify alignment and style, that a cell contains a heading, and how to merge cells
 type CellFormat struct {
 	Row           int    `json:"row"`
 	Column        int    `json:"col"`
-	Align         string `json:"align"`
-	VerticalAlign string `json:"vertical_align"`
+	StyleClass    string `json:"style_class"`
 	Rowspan       int    `json:"rowspan"`
 	Colspan       int    `json:"colspan"`
 }
