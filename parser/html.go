@@ -108,19 +108,19 @@ func createParseModel(request *models.ParseRequest, tableNode *html.Node) *parse
 
 	model.cells = getCells(tableNode, request.IgnoreFirstRow, request.IgnoreFirstColumn)
 
-	rowClasses, colClasses := parseRowAndColumnClasses(model.cells)
-	model.rowClasses = rowClasses
-	model.columnClasses = colClasses
+	model.rowClasses, model.columnClasses = parseRowAndColumnClasses(model.cells)
 
-	model.alignMap = make(map[string]string)
-	model.alignMap[request.AlignmentClasses.Left] = models.AlignLeft
-	model.alignMap[request.AlignmentClasses.Centre] = models.AlignCentre
-	model.alignMap[request.AlignmentClasses.Right] = models.AlignRight
+	model.alignMap = map[string]string{
+		request.AlignmentClasses.Left: models.AlignLeft,
+		request.AlignmentClasses.Centre: models.AlignCentre,
+		request.AlignmentClasses.Right: models.AlignRight,
+	}
 
-	model.valignMap = make(map[string]string)
-	model.valignMap[request.AlignmentClasses.Bottom] = models.AlignBottom
-	model.valignMap[request.AlignmentClasses.Middle] = models.AlignMiddle
-	model.valignMap[request.AlignmentClasses.Top] = models.AlignTop
+	model.valignMap = map[string]string{
+		request.AlignmentClasses.Bottom: models.AlignBottom,
+		request.AlignmentClasses.Middle: models.AlignMiddle,
+		request.AlignmentClasses.Top: models.AlignTop,
+	}
 
 	return &model
 }
