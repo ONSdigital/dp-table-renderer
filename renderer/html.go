@@ -19,6 +19,11 @@ var (
 	newLine        = regexp.MustCompile(`\n`)
 	footnoteLink   = regexp.MustCompile(`\[[0-9]+]`)
 	emptyCellModel = &cellModel{}
+
+	// text that will need internationalising at some point:
+	sourceText         = "Source: "
+	notesText          = "Notes"
+	footnoteHiddenText = "Footnote "
 )
 
 // Contains details of the table that need to be calculated once from the request and cached
@@ -166,14 +171,13 @@ func addFooter(request *models.RenderRequest, parent *html.Node) {
 	if len(request.Source) > 0 {
 		footer.AppendChild(h.CreateNode("p", atom.P,
 			h.Attr("class", "table-source"),
-			parseValue(request, "Source: "+request.Source)))
+			parseValue(request, sourceText+request.Source)))
 		footer.AppendChild(h.Text("\n"))
 	}
 	if len(request.Footnotes) > 0 {
 		footer.AppendChild(h.CreateNode("p", atom.P,
 			h.Attr("class", "table-notes"),
-			h.Attr("id", "table_"+request.Filename+"_notes"),
-			"Notes"))
+			notesText))
 		footer.AppendChild(h.Text("\n"))
 		ol := h.CreateNode("ol", atom.Ol, "\n")
 
@@ -210,7 +214,7 @@ func replaceValues(request *models.RenderRequest, value string, hasBr bool, hasF
 	if hasFootnote {
 		for i := range request.Footnotes {
 			n := i + 1
-			linkText := fmt.Sprintf("<a aria-describedby=\"table_%s_notes\" href=\"#table_%s_note_%d\" class=\"footnote-link\">[%d]</a>", request.Filename, request.Filename, n, n)
+			linkText := fmt.Sprintf("<a href=\"#table_%s_note_%d\" class=\"footnote__link\"><span class=\"visuallyhidden\">%s</span>%d</a>", request.Filename, n, footnoteHiddenText, n)
 			value = strings.Replace(value, fmt.Sprintf("[%d]", n), linkText, -1)
 		}
 	}

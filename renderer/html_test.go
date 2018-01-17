@@ -15,6 +15,8 @@ import (
 	"golang.org/x/net/html/atom"
 )
 
+const footnoteLinkClass = "footnote__link"
+
 func TestRenderHTML(t *testing.T) {
 	t.Parallel()
 	Convey("Successfully render an html table", t, func() {
@@ -181,16 +183,18 @@ func TestRenderHTML_FootnoteLinks(t *testing.T) {
 		request := models.RenderRequest{Filename: "myId", Footnotes: []string{"Note1", "Note2"}, Data: [][]string{{"Cell 1[1]", "Cell[2] 2[1]"}, {"Cell 3[3]", "Cell[0][]"}}}
 		div, raw := invokeRenderHTML(&request)
 
-		links := FindNodesWithAttributes(div, atom.A, map[string]string{"class": "footnote-link"})
+		links := FindNodesWithAttributes(div, atom.A, map[string]string{"class": footnoteLinkClass})
 		So(len(links), ShouldEqual, 3)
 		for _, link := range links {
-			So(GetAttribute(link, "aria-describedby"), ShouldResemble, "table_"+request.Filename+"_notes")
+			span := FindNode(link, atom.Span)
+			So(GetAttribute(span, "class"), ShouldEqual, "visuallyhidden")
+			So(GetText(span), ShouldEqual, "Footnote ")
 		}
 		So(GetAttribute(links[0], "href"), ShouldEqual, "#table_myId_note_1")
 		So(GetAttribute(links[1], "href"), ShouldEqual, "#table_myId_note_2")
 		So(GetAttribute(links[2], "href"), ShouldEqual, "#table_myId_note_1")
 
-		p := FindNodeWithAttributes(div, atom.P, map[string]string{"class": "table-notes", "id": "table_" + request.Filename + "_notes"})
+		p := FindNodeWithAttributes(div, atom.P, map[string]string{"class": "table-notes"})
 		So(p, ShouldNotBeNil)
 
 		So(raw, ShouldNotContainSubstring, "Cell 1[1]")
@@ -203,7 +207,7 @@ func TestRenderHTML_FootnoteLinks(t *testing.T) {
 		request := models.RenderRequest{Filename: "myId", Footnotes: []string{"Note1", "Note2", "3", "4", "5", "6", "7", "8", "9", "10", "11"}, Data: [][]string{{"Cell [11]"}}}
 		div, _ := invokeRenderHTML(&request)
 
-		links := FindNodesWithAttributes(div, atom.A, map[string]string{"class": "footnote-link"})
+		links := FindNodesWithAttributes(div, atom.A, map[string]string{"class": footnoteLinkClass})
 		So(len(links), ShouldEqual, 1)
 		So(GetAttribute(links[0], "href"), ShouldEqual, "#table_myId_note_11")
 	})
@@ -212,7 +216,7 @@ func TestRenderHTML_FootnoteLinks(t *testing.T) {
 		request := models.RenderRequest{Filename: "myId", Footnotes: []string{"Note1", "Note2"}, Title: "This contains [1] links[1]"}
 		div, _ := invokeRenderHTML(&request)
 
-		links := FindNodesWithAttributes(div, atom.A, map[string]string{"class": "footnote-link"})
+		links := FindNodesWithAttributes(div, atom.A, map[string]string{"class": footnoteLinkClass})
 		So(len(links), ShouldEqual, 2)
 		for _, link := range links {
 			So(GetAttribute(link, "href"), ShouldEqual, "#table_myId_note_1")
