@@ -47,20 +47,20 @@ type cellModel struct {
 func RenderHTML(request *models.RenderRequest) ([]byte, error) {
 	model := createModel(request)
 
-	div := h.CreateNode("div", atom.Div,
+	figure := h.CreateNode("figure", atom.Figure,
 		h.Attr("class", "table-renderer"),
 		h.Attr("id", tableId(request)),
 		"\n")
 
-	table := addTable(request, div)
+	table := addTable(request, figure)
 
 	addColumnGroup(model, table)
 	addRows(model, table)
 
-	addFooter(request, div)
+	addFooter(request, figure)
 
 	var buf bytes.Buffer
-	html.Render(&buf, div)
+	html.Render(&buf, figure)
 	buf.WriteString("\n")
 	return buf.Bytes(), nil
 }

@@ -50,10 +50,10 @@ func TestParseHTML(t *testing.T) {
 			DataAtom: atom.Body,
 		})
 		So(err, ShouldBeNil)
-		// PreviewHTML should contain a div that contains a table
+		// PreviewHTML should contain a figure that contains a table
 		So(len(nodes), ShouldBeGreaterThanOrEqualTo, 1)
 		node := nodes[0]
-		So(node.DataAtom, ShouldEqual, atom.Div)
+		So(node.DataAtom, ShouldEqual, atom.Figure)
 		So(htmlutil.FindNode(node, atom.Table), ShouldNotBeNil)
 	})
 
@@ -95,10 +95,10 @@ func TestParseHTML(t *testing.T) {
 			DataAtom: atom.Body,
 		})
 		So(err, ShouldBeNil)
-		// PreviewHTML should contain a div that contains a table
+		// PreviewHTML should contain a figure that contains a table
 		So(len(nodes), ShouldBeGreaterThanOrEqualTo, 1)
 		node := nodes[0]
-		So(node.DataAtom, ShouldEqual, atom.Div)
+		So(node.DataAtom, ShouldEqual, atom.Figure)
 		So(htmlutil.FindNode(node, atom.Table), ShouldNotBeNil)
 	})
 
