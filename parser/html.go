@@ -322,10 +322,8 @@ func extractWidth(model *parseModel, node *html.Node) string {
 					proportion := float32(intWidth) / float32(model.request.CurrentTableWidth)
 					width = fmt.Sprintf("%.0f%%", proportion*100.0)
 				} else {
-					log.ErrorC(model.request.Filename, err, log.Data{"Width not parseable as an integer": width})
+					log.ErrorC(model.request.Filename, err, log.Data{"Width not parsable as an integer": width})
 				}
-			} else {
-				log.DebugC(model.request.Filename, "percentage specified as desired width unit, but CurrentTableWidth not provided", nil)
 			}
 		case "em":
 			if model.request.SingleEmHeight > 0 {
@@ -333,15 +331,9 @@ func extractWidth(model *parseModel, node *html.Node) string {
 				if err == nil {
 					width = fmt.Sprintf("%.fem", float32(intWidth)/model.request.SingleEmHeight)
 				} else {
-					log.ErrorC(model.request.Filename, err, log.Data{"Width not parseable as an integer": width})
+					log.ErrorC(model.request.Filename, err, log.Data{"Width not parsable as an integer": width})
 				}
-			} else {
-				log.DebugC(model.request.Filename, "percentage specified as desired width unit, but CurrentTableWidth not provided", nil)
 			}
-		case "":
-			// leave width as is, don't spam the logs with debug
-		default:
-			log.DebugC(model.request.Filename, "Unknown size unit specified for width: "+units, nil)
 		}
 	}
 	return width

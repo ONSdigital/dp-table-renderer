@@ -175,6 +175,21 @@ func (pr *ParseRequest) ValidateParseRequest() error {
 		missingFields = append(missingFields, "table_html")
 	}
 
+	switch units := pr.SizeUnits; units {
+	case "%":
+		if pr.CurrentTableWidth <= 0 {
+			log.InfoC(pr.Filename, "size_units is '%' but current_table_width is not specified - cannot convert from px", nil)
+		}
+	case "em":
+		if pr.SingleEmHeight <= 0 {
+			log.InfoC(pr.Filename, "size_units is 'em' but single_em_height is not specified - cannot convert from px", nil)
+		}
+	case "":
+		// don't spam the logs
+	default:
+		log.InfoC(pr.Filename, "Unknown size unit specified for width: "+units, nil)
+	}
+
 	if missingFields != nil {
 		return fmt.Errorf("Missing mandatory fields: %v", missingFields)
 	}
