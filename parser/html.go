@@ -122,6 +122,10 @@ func createParseModel(request *models.ParseRequest, tableNode *html.Node) *parse
 		request.AlignmentClasses.Top: models.AlignTop,
 	}
 
+	// in case the alignment classes were not specified:
+	delete(model.alignMap, "")
+	delete(model.valignMap, "")
+
 	return &model
 }
 
@@ -241,7 +245,7 @@ func convertRowFormatsToSlice(rowFormats map[int]models.RowFormat) []models.RowF
 	for k := range rowFormats {
 		keys = append(keys, k)
 	}
-	var slice []models.RowFormat
+	slice := []models.RowFormat{}
 	for key := range keys {
 		format := rowFormats[key]
 		format.Row = key
@@ -256,7 +260,7 @@ func convertColumnFormatsToSlice(colFormats map[int]models.ColumnFormat) []model
 	for k := range colFormats {
 		keys = append(keys, k)
 	}
-	var slice []models.ColumnFormat
+	slice := []models.ColumnFormat{}
 	for key := range keys {
 		format := colFormats[key]
 		format.Column = key

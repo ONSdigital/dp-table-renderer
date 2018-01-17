@@ -359,6 +359,22 @@ func TestParseHTML_CellFormats(t *testing.T) {
 		So(format.Rowspan, ShouldEqual, 0)
 	})
 
+	Convey("ParseHTML should not create formats when no formatting is present in the source table", t, func() {
+		request := models.ParseRequest{
+			Filename:"abcd1234",
+			TableHTML:`<table class="htCore"><tbody>
+						<tr><td class=""></td><td class="">a</td><td class="">b</td><td class="">c</td><td class="">d</td><td class="">e</td></tr>
+						<tr><td class="">2016</td><td class="">10</td><td class="">11</td><td class="">12</td><td class="">13</td><td class="">14</td></tr>
+					</tbody></table>`,
+		}
+
+		response := invokeParseHTMLWithRequest(&request)
+
+		So(len(response.JSON.CellFormats), ShouldBeZeroValue)
+		So(len(response.JSON.RowFormats), ShouldBeZeroValue)
+		So(len(response.JSON.ColumnFormats), ShouldBeZeroValue)
+	})
+
 }
 
 func getCellFormat(formats []models.CellFormat, row int, col int) *models.CellFormat {
