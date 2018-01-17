@@ -6,7 +6,10 @@ import (
 	"github.com/ONSdigital/dp-table-renderer/health"
 	"github.com/ONSdigital/go-ns/log"
 	"github.com/ONSdigital/go-ns/server"
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+
+	"net/http"
 )
 
 var httpServer *server.Server
@@ -18,11 +21,11 @@ type RendererAPI struct {
 }
 
 // CreateRendererAPI manages all the routes configured to the renderer
-func CreateRendererAPI(host, bindAddr string, errorChan chan error) {
+func CreateRendererAPI(host, bindAddr string, allowedOrigins string, errorChan chan error) {
 	router := mux.NewRouter()
 	routes(host, router)
 
-	httpServer = server.New(bindAddr, router)
+	httpServer = server.New(bindAddr, createCORSHandler(allowedOrigins, router))
 	// Disable this here to allow main to manage graceful shutdown of the entire app.
 	httpServer.HandleOSSignals = false
 
@@ -33,6 +36,15 @@ func CreateRendererAPI(host, bindAddr string, errorChan chan error) {
 			errorChan <- err
 		}
 	}()
+}
+
+// createCORSHandler wraps the router in a CORS handler that responds to OPTIONS requests and returns the headers necessary to allow CORS-enabled clients to work
+func createCORSHandler(allowedOrigins string, router *mux.Router) http.Handler {
+	headersOk := handlers.AllowedHeaders([]string{"Accept", "Content-Type", "Access-Control-Allow-Origin", "Access-Control-Allow-Methods", "X-Requested-With"})
+	originsOk := handlers.AllowedOrigins([]string{allowedOrigins})
+	methodsOk := handlers.AllowedMethods([]string{"GET", "POST", "OPTIONS"})
+
+	return handlers.CORS(originsOk, headersOk, methodsOk)(router)
 }
 
 // routes contain all endpoints for the renderer

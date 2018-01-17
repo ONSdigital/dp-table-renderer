@@ -108,19 +108,19 @@ func createParseModel(request *models.ParseRequest, tableNode *html.Node) *parse
 
 	model.cells = getCells(tableNode, request.IgnoreFirstRow, request.IgnoreFirstColumn)
 
-	rowClasses, colClasses := parseRowAndColumnClasses(model.cells)
-	model.rowClasses = rowClasses
-	model.columnClasses = colClasses
+	model.rowClasses, model.columnClasses = parseRowAndColumnClasses(model.cells)
 
-	model.alignMap = make(map[string]string)
-	model.alignMap[request.AlignmentClasses.Left] = models.AlignLeft
-	model.alignMap[request.AlignmentClasses.Centre] = models.AlignCentre
-	model.alignMap[request.AlignmentClasses.Right] = models.AlignRight
+	model.alignMap = map[string]string{
+		request.AlignmentClasses.Left: models.AlignLeft,
+		request.AlignmentClasses.Centre: models.AlignCentre,
+		request.AlignmentClasses.Right: models.AlignRight,
+	}
 
-	model.valignMap = make(map[string]string)
-	model.valignMap[request.AlignmentClasses.Bottom] = models.AlignBottom
-	model.valignMap[request.AlignmentClasses.Middle] = models.AlignMiddle
-	model.valignMap[request.AlignmentClasses.Top] = models.AlignTop
+	model.valignMap = map[string]string{
+		request.AlignmentClasses.Bottom: models.AlignBottom,
+		request.AlignmentClasses.Middle: models.AlignMiddle,
+		request.AlignmentClasses.Top: models.AlignTop,
+	}
 
 	return &model
 }
@@ -238,7 +238,7 @@ func createRowFormats(model *parseModel) map[int]models.RowFormat {
 // convertRowFormatsToSlice converts the map to an ordered slice
 func convertRowFormatsToSlice(rowFormats map[int]models.RowFormat) []models.RowFormat {
 	var keys []int
-	for k, _ := range rowFormats {
+	for k := range rowFormats {
 		keys = append(keys, k)
 	}
 	var slice []models.RowFormat
@@ -253,7 +253,7 @@ func convertRowFormatsToSlice(rowFormats map[int]models.RowFormat) []models.RowF
 // convertColumnFormatsToSlice converts the map to an ordered slice
 func convertColumnFormatsToSlice(colFormats map[int]models.ColumnFormat) []models.ColumnFormat {
 	var keys []int
-	for k, _ := range colFormats {
+	for k := range colFormats {
 		keys = append(keys, k)
 	}
 	var slice []models.ColumnFormat
@@ -322,10 +322,8 @@ func extractWidth(model *parseModel, node *html.Node) string {
 					proportion := float32(intWidth) / float32(model.request.CurrentTableWidth)
 					width = fmt.Sprintf("%.0f%%", proportion*100.0)
 				} else {
-					log.ErrorC(model.request.Filename, err, log.Data{"Width not parseable as an integer": width})
+					log.ErrorC(model.request.Filename, err, log.Data{"Width not parsable as an integer": width})
 				}
-			} else {
-				log.DebugC(model.request.Filename, "percentage specified as desired width unit, but CurrentTableWidth not provided", nil)
 			}
 		case "em":
 			if model.request.SingleEmHeight > 0 {
@@ -333,13 +331,9 @@ func extractWidth(model *parseModel, node *html.Node) string {
 				if err == nil {
 					width = fmt.Sprintf("%.fem", float32(intWidth)/model.request.SingleEmHeight)
 				} else {
-					log.ErrorC(model.request.Filename, err, log.Data{"Width not parseable as an integer": width})
+					log.ErrorC(model.request.Filename, err, log.Data{"Width not parsable as an integer": width})
 				}
-			} else {
-				log.DebugC(model.request.Filename, "percentage specified as desired width unit, but CurrentTableWidth not provided", nil)
 			}
-		default:
-			log.DebugC(model.request.Filename, "Unknown size unit specified for width: "+units, nil)
 		}
 	}
 	return width
