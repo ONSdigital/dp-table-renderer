@@ -24,6 +24,7 @@ var (
 	sourceText         = "Source: "
 	notesText          = "Notes"
 	footnoteHiddenText = "Footnote "
+	backLinkText       = "Back to table"
 )
 
 // Contains details of the table that need to be calculated once from the request and cached
@@ -48,7 +49,7 @@ func RenderHTML(request *models.RenderRequest) ([]byte, error) {
 
 	div := h.CreateNode("div", atom.Div,
 		h.Attr("class", "table-renderer"),
-		h.Attr("id", "table_"+request.Filename),
+		h.Attr("id", tableId(request)),
 		"\n")
 
 	table := addTable(request, div)
@@ -62,6 +63,11 @@ func RenderHTML(request *models.RenderRequest) ([]byte, error) {
 	html.Render(&buf, div)
 	buf.WriteString("\n")
 	return buf.Bytes(), nil
+}
+
+// tableId returns the id for the table, as used in links etc
+func tableId(request *models.RenderRequest) string {
+	return "table_" + request.Filename
 }
 
 // addTable creates a table node with a caption and adds it to the given node
@@ -179,20 +185,31 @@ func addFooter(request *models.RenderRequest, parent *html.Node) {
 			h.Attr("class", "table-notes"),
 			notesText))
 		footer.AppendChild(h.Text("\n"))
+
 		ol := h.CreateNode("ol", atom.Ol, "\n")
-
-		for i, note := range request.Footnotes {
-			ol.AppendChild(h.CreateNode("li", atom.Li,
-				h.Attr("id", fmt.Sprintf("table_%s_note_%d", request.Filename, i+1)),
-				parseValue(request, note)))
-			ol.AppendChild(h.Text("\n"))
-		}
-
+		addFooterItemsToList(request, ol)
 		footer.AppendChild(ol)
 		footer.AppendChild(h.Text("\n"))
 	}
 	parent.AppendChild(footer)
 	parent.AppendChild(h.Text("\n"))
+}
+
+// addFooterItemsToList adds one li node for each footnote to the given list node
+func addFooterItemsToList(request *models.RenderRequest, ol *html.Node) {
+	for i, note := range request.Footnotes {
+		backLink := h.CreateNode("a", atom.A,
+			h.Attr("class", "footnote__back-link"),
+			h.Attr("href", "#"+tableId(request)),
+			backLinkText)
+		li := h.CreateNode("li", atom.Li,
+			h.Attr("id", fmt.Sprintf("table_%s_note_%d", request.Filename, i+1)),
+			parseValue(request, note),
+			" ",
+			backLink)
+		ol.AppendChild(li)
+		ol.AppendChild(h.Text("\n"))
+	}
 }
 
 // Parses the string to replace \n with <br /> and wrap [1] with a link to the footnote

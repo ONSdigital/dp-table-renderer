@@ -13,6 +13,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"
+	"strings"
 )
 
 const footnoteLinkClass = "footnote__link"
@@ -166,7 +167,24 @@ func TestRenderHTML_Footer(t *testing.T) {
 		So(len(notes), ShouldEqual, len(request.Footnotes))
 		for i, note := range request.Footnotes {
 			So(GetAttribute(notes[i], "id"), ShouldEqual, fmt.Sprintf("table_%s_note_%d", request.Filename, i+1))
-			So(notes[i].FirstChild.Data, ShouldResemble, note)
+			So(strings.Trim(notes[i].FirstChild.Data, " "), ShouldResemble, note)
+		}
+	})
+
+	Convey("Footnotes should end with a link back to the top of the table", t, func() {
+		request := models.RenderRequest{Filename: "myId", Footnotes: []string{"Note1", "Note2"}}
+		div, _ := invokeRenderHTML(&request)
+		footer := FindNode(div, atom.Footer)
+		So(footer, ShouldNotBeNil)
+
+		notes := FindNodes(footer, atom.Li)
+		So(len(notes), ShouldEqual, len(request.Footnotes))
+		for i, _ := range request.Footnotes {
+			back := notes[i].LastChild
+			So(back.DataAtom, ShouldEqual, atom.A)
+			So(GetAttribute(back, "class"), ShouldEqual, "footnote__back-link")
+			So(GetAttribute(back, "href"), ShouldEqual, "#table_"+request.Filename)
+			So(GetText(back), ShouldResemble, "Back to table")
 		}
 	})
 
