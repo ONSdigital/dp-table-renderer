@@ -7,14 +7,15 @@ import (
 	"fmt"
 	"strings"
 
+	"bytes"
+
 	"github.com/ONSdigital/dp-table-renderer/htmlutil"
 	"github.com/ONSdigital/dp-table-renderer/models"
 	"github.com/ONSdigital/dp-table-renderer/parser"
+	"github.com/ONSdigital/dp-table-renderer/testdata"
 	. "github.com/smartystreets/goconvey/convey"
 	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"
-	"github.com/ONSdigital/dp-table-renderer/testdata"
-	"bytes"
 )
 
 func TestParseHTML(t *testing.T) {

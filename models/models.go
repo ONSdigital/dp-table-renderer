@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+
+	"github.com/go-ns/log"
 )
 
 // A list of errors returned from package
@@ -103,12 +105,14 @@ type CellFormat struct {
 func CreateRenderRequest(reader io.Reader) (*RenderRequest, error) {
 	bytes, err := ioutil.ReadAll(reader)
 	if err != nil {
+		log.Error(err, log.Data{"request_body": string(bytes)})
 		return nil, ErrorReadingBody
 	}
 
 	var request RenderRequest
 	err = json.Unmarshal(bytes, &request)
 	if err != nil {
+		log.Error(err, log.Data{"request_body": string(bytes)})
 		return nil, ErrorParsingBody
 	}
 
@@ -140,12 +144,14 @@ func (rr *RenderRequest) ValidateRenderRequest() error {
 func CreateParseRequest(reader io.Reader) (*ParseRequest, error) {
 	bytes, err := ioutil.ReadAll(reader)
 	if err != nil {
+		log.Error(err, log.Data{"request_body": string(bytes)})
 		return nil, ErrorReadingBody
 	}
 
 	var request ParseRequest
 	err = json.Unmarshal(bytes, &request)
 	if err != nil {
+		log.Error(err, log.Data{"request_body": string(bytes)})
 		return nil, ErrorParsingBody
 	}
 

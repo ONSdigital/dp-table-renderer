@@ -238,7 +238,7 @@ func createRowFormats(model *parseModel) map[int]models.RowFormat {
 // convertRowFormatsToSlice converts the map to an ordered slice
 func convertRowFormatsToSlice(rowFormats map[int]models.RowFormat) []models.RowFormat {
 	var keys []int
-	for k, _ := range rowFormats {
+	for k := range rowFormats {
 		keys = append(keys, k)
 	}
 	var slice []models.RowFormat
@@ -253,7 +253,7 @@ func convertRowFormatsToSlice(rowFormats map[int]models.RowFormat) []models.RowF
 // convertColumnFormatsToSlice converts the map to an ordered slice
 func convertColumnFormatsToSlice(colFormats map[int]models.ColumnFormat) []models.ColumnFormat {
 	var keys []int
-	for k, _ := range colFormats {
+	for k := range colFormats {
 		keys = append(keys, k)
 	}
 	var slice []models.ColumnFormat
@@ -338,6 +338,8 @@ func extractWidth(model *parseModel, node *html.Node) string {
 			} else {
 				log.DebugC(model.request.Filename, "percentage specified as desired width unit, but CurrentTableWidth not provided", nil)
 			}
+		case "":
+			// leave width as is, don't spam the logs with debug
 		default:
 			log.DebugC(model.request.Filename, "Unknown size unit specified for width: "+units, nil)
 		}

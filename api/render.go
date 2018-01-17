@@ -66,7 +66,7 @@ func (api *RendererAPI) renderTable(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Info("Rendered a table", log.Data{"render_request": renderRequest})
+	log.InfoC(renderRequest.Filename, "Rendered a table", log.Data{"render_type": renderType, "response_bytes": len(bytes)})
 }
 
 func setContentType(w http.ResponseWriter, contentType string) {
