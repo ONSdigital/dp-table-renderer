@@ -48,7 +48,7 @@ func RenderHTML(request *models.RenderRequest) ([]byte, error) {
 	model := createModel(request)
 
 	figure := h.CreateNode("figure", atom.Figure,
-		h.Attr("class", "table-renderer"),
+		h.Attr("class", "figure__table"),
 		h.Attr("id", tableId(request)),
 		"\n")
 
@@ -81,7 +81,7 @@ func addTable(request *models.RenderRequest, parent *html.Node) *html.Node {
 			subtitleID := fmt.Sprintf("table_%s_description", request.Filename)
 			subtitle := h.CreateNode("span", atom.Span,
 				h.Attr("id", subtitleID),
-				h.Attr("class", "table-subtitle"),
+				h.Attr("class", "caption__subtitle"),
 				parseValue(request, request.Subtitle))
 
 			caption.AppendChild(h.CreateNode("br", atom.Br))

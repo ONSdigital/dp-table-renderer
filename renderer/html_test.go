@@ -29,7 +29,7 @@ func TestRenderHTML(t *testing.T) {
 
 		container, responseHTML := invokeRenderHTML(renderRequest)
 
-		So(GetAttribute(container, "class"), ShouldEqual, "table-renderer")
+		So(GetAttribute(container, "class"), ShouldEqual, "figure__table")
 		So(GetAttribute(container, "id"), ShouldEqual, "table_"+renderRequest.Filename)
 
 		// the table
@@ -93,7 +93,7 @@ func TestRenderHTML_Table(t *testing.T) {
 		So(span, ShouldNotBeNil)
 		So(span.FirstChild.Data, ShouldEqual, "Subtitle")
 		So(GetAttribute(span, "id"), ShouldEqual, "table_filename_description")
-		So(GetAttribute(span, "class"), ShouldEqual, "table-subtitle")
+		So(GetAttribute(span, "class"), ShouldEqual, "caption__subtitle")
 	})
 
 	Convey("A table without subtitle should not have aria-describedby", t, func() {
