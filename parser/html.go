@@ -39,6 +39,8 @@ type ResponseModel struct {
 
 var (
 	widthStylePattern = regexp.MustCompile(`width: *[0-9]+[^;]+`)
+	tableType         = "table"
+	tableVersion      = "2"
 )
 
 // ParseHTML parses the html table in the request and generates correctly formatted JSON
@@ -52,14 +54,13 @@ func ParseHTML(request *models.ParseRequest) ([]byte, error) {
 
 	model := createParseModel(request, sourceTable)
 	requestJSON := &models.RenderRequest{
-		Filename:   request.Filename,
-		Title:      request.Title,
-		Subtitle:   request.Subtitle,
-		Source:     request.Source,
-		URI:        request.URI,
-		StyleClass: request.StyleClass,
-		TableType:  "generated-table",
-		Footnotes:  request.Footnotes}
+		Filename:     request.Filename,
+		Title:        request.Title,
+		Subtitle:     request.Subtitle,
+		Source:       request.Source,
+		TableType:    tableType,
+		TableVersion: tableVersion,
+		Footnotes:    request.Footnotes}
 
 	rowFormats := createRowFormats(model)
 	requestJSON.RowFormats = convertRowFormatsToSlice(rowFormats)
@@ -111,16 +112,20 @@ func createParseModel(request *models.ParseRequest, tableNode *html.Node) *parse
 	model.rowClasses, model.columnClasses = parseRowAndColumnClasses(model.cells)
 
 	model.alignMap = map[string]string{
-		request.AlignmentClasses.Left: models.AlignLeft,
-		request.AlignmentClasses.Centre: models.AlignCentre,
-		request.AlignmentClasses.Right: models.AlignRight,
+		request.AlignmentClasses.Left:   models.AlignLeft,
+		request.AlignmentClasses.Center: models.AlignCenter,
+		request.AlignmentClasses.Right:  models.AlignRight,
 	}
 
 	model.valignMap = map[string]string{
 		request.AlignmentClasses.Bottom: models.AlignBottom,
 		request.AlignmentClasses.Middle: models.AlignMiddle,
-		request.AlignmentClasses.Top: models.AlignTop,
+		request.AlignmentClasses.Top:    models.AlignTop,
 	}
+
+	// in case the alignment classes were not specified:
+	delete(model.alignMap, "")
+	delete(model.valignMap, "")
 
 	return &model
 }
@@ -241,7 +246,7 @@ func convertRowFormatsToSlice(rowFormats map[int]models.RowFormat) []models.RowF
 	for k := range rowFormats {
 		keys = append(keys, k)
 	}
-	var slice []models.RowFormat
+	slice := []models.RowFormat{}
 	for key := range keys {
 		format := rowFormats[key]
 		format.Row = key
@@ -256,7 +261,7 @@ func convertColumnFormatsToSlice(colFormats map[int]models.ColumnFormat) []model
 	for k := range colFormats {
 		keys = append(keys, k)
 	}
-	var slice []models.ColumnFormat
+	slice := []models.ColumnFormat{}
 	for key := range keys {
 		format := colFormats[key]
 		format.Column = key

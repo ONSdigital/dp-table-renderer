@@ -38,9 +38,8 @@ func TestParseHTML(t *testing.T) {
 		So(result.JSON.Title, ShouldEqual, request.Title)
 		So(result.JSON.Subtitle, ShouldEqual, request.Subtitle)
 		So(result.JSON.Source, ShouldEqual, request.Source)
-		So(result.JSON.URI, ShouldEqual, request.URI)
-		So(result.JSON.StyleClass, ShouldEqual, request.StyleClass)
-		So(result.JSON.TableType, ShouldEqual, "generated-table")
+		So(result.JSON.TableType, ShouldEqual, "table")
+		So(result.JSON.TableVersion, ShouldEqual, "2")
 		So(result.JSON.Footnotes, ShouldResemble, request.Footnotes)
 		So(result.PreviewHTML, ShouldNotBeNil)
 
@@ -50,24 +49,22 @@ func TestParseHTML(t *testing.T) {
 			DataAtom: atom.Body,
 		})
 		So(err, ShouldBeNil)
-		// PreviewHTML should contain a div that contains a table
+		// PreviewHTML should contain a figure that contains a table
 		So(len(nodes), ShouldBeGreaterThanOrEqualTo, 1)
 		node := nodes[0]
-		So(node.DataAtom, ShouldEqual, atom.Div)
+		So(node.DataAtom, ShouldEqual, atom.Figure)
 		So(htmlutil.FindNode(node, atom.Table), ShouldNotBeNil)
 	})
 
 	Convey("ParseHTML should create a valid RenderRequest", t, func() {
 
 		request := models.ParseRequest{
-			Filename:   "myFilename",
-			Title:      "myTitle",
-			Subtitle:   "mySubtitle",
-			Source:     "mySource",
-			URI:        "myURI",
-			StyleClass: "myStyleClass",
-			Footnotes:  []string{"Note0", "Note1"},
-			TableHTML:  "<table></table>"}
+			Filename:  "myFilename",
+			Title:     "myTitle",
+			Subtitle:  "mySubtitle",
+			Source:    "mySource",
+			Footnotes: []string{"Note0", "Note1"},
+			TableHTML: "<table></table>"}
 
 		resultBytes, err := parser.ParseHTML(&request)
 
@@ -83,9 +80,8 @@ func TestParseHTML(t *testing.T) {
 		So(result.JSON.Title, ShouldEqual, request.Title)
 		So(result.JSON.Subtitle, ShouldEqual, request.Subtitle)
 		So(result.JSON.Source, ShouldEqual, request.Source)
-		So(result.JSON.URI, ShouldEqual, request.URI)
-		So(result.JSON.StyleClass, ShouldEqual, request.StyleClass)
-		So(result.JSON.TableType, ShouldEqual, "generated-table")
+		So(result.JSON.TableType, ShouldEqual, "table")
+		So(result.JSON.TableVersion, ShouldEqual, "2")
 		So(result.JSON.Footnotes, ShouldResemble, request.Footnotes)
 		So(result.PreviewHTML, ShouldNotBeNil)
 
@@ -95,10 +91,10 @@ func TestParseHTML(t *testing.T) {
 			DataAtom: atom.Body,
 		})
 		So(err, ShouldBeNil)
-		// PreviewHTML should contain a div that contains a table
+		// PreviewHTML should contain a figure that contains a table
 		So(len(nodes), ShouldBeGreaterThanOrEqualTo, 1)
 		node := nodes[0]
-		So(node.DataAtom, ShouldEqual, atom.Div)
+		So(node.DataAtom, ShouldEqual, atom.Figure)
 		So(htmlutil.FindNode(node, atom.Table), ShouldNotBeNil)
 	})
 
@@ -359,6 +355,22 @@ func TestParseHTML_CellFormats(t *testing.T) {
 		So(format.Rowspan, ShouldEqual, 0)
 	})
 
+	Convey("ParseHTML should not create formats when no formatting is present in the source table", t, func() {
+		request := models.ParseRequest{
+			Filename: "abcd1234",
+			TableHTML: `<table class="htCore"><tbody>
+						<tr><td class=""></td><td class="">a</td><td class="">b</td><td class="">c</td><td class="">d</td><td class="">e</td></tr>
+						<tr><td class="">2016</td><td class="">10</td><td class="">11</td><td class="">12</td><td class="">13</td><td class="">14</td></tr>
+					</tbody></table>`,
+		}
+
+		response := invokeParseHTMLWithRequest(&request)
+
+		So(len(response.JSON.CellFormats), ShouldBeZeroValue)
+		So(len(response.JSON.RowFormats), ShouldBeZeroValue)
+		So(len(response.JSON.ColumnFormats), ShouldBeZeroValue)
+	})
+
 }
 
 func getCellFormat(formats []models.CellFormat, row int, col int) *models.CellFormat {
@@ -382,8 +394,6 @@ func createParseRequest(requestTable string, hasHeaders bool, headerRows int, he
 		Title:             "myTitle",
 		Subtitle:          "mySubtitle",
 		Source:            "mySource",
-		URI:               "myURI",
-		StyleClass:        "myStyleClass",
 		Footnotes:         []string{"Note0", "Note1"},
 		TableHTML:         requestTable,
 		IgnoreFirstRow:    hasHeaders,
@@ -395,7 +405,7 @@ func createParseRequest(requestTable string, hasHeaders bool, headerRows int, he
 			Middle: "middle",
 			Bottom: "bottom",
 			Left:   "left",
-			Centre: "centre",
+			Center: "center",
 			Right:  "right",
 		}}
 	return &request

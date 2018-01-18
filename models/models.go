@@ -23,7 +23,7 @@ var (
 	AlignMiddle = "Middle"
 	AlignBottom = "Bottom"
 	AlignLeft   = "Left"
-	AlignCentre = "Centre"
+	AlignCenter = "Center"
 	AlignRight  = "Right"
 )
 
@@ -33,9 +33,9 @@ type RenderRequest struct {
 	Subtitle      string         `json:"subtitle"`
 	Source        string         `json:"source"`
 	TableType     string         `json:"type"`
+	TableVersion  string         `json:"type_version"`
 	Filename      string         `json:"filename"`
-	URI           string         `json:"uri"`
-	StyleClass    string         `json:"style_class"`
+	Units         string         `json:"units"`
 	RowFormats    []RowFormat    `json:"row_formats"`
 	ColumnFormats []ColumnFormat `json:"column_formats"`
 	CellFormats   []CellFormat   `json:"cell_formats"`
@@ -49,9 +49,8 @@ type ParseRequest struct {
 	Subtitle            string          `json:"subtitle"`
 	Source              string          `json:"source"`
 	Filename            string          `json:"filename"`
-	URI                 string          `json:"uri"`
+	Units               string          `json:"units"`
 	Footnotes           []string        `json:"footnotes"`
-	StyleClass          string          `json:"style_class"`
 	TableHTML           string          `json:"table_html"`
 	IgnoreFirstRow      bool            `json:"ignore_first_row"`       // if true, the first row is ignored
 	IgnoreFirstColumn   bool            `json:"ignore_first_column"`    // if true, the first cell of each row is ignored
@@ -72,21 +71,21 @@ type ParseAlignments struct {
 	Bottom string `json:"bottom"`
 	Left   string `json:"left"`
 	Right  string `json:"right"`
-	Centre string `json:"centre"`
+	Center string `json:"center"`
 }
 
 // RowFormat allows us to specify that a row contains headings, and provide a style for html
 type RowFormat struct {
-	Row           int    `json:"row"` // the index of the row the format applies to
-	VerticalAlign string `json:"vertical_align"`
+	Row           int    `json:"row"`            // the index of the row the format applies to
+	VerticalAlign string `json:"vertical_align"` // must be Top, Middle or Bottom to be applied
 	Heading       bool   `json:"heading"`
 	Height        string `json:"height"`
 }
 
 // ColumnFormat allows us to specify that a column contains headings, specify alignment and provide a style for html
 type ColumnFormat struct {
-	Column  int    `json:"col"` // the index of the column the format applies to
-	Align   string `json:"align"`
+	Column  int    `json:"col"`   // the index of the column the format applies to
+	Align   string `json:"align"` // must be Left, Center or Right to be applied
 	Heading bool   `json:"heading"`
 	Width   string `json:"width"`
 }
@@ -96,7 +95,7 @@ type CellFormat struct {
 	Row           int    `json:"row"`
 	Column        int    `json:"col"`
 	Align         string `json:"align"`
-	VerticalAlign string `json:"vertical_align"`
+	VerticalAlign string `json:"vertical_align"` // must be Top, Middle or Bottom to be applied
 	Rowspan       int    `json:"rowspan"`
 	Colspan       int    `json:"colspan"`
 }

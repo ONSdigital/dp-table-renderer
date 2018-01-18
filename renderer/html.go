@@ -19,6 +19,22 @@ var (
 	newLine        = regexp.MustCompile(`\n`)
 	footnoteLink   = regexp.MustCompile(`\[[0-9]+]`)
 	emptyCellModel = &cellModel{}
+
+	// text that will need internationalising at some point:
+	sourceText         = "Source: "
+	notesText          = "Notes"
+	footnoteHiddenText = "Footnote "
+	backLinkText       = "Back to table"
+
+	// a map of the alignments to their css classes
+	alignmentMap = map[string]string{
+		models.AlignTop:    "align-top",
+		models.AlignMiddle: "align-middle",
+		models.AlignBottom: "align-bottom",
+		models.AlignLeft:   "align-left",
+		models.AlignCenter: "align-center",
+		models.AlignRight:  "align-right",
+	}
 )
 
 // Contains details of the table that need to be calculated once from the request and cached
@@ -34,29 +50,35 @@ type cellModel struct {
 	skip    bool
 	colspan int
 	rowspan int
-	class   string
+	align   string
+	valign  string
 }
 
 // RenderHTML returns an HTML representation of the table generated from the given request
 func RenderHTML(request *models.RenderRequest) ([]byte, error) {
 	model := createModel(request)
 
-	div := h.CreateNode("div", atom.Div,
-		h.Attr("class", "table-renderer"),
-		h.Attr("id", "table_"+request.Filename),
+	figure := h.CreateNode("figure", atom.Figure,
+		h.Attr("class", "figure__table"),
+		h.Attr("id", tableID(request)),
 		"\n")
 
-	table := addTable(request, div)
+	table := addTable(request, figure)
 
 	addColumnGroup(model, table)
 	addRows(model, table)
 
-	addFooter(request, div)
+	addFooter(request, figure)
 
 	var buf bytes.Buffer
-	html.Render(&buf, div)
+	html.Render(&buf, figure)
 	buf.WriteString("\n")
 	return buf.Bytes(), nil
+}
+
+// tableID returns the id for the table, as used in links etc
+func tableID(request *models.RenderRequest) string {
+	return "table_" + request.Filename
 }
 
 // addTable creates a table node with a caption and adds it to the given node
@@ -70,7 +92,7 @@ func addTable(request *models.RenderRequest, parent *html.Node) *html.Node {
 			subtitleID := fmt.Sprintf("table_%s_description", request.Filename)
 			subtitle := h.CreateNode("span", atom.Span,
 				h.Attr("id", subtitleID),
-				h.Attr("class", "table-subtitle"),
+				h.Attr("class", "caption__subtitle"),
 				parseValue(request, request.Subtitle))
 
 			caption.AppendChild(h.CreateNode("br", atom.Br))
@@ -109,7 +131,7 @@ func addRows(model *tableModel, table *html.Node) {
 		tr := h.CreateNode("tr", atom.Tr)
 		table.AppendChild(tr)
 		if len(model.rows[rowIdx].VerticalAlign) > 0 {
-			h.AddAttribute(tr, "class", model.rows[rowIdx].VerticalAlign)
+			h.AddAttribute(tr, "class", mapAlignmentToClass(model.rows[rowIdx].VerticalAlign))
 		}
 		if len(model.rows[rowIdx].Height) > 0 {
 			h.AddAttribute(tr, "style", "height: "+model.rows[rowIdx].Height)
@@ -151,13 +173,20 @@ func addTableCell(model *tableModel, tr *html.Node, colText string, rowIdx int, 
 	if cell.rowspan > 1 {
 		h.AddAttribute(node, "rowspan", fmt.Sprintf("%d", cell.rowspan))
 	}
-	if len(model.columns[colIdx].Align) > 0 {
-		h.AddAttribute(node, "class", model.columns[colIdx].Align)
+	if len(cell.align) > 0 {
+		h.AddAttribute(node, "class", mapAlignmentToClass(cell.align))
+	} else if len(model.columns[colIdx].Align) > 0 {
+		h.AddAttribute(node, "class", mapAlignmentToClass(model.columns[colIdx].Align))
 	}
-	if len(cell.class) > 0 {
-		h.ReplaceAttribute(node, "class", strings.Trim(h.GetAttribute(node, "class")+" "+cell.class, " "))
+	if len(cell.valign) > 0 {
+		h.ReplaceAttribute(node, "class", strings.Trim(h.GetAttribute(node, "class")+" "+mapAlignmentToClass(cell.valign), " "))
 	}
 	tr.AppendChild(node)
+}
+
+// mapAlignmentToClass converts a VerticalAlign or Align value into a css class
+func mapAlignmentToClass(align string) string {
+	return alignmentMap[align]
 }
 
 // addFooter adds a footer to the given element, containing the source and footnotes
@@ -166,29 +195,39 @@ func addFooter(request *models.RenderRequest, parent *html.Node) {
 	if len(request.Source) > 0 {
 		footer.AppendChild(h.CreateNode("p", atom.P,
 			h.Attr("class", "table-source"),
-			parseValue(request, "Source: "+request.Source)))
+			parseValue(request, sourceText+request.Source)))
 		footer.AppendChild(h.Text("\n"))
 	}
 	if len(request.Footnotes) > 0 {
 		footer.AppendChild(h.CreateNode("p", atom.P,
 			h.Attr("class", "table-notes"),
-			h.Attr("id", "table_"+request.Filename+"_notes"),
-			"Notes"))
+			notesText))
 		footer.AppendChild(h.Text("\n"))
+
 		ol := h.CreateNode("ol", atom.Ol, "\n")
-
-		for i, note := range request.Footnotes {
-			ol.AppendChild(h.CreateNode("li", atom.Li,
-				h.Attr("id", fmt.Sprintf("table_%s_note_%d", request.Filename, i+1)),
-				parseValue(request, note)))
-			ol.AppendChild(h.Text("\n"))
-		}
-
+		addFooterItemsToList(request, ol)
 		footer.AppendChild(ol)
 		footer.AppendChild(h.Text("\n"))
 	}
 	parent.AppendChild(footer)
 	parent.AppendChild(h.Text("\n"))
+}
+
+// addFooterItemsToList adds one li node for each footnote to the given list node
+func addFooterItemsToList(request *models.RenderRequest, ol *html.Node) {
+	for i, note := range request.Footnotes {
+		backLink := h.CreateNode("a", atom.A,
+			h.Attr("class", "footnote__back-link"),
+			h.Attr("href", "#"+tableID(request)),
+			backLinkText)
+		li := h.CreateNode("li", atom.Li,
+			h.Attr("id", fmt.Sprintf("table_%s_note_%d", request.Filename, i+1)),
+			parseValue(request, note),
+			" ",
+			backLink)
+		ol.AppendChild(li)
+		ol.AppendChild(h.Text("\n"))
+	}
 }
 
 // Parses the string to replace \n with <br /> and wrap [1] with a link to the footnote
@@ -210,7 +249,7 @@ func replaceValues(request *models.RenderRequest, value string, hasBr bool, hasF
 	if hasFootnote {
 		for i := range request.Footnotes {
 			n := i + 1
-			linkText := fmt.Sprintf("<a aria-describedby=\"table_%s_notes\" href=\"#table_%s_note_%d\" class=\"footnote-link\">[%d]</a>", request.Filename, request.Filename, n, n)
+			linkText := fmt.Sprintf("<a href=\"#table_%s_note_%d\" class=\"footnote__link\"><span class=\"visuallyhidden\">%s</span>%d</a>", request.Filename, n, footnoteHiddenText, n)
 			value = strings.Replace(value, fmt.Sprintf("[%d]", n), linkText, -1)
 		}
 	}
@@ -287,9 +326,8 @@ func createCellModels(request *models.RenderRequest) map[int]map[int]*cellModel 
 		cell := getCellModel(m, format.Row, format.Column)
 		cell.colspan = format.Colspan
 		cell.rowspan = format.Rowspan
-		if len(format.Align) > 0 || len(format.VerticalAlign) > 0 {
-			cell.class = strings.Trim(format.Align+" "+format.VerticalAlign, " ")
-		}
+		cell.align = format.Align
+		cell.valign = format.VerticalAlign
 		// if we have merged cells, find those that need to be skipped in the output
 		colspan := min(format.Colspan, 1)
 		rowspan := min(format.Rowspan, 1)
