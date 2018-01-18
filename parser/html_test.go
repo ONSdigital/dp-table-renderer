@@ -38,9 +38,8 @@ func TestParseHTML(t *testing.T) {
 		So(result.JSON.Title, ShouldEqual, request.Title)
 		So(result.JSON.Subtitle, ShouldEqual, request.Subtitle)
 		So(result.JSON.Source, ShouldEqual, request.Source)
-		So(result.JSON.URI, ShouldEqual, request.URI)
-		So(result.JSON.StyleClass, ShouldEqual, request.StyleClass)
-		So(result.JSON.TableType, ShouldEqual, "generated-table")
+		So(result.JSON.TableType, ShouldEqual, "table")
+		So(result.JSON.TableVersion, ShouldEqual, "2")
 		So(result.JSON.Footnotes, ShouldResemble, request.Footnotes)
 		So(result.PreviewHTML, ShouldNotBeNil)
 
@@ -64,8 +63,6 @@ func TestParseHTML(t *testing.T) {
 			Title:      "myTitle",
 			Subtitle:   "mySubtitle",
 			Source:     "mySource",
-			URI:        "myURI",
-			StyleClass: "myStyleClass",
 			Footnotes:  []string{"Note0", "Note1"},
 			TableHTML:  "<table></table>"}
 
@@ -83,9 +80,8 @@ func TestParseHTML(t *testing.T) {
 		So(result.JSON.Title, ShouldEqual, request.Title)
 		So(result.JSON.Subtitle, ShouldEqual, request.Subtitle)
 		So(result.JSON.Source, ShouldEqual, request.Source)
-		So(result.JSON.URI, ShouldEqual, request.URI)
-		So(result.JSON.StyleClass, ShouldEqual, request.StyleClass)
-		So(result.JSON.TableType, ShouldEqual, "generated-table")
+		So(result.JSON.TableType, ShouldEqual, "table")
+		So(result.JSON.TableVersion, ShouldEqual, "2")
 		So(result.JSON.Footnotes, ShouldResemble, request.Footnotes)
 		So(result.PreviewHTML, ShouldNotBeNil)
 
@@ -398,8 +394,6 @@ func createParseRequest(requestTable string, hasHeaders bool, headerRows int, he
 		Title:             "myTitle",
 		Subtitle:          "mySubtitle",
 		Source:            "mySource",
-		URI:               "myURI",
-		StyleClass:        "myStyleClass",
 		Footnotes:         []string{"Note0", "Note1"},
 		TableHTML:         requestTable,
 		IgnoreFirstRow:    hasHeaders,
@@ -411,7 +405,7 @@ func createParseRequest(requestTable string, hasHeaders bool, headerRows int, he
 			Middle: "middle",
 			Bottom: "bottom",
 			Left:   "left",
-			Centre: "centre",
+			Center: "center",
 			Right:  "right",
 		}}
 	return &request
