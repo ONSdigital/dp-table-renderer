@@ -6,6 +6,8 @@ import (
 
 	"fmt"
 
+	"strings"
+
 	. "github.com/ONSdigital/dp-table-renderer/htmlutil"
 	"github.com/ONSdigital/dp-table-renderer/models"
 	"github.com/ONSdigital/dp-table-renderer/renderer"
@@ -13,7 +15,6 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"
-	"strings"
 )
 
 const footnoteLinkClass = "footnote__link"
@@ -179,7 +180,7 @@ func TestRenderHTML_Footer(t *testing.T) {
 
 		notes := FindNodes(footer, atom.Li)
 		So(len(notes), ShouldEqual, len(request.Footnotes))
-		for i, _ := range request.Footnotes {
+		for i := range request.Footnotes {
 			back := notes[i].LastChild
 			So(back.DataAtom, ShouldEqual, atom.A)
 			So(GetAttribute(back, "class"), ShouldEqual, "footnote__back-link")
@@ -244,7 +245,7 @@ func TestRenderHTML_FootnoteLinks(t *testing.T) {
 
 func TestRenderHTML_ColumnFormats(t *testing.T) {
 	Convey("A renderRequest with column formats should output colgroup", t, func() {
-		formats := []models.ColumnFormat{{Column: 0, Width: "10em"}, {Column: 2, Align: "right"}}
+		formats := []models.ColumnFormat{{Column: 0, Width: "10em"}, {Column: 2, Align: models.AlignRight}}
 		request := models.RenderRequest{Filename: "myId", ColumnFormats: formats,
 			Data: [][]string{
 				{"Cell 1", "Cell 2", "Cell 3", "Cell 4"},
@@ -265,7 +266,7 @@ func TestRenderHTML_ColumnFormats(t *testing.T) {
 		for _, row := range rows {
 			cells := FindNodes(row, atom.Td)
 			So(len(cells), ShouldEqual, len(request.Data[0]))
-			So(GetAttribute(cells[2], "class"), ShouldEqual, "right")
+			So(GetAttribute(cells[2], "class"), ShouldContainSubstring, "right")
 		}
 	})
 
@@ -387,10 +388,11 @@ func TestRenderHTML_MergeCells(t *testing.T) {
 
 func TestRenderHTML_ColumnAndRowAlignment(t *testing.T) {
 	Convey("A renderRequest with various alignments should have correct classes", t, func() {
-		rowFormats := []models.RowFormat{{Row: 0, VerticalAlign: "top"}}
-		colFormats := []models.ColumnFormat{{Column: 0, Align: "right"}}
-		cellFormats := []models.CellFormat{{Row: 0, Column: 0, VerticalAlign: "bottom"}}
-		cells := [][]string{{"Cell 1", "Cell 2", "Cell 3", "Cell 4"}}
+		rowFormats := []models.RowFormat{{Row: 0, VerticalAlign: models.AlignTop}}
+		colFormats := []models.ColumnFormat{{Column: 0, Align: models.AlignRight}}
+		cellFormats := []models.CellFormat{{Row: 0, Column: 0, VerticalAlign: models.AlignBottom},
+			{Row: 1, Column: 0, Align: models.AlignLeft}}
+		cells := [][]string{{"Cell 1", "Cell 2", "Cell 3", "Cell 4"}, {"Cell 1", "Cell 2", "Cell 3", "Cell 4"}}
 		request := models.RenderRequest{Filename: "myId", ColumnFormats: colFormats, RowFormats: rowFormats, CellFormats: cellFormats, Data: cells}
 		container, _ := invokeRenderHTML(&request)
 		table := FindNode(container, atom.Table)
@@ -402,12 +404,19 @@ func TestRenderHTML_ColumnAndRowAlignment(t *testing.T) {
 
 		rows := FindNodes(table, atom.Tr)
 		So(len(rows), ShouldEqual, len(cells))
-		So(GetAttribute(rows[0], "class"), ShouldEqual, "top")
+		So(GetAttribute(rows[0], "class"), ShouldContainSubstring, "top")
 
 		td := FindNodes(rows[0], atom.Td)
 		So(len(td), ShouldEqual, len(request.Data[0]))
 		So(GetAttribute(td[0], "class"), ShouldContainSubstring, "bottom")
 		So(GetAttribute(td[0], "class"), ShouldContainSubstring, "right")
+		So(GetAttribute(td[1], "class"), ShouldBeEmpty)
+
+		td = FindNodes(rows[1], atom.Td)
+		So(len(td), ShouldEqual, len(request.Data[1]))
+		So(GetAttribute(td[0], "class"), ShouldNotContainSubstring, "bottom")
+		So(GetAttribute(td[0], "class"), ShouldNotContainSubstring, "right")
+		So(GetAttribute(td[0], "class"), ShouldContainSubstring, "left")
 		So(GetAttribute(td[1], "class"), ShouldBeEmpty)
 	})
 }

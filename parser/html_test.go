@@ -59,12 +59,12 @@ func TestParseHTML(t *testing.T) {
 	Convey("ParseHTML should create a valid RenderRequest", t, func() {
 
 		request := models.ParseRequest{
-			Filename:   "myFilename",
-			Title:      "myTitle",
-			Subtitle:   "mySubtitle",
-			Source:     "mySource",
-			Footnotes:  []string{"Note0", "Note1"},
-			TableHTML:  "<table></table>"}
+			Filename:  "myFilename",
+			Title:     "myTitle",
+			Subtitle:  "mySubtitle",
+			Source:    "mySource",
+			Footnotes: []string{"Note0", "Note1"},
+			TableHTML: "<table></table>"}
 
 		resultBytes, err := parser.ParseHTML(&request)
 
@@ -357,8 +357,8 @@ func TestParseHTML_CellFormats(t *testing.T) {
 
 	Convey("ParseHTML should not create formats when no formatting is present in the source table", t, func() {
 		request := models.ParseRequest{
-			Filename:"abcd1234",
-			TableHTML:`<table class="htCore"><tbody>
+			Filename: "abcd1234",
+			TableHTML: `<table class="htCore"><tbody>
 						<tr><td class=""></td><td class="">a</td><td class="">b</td><td class="">c</td><td class="">d</td><td class="">e</td></tr>
 						<tr><td class="">2016</td><td class="">10</td><td class="">11</td><td class="">12</td><td class="">13</td><td class="">14</td></tr>
 					</tbody></table>`,

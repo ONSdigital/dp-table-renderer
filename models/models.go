@@ -76,7 +76,7 @@ type ParseAlignments struct {
 
 // RowFormat allows us to specify that a row contains headings, and provide a style for html
 type RowFormat struct {
-	Row           int    `json:"row"` // the index of the row the format applies to
+	Row           int    `json:"row"`            // the index of the row the format applies to
 	VerticalAlign string `json:"vertical_align"` // must be Top, Middle or Bottom to be applied
 	Heading       bool   `json:"heading"`
 	Height        string `json:"height"`
@@ -84,7 +84,7 @@ type RowFormat struct {
 
 // ColumnFormat allows us to specify that a column contains headings, specify alignment and provide a style for html
 type ColumnFormat struct {
-	Column  int    `json:"col"` // the index of the column the format applies to
+	Column  int    `json:"col"`   // the index of the column the format applies to
 	Align   string `json:"align"` // must be Left, Center or Right to be applied
 	Heading bool   `json:"heading"`
 	Width   string `json:"width"`
