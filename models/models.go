@@ -29,13 +29,13 @@ var (
 
 // RenderRequest represents a structure for a table render job
 type RenderRequest struct {
-	Title         string         `json:"title"`
-	Subtitle      string         `json:"subtitle"`
-	Source        string         `json:"source"`
-	TableType     string         `json:"type"`
-	TableVersion  string         `json:"type_version"`
-	Filename      string         `json:"filename"`
-	Units         string         `json:"units"`
+	Title         string         `json:"title,omitempty"`
+	Subtitle      string         `json:"subtitle,omitempty"`
+	Source        string         `json:"source,omitempty"`
+	TableType     string         `json:"type,omitempty"`
+	TableVersion  string         `json:"type_version,omitempty"`
+	Filename      string         `json:"filename,omitempty"`
+	Units         string         `json:"units,omitempty"`
 	RowFormats    []RowFormat    `json:"row_formats"`
 	ColumnFormats []ColumnFormat `json:"column_formats"`
 	CellFormats   []CellFormat   `json:"cell_formats"`
@@ -76,28 +76,28 @@ type ParseAlignments struct {
 
 // RowFormat allows us to specify that a row contains headings, and provide a style for html
 type RowFormat struct {
-	Row           int    `json:"row"`            // the index of the row the format applies to
-	VerticalAlign string `json:"vertical_align"` // must be Top, Middle or Bottom to be applied
-	Heading       bool   `json:"heading"`
-	Height        string `json:"height"`
+	Row           int    `json:"row"`                      // the index of the row the format applies to
+	VerticalAlign string `json:"vertical_align,omitempty"` // must be Top, Middle or Bottom to be applied
+	Heading       bool   `json:"heading,omitempty"`
+	Height        string `json:"height,omitempty"`
 }
 
 // ColumnFormat allows us to specify that a column contains headings, specify alignment and provide a style for html
 type ColumnFormat struct {
-	Column  int    `json:"col"`   // the index of the column the format applies to
-	Align   string `json:"align"` // must be Left, Center or Right to be applied
-	Heading bool   `json:"heading"`
-	Width   string `json:"width"`
+	Column  int    `json:"col"`             // the index of the column the format applies to
+	Align   string `json:"align,omitempty"` // must be Left, Center or Right to be applied
+	Heading bool   `json:"heading,omitempty"`
+	Width   string `json:"width,omitempty"`
 }
 
-// CellFormat allows us to specify alignment and style, that a cell contains a heading, and how to merge cells
+// CellFormat allows us to specify alignment and how to merge cells
 type CellFormat struct {
 	Row           int    `json:"row"`
 	Column        int    `json:"col"`
-	Align         string `json:"align"`
-	VerticalAlign string `json:"vertical_align"` // must be Top, Middle or Bottom to be applied
-	Rowspan       int    `json:"rowspan"`
-	Colspan       int    `json:"colspan"`
+	Align         string `json:"align,omitempty"`          // must be Left, Center or Right to be applied
+	VerticalAlign string `json:"vertical_align,omitempty"` // must be Top, Middle or Bottom to be applied
+	Rowspan       int    `json:"rowspan,omitempty"`
+	Colspan       int    `json:"colspan,omitempty"`
 }
 
 // CreateRenderRequest manages the creation of a RenderRequest from a reader

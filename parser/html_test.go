@@ -38,6 +38,7 @@ func TestParseHTML(t *testing.T) {
 		So(result.JSON.Title, ShouldEqual, request.Title)
 		So(result.JSON.Subtitle, ShouldEqual, request.Subtitle)
 		So(result.JSON.Source, ShouldEqual, request.Source)
+		So(result.JSON.Units, ShouldEqual, request.Units)
 		So(result.JSON.TableType, ShouldEqual, "table")
 		So(result.JSON.TableVersion, ShouldEqual, "2")
 		So(result.JSON.Footnotes, ShouldResemble, request.Footnotes)

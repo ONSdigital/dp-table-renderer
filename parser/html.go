@@ -59,6 +59,7 @@ func ParseHTML(request *models.ParseRequest) ([]byte, error) {
 		Title:        request.Title,
 		Subtitle:     request.Subtitle,
 		Source:       request.Source,
+		Units:        request.Units,
 		TableType:    tableType,
 		TableVersion: tableVersion,
 		Footnotes:    request.Footnotes}
