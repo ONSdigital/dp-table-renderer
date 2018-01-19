@@ -221,7 +221,7 @@ func TestParseHTML_ColumnFormats(t *testing.T) {
 
 	Convey("Column width in pixels should be converted to em", t, func() {
 		request := createParseRequest("<table>"+
-			"<colgroup><col style=\"foo: bar; width: 60px\" /><col/><col/>"+
+			"<colgroup><col style=\"foo: bar; width: 60px\" /><col style=\"width: 65px;\"/><col/>"+
 			"<tbody>"+
 			"<tr><td class=\"right\">r0c0</td><td>r0c1</td><td>r0c2</td></tr>"+
 			"<tr><td class=\"right\">r1c0</td><td>r1c1</td><td>r1c2</td></tr>"+
@@ -241,6 +241,7 @@ func TestParseHTML_ColumnFormats(t *testing.T) {
 		}
 		So(formats[0].Align, ShouldEqual, models.AlignRight)
 		So(formats[0].Width, ShouldEqual, "4em")
+		So(formats[1].Width, ShouldEqual, "4.33em")
 
 	})
 

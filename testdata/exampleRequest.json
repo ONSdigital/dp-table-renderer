@@ -3,8 +3,6 @@
   "title": "This is an example table",
   "subtitle": "with a subtitle",
   "source": "Office for National Statistics",
-  "type": "table",
-  "type_version": "2",
   "row_formats": [
     {"row": 0, "heading": true},
     {"row": 1, "height": "5em", "vertical_align": "Top"}

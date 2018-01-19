@@ -37,7 +37,7 @@ func TestCreateRenderRequestWithValidJSON(t *testing.T) {
 		So(err, ShouldBeNil)
 		So(request.ValidateRenderRequest(), ShouldBeNil)
 		So(request.Title, ShouldEqual, "This is an example table")
-		So(request.TableType, ShouldEqual, "table")
+		So(request.Subtitle, ShouldEqual, "with a subtitle")
 		So(len(request.RowFormats), ShouldEqual, 2)
 		So(len(request.ColumnFormats), ShouldEqual, 2)
 		So(len(request.CellFormats), ShouldEqual, 3)
@@ -96,10 +96,10 @@ func TestCreateParseRequestWithValidJSON(t *testing.T) {
 		So(err, ShouldBeNil)
 		So(request.ValidateParseRequest(), ShouldBeNil)
 		So(request.Title, ShouldEqual, "This is an example table")
-		So(request.HeaderCols, ShouldEqual, 1)
+		So(request.HeaderCols, ShouldEqual, 2)
 		So(request.HeaderRows, ShouldEqual, 1)
 		So(len(request.TableHTML), ShouldBeGreaterThan, 1)
-		So(len(request.Footnotes), ShouldEqual, 2)
+		So(len(request.Footnotes), ShouldBeGreaterThan, 0)
 	})
 
 }
