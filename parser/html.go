@@ -33,14 +33,15 @@ type parseModel struct {
 
 // ResponseModel defines the format of the json response contained in the bytes returned from ParseHTML
 type ResponseModel struct {
-	JSON        models.RenderRequest `json:"json"`
+	JSON        models.RenderRequest `json:"render_json"`
 	PreviewHTML string               `json:"preview_html"`
 }
 
 var (
-	widthStylePattern = regexp.MustCompile(`width: *[0-9]+[^;]+`)
-	tableType         = "table"
-	tableVersion      = "2"
+	widthStylePattern          = regexp.MustCompile(`width: *[0-9]+[^;]+`)
+	widthTrailingZeroesPattern = regexp.MustCompile(`\.?0+(%|em)`)
+	tableType                  = "table"
+	tableVersion               = "2"
 )
 
 // ParseHTML parses the html table in the request and generates correctly formatted JSON
@@ -325,7 +326,7 @@ func extractWidth(model *parseModel, node *html.Node) string {
 				intWidth, err := strconv.Atoi(strings.Trim(width, "px"))
 				if err == nil {
 					proportion := float32(intWidth) / float32(model.request.CurrentTableWidth)
-					width = fmt.Sprintf("%.0f%%", proportion*100.0)
+					width = fmt.Sprintf("%.1f%%", proportion*100.0)
 				} else {
 					log.ErrorC(model.request.Filename, err, log.Data{"Width not parsable as an integer": width})
 				}
@@ -334,12 +335,14 @@ func extractWidth(model *parseModel, node *html.Node) string {
 			if model.request.SingleEmHeight > 0 {
 				intWidth, err := strconv.Atoi(strings.Trim(width, "px"))
 				if err == nil {
-					width = fmt.Sprintf("%.fem", float32(intWidth)/model.request.SingleEmHeight)
+					width = fmt.Sprintf("%.2fem", (float32(intWidth))/model.request.SingleEmHeight)
 				} else {
 					log.ErrorC(model.request.Filename, err, log.Data{"Width not parsable as an integer": width})
 				}
 			}
 		}
+		// strip unwanted trailing zeroes in decimal places
+		width = widthTrailingZeroesPattern.ReplaceAllString(width, "$1")
 	}
 	return width
 }

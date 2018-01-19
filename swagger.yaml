@@ -6,7 +6,6 @@ info:
   license:
     name: "Open Government Licence v3.0"
     url: "http://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
-basePath: "/v2"
 schemes:
 - "http"
 paths:
@@ -181,7 +180,7 @@ definitions:
       properties:
         table_html:
           type: string
-          description: "An html snippet containing the <table>...</table> that should be parsed"
+          description: "An html snippet containing the &lt;table&gt;...&lt;/table&gt; that should be parsed"
         ignore_first_row:
           type: boolean
           description: |
@@ -218,19 +217,17 @@ definitions:
           type: number
           description: |
             Used to convert height/width from pixels to em. The height of the following:
-            <div style="display: none; font-size: 1em; margin: 0; padding:0; height: auto; line-height: 1; border:0;">m</div>.
+            &lt;div style="display: none; font-size: 1em; margin: 0; padding:0; height: auto; line-height: 1; border:0;"&gt;m&lt;/div&gt;.
         column_width_to_ignore:
           type: string
           description: |
             If the source html applies a default column width that shouldn't be included in the output, specify it here.
             e.g. '50px'
         alignment_classes:
-          type: array
           description: |
             The names of classes that should be interpreted as defining alignment of cells. The presence of these classes
-            on table cells will be used to determine the align & vertical_align proeprties of row/column/cell formats.
-          items:
-            $ref: '#/definitions/AlignmentClasses'
+            on table cells will be used to determine the align & vertical_align properties of row/column/cell formats.
+          $ref: '#/definitions/AlignmentClasses'
   AlignmentClasses:
     description: "defines the css classes that should be interpreted as defining the alignment of cells in a table"
     type: object
@@ -284,7 +281,7 @@ definitions:
     description: "Properties that are present in both the RenderRequest and ParseRequest"
     type: object
     properties:
-      json:
+      render_json:
         $ref: '#/definitions/RenderRequest'
       preview_html:
         type: string
