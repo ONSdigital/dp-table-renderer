@@ -4,12 +4,13 @@ import (
 	"bytes"
 	"testing"
 
+	"encoding/csv"
+	"fmt"
+
 	"github.com/ONSdigital/dp-table-renderer/models"
 	"github.com/ONSdigital/dp-table-renderer/renderer"
-	. "github.com/smartystreets/goconvey/convey"
 	"github.com/ONSdigital/dp-table-renderer/testdata"
-	"fmt"
-	"encoding/csv"
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestRenderCSV(t *testing.T) {
@@ -33,10 +34,10 @@ func TestRenderCSV(t *testing.T) {
 			{"Cell 1", "Cell 2", "Cell 3", "Cell 4", "Cell 5"}}
 		notes := []string{"Note 1", "Note 2 - this is a slightly longer note"}
 		request := models.RenderRequest{Filename: "filename",
-			Title: "This is the Heading",
-			Subtitle: "This is a Subtitle",
-			Source: "Office of National Statistics",
-			Data: data,
+			Title:     "This is the Heading",
+			Subtitle:  "This is a Subtitle",
+			Source:    "Office of National Statistics",
+			Data:      data,
 			Footnotes: notes}
 
 		rows := invokeRenderCSV(&request)
@@ -73,10 +74,10 @@ func TestRenderCSV(t *testing.T) {
 		data := [][]string{{"Cell 1"}}
 		notes := []string{"Note 1", "Note 2 - this is a slightly longer note"}
 		request := models.RenderRequest{Filename: "filename",
-			Title: "This is the Heading",
-			Subtitle: "This is a Subtitle",
-			Source: "Office of National Statistics",
-			Data: data,
+			Title:     "This is the Heading",
+			Subtitle:  "This is a Subtitle",
+			Source:    "Office of National Statistics",
+			Data:      data,
 			Footnotes: notes}
 
 		rows := invokeRenderCSV(&request)
@@ -104,9 +105,9 @@ func TestRenderCSV(t *testing.T) {
 			{Row: 0, Column: 0, Colspan: 2, Rowspan: 2},
 			{Row: 0, Column: 1, Colspan: 1, Rowspan: 1}}
 		request := models.RenderRequest{Filename: "filename",
-			Title: "This is the Heading",
-			Subtitle: "This is a Subtitle",
-			Data: data,
+			Title:       "This is the Heading",
+			Subtitle:    "This is a Subtitle",
+			Data:        data,
 			CellFormats: formats}
 
 		rows := invokeRenderCSV(&request)

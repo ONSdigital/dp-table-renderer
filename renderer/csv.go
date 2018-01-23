@@ -1,12 +1,12 @@
 package renderer
 
 import (
-	//"encoding/csv"
-	"github.com/ONSdigital/dp-table-renderer/models"
 	"bytes"
 	"encoding/csv"
-	"github.com/go-ns/log"
 	"fmt"
+
+	"github.com/ONSdigital/dp-table-renderer/models"
+	"github.com/go-ns/log"
 )
 
 // RenderCSV returns a csv representation of the table generated from the given request
@@ -63,9 +63,9 @@ func writeData(writer *csv.Writer, model *tableModel, request *models.RenderRequ
 		out := []string{}
 		for c, value := range row {
 			if isCellVisible(model, r, c) {
-				out  = append(out, value)
+				out = append(out, value)
 			} else {
-				out  = append(out, "")
+				out = append(out, "")
 			}
 		}
 		err := writer.Write(out)

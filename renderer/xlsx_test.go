@@ -4,12 +4,13 @@ import (
 	"bytes"
 	"testing"
 
+	"fmt"
+
+	"github.com/360EntSecGroup-Skylar/excelize"
 	"github.com/ONSdigital/dp-table-renderer/models"
 	"github.com/ONSdigital/dp-table-renderer/renderer"
-	. "github.com/smartystreets/goconvey/convey"
-	"github.com/360EntSecGroup-Skylar/excelize"
 	"github.com/ONSdigital/dp-table-renderer/testdata"
-	"fmt"
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestRenderXLSX(t *testing.T) {
@@ -41,10 +42,10 @@ func TestRenderXLSX(t *testing.T) {
 			{"Cell 1", "Cell 2", "Cell 3", "Cell 4", "Cell 5"}}
 		notes := []string{"Note 1", "Note 2 - this is a slightly longer note"}
 		request := models.RenderRequest{Filename: "filename",
-			Title: "This is the Heading",
-			Subtitle: "This is a Subtitle",
-			Source: "Office of National Statistics",
-			Data: data,
+			Title:     "This is the Heading",
+			Subtitle:  "This is a Subtitle",
+			Source:    "Office of National Statistics",
+			Data:      data,
 			Footnotes: notes}
 
 		resultBytes, e := renderer.RenderXLSX(&request)
@@ -91,10 +92,10 @@ func TestRenderXLSX(t *testing.T) {
 		data := [][]string{{"Cell 1"}}
 		notes := []string{"Note 1", "Note 2 - this is a slightly longer note"}
 		request := models.RenderRequest{Filename: "filename",
-			Title: "This is the Heading",
-			Subtitle: "This is a Subtitle",
-			Source: "Office of National Statistics",
-			Data: data,
+			Title:     "This is the Heading",
+			Subtitle:  "This is a Subtitle",
+			Source:    "Office of National Statistics",
+			Data:      data,
 			Footnotes: notes}
 
 		resultBytes, e := renderer.RenderXLSX(&request)

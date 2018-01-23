@@ -3,11 +3,12 @@ package renderer
 import (
 	"fmt"
 
-	"github.com/360EntSecGroup-Skylar/excelize"
-	"github.com/ONSdigital/dp-table-renderer/models"
 	"bytes"
 	"regexp"
 	"strconv"
+
+	"github.com/360EntSecGroup-Skylar/excelize"
+	"github.com/ONSdigital/dp-table-renderer/models"
 	"github.com/go-ns/log"
 )
 
@@ -101,7 +102,7 @@ func insertData(model *spreadsheetModel) {
 	model.firstDataRow = model.currentRow + 1
 
 	for r, row := range model.request.Data {
-		model.currentRow ++
+		model.currentRow++
 		for c, col := range row {
 			if isCellVisible(tableModel, r, c) {
 				value, style := parseCellValue(col, model.styleMap)
@@ -115,7 +116,7 @@ func insertData(model *spreadsheetModel) {
 			}
 		}
 	}
-	model.currentRow ++
+	model.currentRow++
 }
 
 // isCellVisible returns true if the cell is visible (not hidden by a merged cell)
@@ -127,7 +128,7 @@ func isCellVisible(tableModel *tableModel, r int, c int) bool {
 func insertSource(model *spreadsheetModel) {
 	xlsx := model.xlsx
 	if len(model.request.Source) > 0 {
-		model.currentRow ++
+		model.currentRow++
 		xlsx.SetCellStr(model.sheet, getAxisRef(model.currentRow, 0), sourceText)
 		xlsx.SetCellStr(model.sheet, getAxisRef(model.currentRow, 1), model.request.Source)
 	}
@@ -139,10 +140,10 @@ func insertFootnotes(model *spreadsheetModel) {
 	request := model.request
 
 	if len(request.Footnotes) > 0 {
-		model.currentRow ++
+		model.currentRow++
 		xlsx.SetCellStr(model.sheet, getAxisRef(model.currentRow, 0), notesText)
 		for i, note := range request.Footnotes {
-			model.currentRow ++
+			model.currentRow++
 			xlsx.SetCellStr(model.sheet, getAxisRef(model.currentRow, 0), fmt.Sprintf("%d.", i+1))
 			xlsx.SetCellStr(model.sheet, getAxisRef(model.currentRow, 1), note)
 		}
@@ -158,11 +159,11 @@ func mergeCells(model *spreadsheetModel) {
 			topLeft := getAxisRef(topRow, format.Column)
 			rowspan := format.Rowspan
 			if rowspan > 0 {
-				rowspan --
+				rowspan--
 			}
 			colspan := format.Colspan
 			if colspan > 0 {
-				colspan --
+				colspan--
 			}
 			bottomRight := getAxisRef(topRow+rowspan, format.Column+colspan)
 			xlsx.MergeCell(model.sheet, topLeft, bottomRight)

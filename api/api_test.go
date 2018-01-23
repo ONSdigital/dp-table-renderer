@@ -16,7 +16,7 @@ var (
 	host           = "http://localhost:80"
 	requestHTMLURL = host + "/render/html"
 	requestXLSXURL = host + "/render/xlsx"
-	requestCSVXURL = host + "/render/csv"
+	requestCSVURL  = host + "/render/csv"
 	requestBody    = `{"title":"table_title", "filename": "file_name", "type":"table_type"}`
 	parseURL       = host + "/parse/html"
 	parseBody      = `{"title":"table_title", "filename": "file_name", "table_html":"<table></table>"}`
@@ -61,7 +61,7 @@ func TestSuccessfullyRenderCSV(t *testing.T) {
 	t.Parallel()
 	Convey("Successfully render a csv file", t, func() {
 		reader := strings.NewReader(requestBody)
-		r, err := http.NewRequest("POST", requestCSVXURL, reader)
+		r, err := http.NewRequest("POST", requestCSVURL, reader)
 		So(err, ShouldBeNil)
 
 		w := httptest.NewRecorder()
