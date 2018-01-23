@@ -59,6 +59,7 @@ func ParseHTML(request *models.ParseRequest) ([]byte, error) {
 		Title:        request.Title,
 		Subtitle:     request.Subtitle,
 		Source:       request.Source,
+		Units:        request.Units,
 		TableType:    tableType,
 		TableVersion: tableVersion,
 		Footnotes:    request.Footnotes}
@@ -201,7 +202,11 @@ func createColumnFormats(model *parseModel) map[int]models.ColumnFormat {
 	}
 	// extract widths from col elements - assume that col elements do not have a colspan
 	// TODO handle cases where col elements have colspan
-	for i, col := range h.FindNodes(model.tableNode, atom.Col) {
+	colgroup := h.FindNodes(model.tableNode, atom.Col)
+	if len(colgroup) > 0 && model.request.IgnoreFirstColumn {
+		colgroup = colgroup[1:]
+	}
+	for i, col := range colgroup {
 		width := extractWidth(model, col)
 		if len(width) > 0 {
 			format := colFormats[i]

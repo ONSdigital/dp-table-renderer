@@ -38,6 +38,7 @@ func TestParseHTML(t *testing.T) {
 		So(result.JSON.Title, ShouldEqual, request.Title)
 		So(result.JSON.Subtitle, ShouldEqual, request.Subtitle)
 		So(result.JSON.Source, ShouldEqual, request.Source)
+		So(result.JSON.Units, ShouldEqual, request.Units)
 		So(result.JSON.TableType, ShouldEqual, "table")
 		So(result.JSON.TableVersion, ShouldEqual, "2")
 		So(result.JSON.Footnotes, ShouldResemble, request.Footnotes)
@@ -291,6 +292,28 @@ func TestParseHTML_ColumnFormats(t *testing.T) {
 		}
 		So(formats[0].Align, ShouldEqual, models.AlignRight)
 		So(formats[0].Width, ShouldBeEmpty)
+
+	})
+
+	Convey("First col of colgroup should be ignored if IgnoreFirstColumn is true", t, func() {
+		request := createParseRequest("<table>"+
+			"<colgroup><col style=\"width: 50px\" /><col style=\"width: 100px\" /><col/>"+
+			"<tbody>"+
+			"<tr><td>r0c0</td><td class=\"right\">r0c1</td><td>r0c2</td></tr>"+
+			"<tr><td>r1c0</td><td class=\"right\">r1c1</td><td>r1c2</td></tr>"+
+			"<tr><td>r2c0</td><td class=\"top right\">r2c1</td><td>r2c2</td></tr>"+
+			"</tbody>"+
+			"</table>", false, 0, 0)
+
+		request.SizeUnits = "%"
+		request.CurrentTableWidth = 200
+		request.IgnoreFirstColumn = true
+		response := invokeParseHTMLWithRequest(request)
+
+		formats := response.JSON.ColumnFormats
+		So(len(formats), ShouldEqual, 1)
+		So(formats[0].Align, ShouldEqual, models.AlignRight)
+		So(formats[0].Width, ShouldEqual, "50%")
 
 	})
 

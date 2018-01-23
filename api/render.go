@@ -21,6 +21,7 @@ var (
 // Content types
 var (
 	contentHTML = "text/html"
+	contentXLSX = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 )
 
 func (api *RendererAPI) renderTable(w http.ResponseWriter, r *http.Request) {
@@ -47,6 +48,9 @@ func (api *RendererAPI) renderTable(w http.ResponseWriter, r *http.Request) {
 	case "html":
 		bytes, err = renderer.RenderHTML(renderRequest)
 		setContentType(w, contentHTML)
+	case "xlsx":
+		bytes, err = renderer.RenderXLSX(renderRequest)
+		setContentType(w, contentXLSX)
 	default:
 		log.Error(errors.New("Unknown render type"), log.Data{"render_type": renderType})
 		http.Error(w, unknownRenderType, http.StatusNotFound)
