@@ -213,6 +213,8 @@ func parseCellValue(value string, styleMap map[string]int) (interface{}, int) {
 
 // createCellStyles creates styles numbers and text the given spreadsheet, returning a map with those styles
 func createCellStyles(xlsx *excelize.File) map[string]int {
+	// TODO: refactor so that styles are keyed by the full alignment definition and can be added to to create new definitions
+	// setting a style replaces any style already defined for that cell, so all style definitions must include number format, font, horizontal and vertical alignment
 	styles := make(map[string]int)
 	for key, value := range styleDefinitions {
 		style, err := xlsx.NewStyle(value)
