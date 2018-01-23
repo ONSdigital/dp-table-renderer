@@ -16,6 +16,7 @@ var (
 	host           = "http://localhost:80"
 	requestHTMLURL = host + "/render/html"
 	requestXLSXURL = host + "/render/xlsx"
+	requestCSVXURL = host + "/render/csv"
 	requestBody    = `{"title":"table_title", "filename": "file_name", "type":"table_type"}`
 	parseURL       = host + "/parse/html"
 	parseBody      = `{"title":"table_title", "filename": "file_name", "table_html":"<table></table>"}`
@@ -51,6 +52,23 @@ func TestSuccessfullyRenderSpreadsheet(t *testing.T) {
 		api.router.ServeHTTP(w, r)
 		So(w.Code, ShouldEqual, http.StatusOK)
 		So(w.Header().Get("Content-Type"), ShouldEqual, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+		So(len(w.Body.String()), ShouldBeGreaterThan, 0)
+	})
+
+}
+
+func TestSuccessfullyRenderCSV(t *testing.T) {
+	t.Parallel()
+	Convey("Successfully render a csv file", t, func() {
+		reader := strings.NewReader(requestBody)
+		r, err := http.NewRequest("POST", requestCSVXURL, reader)
+		So(err, ShouldBeNil)
+
+		w := httptest.NewRecorder()
+		api := routes(host, mux.NewRouter())
+		api.router.ServeHTTP(w, r)
+		So(w.Code, ShouldEqual, http.StatusOK)
+		So(w.Header().Get("Content-Type"), ShouldEqual, "text/csv")
 		So(len(w.Body.String()), ShouldBeGreaterThan, 0)
 	})
 

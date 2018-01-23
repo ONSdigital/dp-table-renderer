@@ -188,7 +188,6 @@ func TestRenderXLSX(t *testing.T) {
 }
 
 func getDataRowOffset(request *models.RenderRequest) int {
-	offset := 0
-	offset += 3
+	offset := 3
 	return offset
 }

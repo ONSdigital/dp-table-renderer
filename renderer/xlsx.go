@@ -103,8 +103,7 @@ func insertData(model *spreadsheetModel) {
 	for r, row := range model.request.Data {
 		model.currentRow ++
 		for c, col := range row {
-			isVisible := tableModel.cells[r][c] == nil || tableModel.cells[r][c].skip == false
-			if isVisible {
+			if isCellVisible(tableModel, r, c) {
 				value, style := parseCellValue(col, model.styleMap)
 				axisRef := getAxisRef(model.currentRow, c)
 				xlsx.SetCellValue(model.sheet, axisRef, value)
@@ -117,6 +116,11 @@ func insertData(model *spreadsheetModel) {
 		}
 	}
 	model.currentRow ++
+}
+
+// isCellVisible returns true if the cell is visible (not hidden by a merged cell)
+func isCellVisible(tableModel *tableModel, r int, c int) bool {
+	return tableModel.cells[r][c] == nil || tableModel.cells[r][c].skip == false
 }
 
 // insertSource inserts the source in the spreadsheet
