@@ -62,7 +62,7 @@ func writeData(writer *csv.Writer, model *tableModel, request *models.RenderRequ
 	for r, row := range request.Data {
 		out := []string{}
 		for c, value := range row {
-			if isCellVisible(model, r, c) {
+			if cellIsVisible(model, r, c) {
 				out = append(out, value)
 			} else {
 				out = append(out, "")

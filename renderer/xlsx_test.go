@@ -2,9 +2,8 @@ package renderer_test
 
 import (
 	"bytes"
-	"testing"
-
 	"fmt"
+	"testing"
 
 	"github.com/360EntSecGroup-Skylar/excelize"
 	"github.com/ONSdigital/dp-table-renderer/models"
