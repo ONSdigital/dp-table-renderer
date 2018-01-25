@@ -199,12 +199,12 @@ definitions:
           type: integer
           description: |
             The number of column that should be rendered as headings, after ignoring the first row (if applicable).
-        size_units:
+        cell_size_units:
           type: string
           description: |
             The desired unit for cell widths/heights. Pixel widths will be converted to this unit, provided the
             required information is provided - see current_table_width and single_em_height.
-          enum: ["%", "em"]
+          enum: ["%", "em", "auto"]
         current_table_width:
           type: integer
           description: |

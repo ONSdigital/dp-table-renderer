@@ -60,7 +60,7 @@ type ParseRequest struct {
 	CurrentTableWidth   int             `json:"current_table_width"`    // used to convert column width from pixels to %
 	CurrentTableHeight  int             `json:"current_table_height"`   // used to convert row height from pixels to %
 	SingleEmHeight      float32         `json:"single_em_height"`       // used to convert height/width from pixels to em. The height of the following: <div style="display: none; font-size: 1em; margin: 0; padding:0; height: auto; line-height: 1; border:0;">m</div>
-	SizeUnits           string          `json:"size_units"`             // 'em' or '%' - the desired unit for widths/heights
+	CellSizeUnits       string          `json:"cell_size_units"`        // 'em', '%' or 'auto' - the desired unit for widths/heights. Auto causes no widths/heights to be specified
 	ColumnWidthToIgnore string          `json:"column_width_to_ignore"` // if the source html applies a default column width that shouldn't be included in the output, specify it here. e.g. '50px'
 	AlignmentClasses    ParseAlignments `json:"alignment_classes"`      // The names of classes that should be interpreted as defining alignment of cells
 }
@@ -176,7 +176,7 @@ func (pr *ParseRequest) ValidateParseRequest() error {
 		missingFields = append(missingFields, "table_html")
 	}
 
-	switch units := pr.SizeUnits; units {
+	switch units := pr.CellSizeUnits; units {
 	case "%":
 		if pr.CurrentTableWidth <= 0 {
 			log.InfoC(pr.Filename, "size_units is '%' but current_table_width is not specified - cannot convert from px", nil)
@@ -185,8 +185,8 @@ func (pr *ParseRequest) ValidateParseRequest() error {
 		if pr.SingleEmHeight <= 0 {
 			log.InfoC(pr.Filename, "size_units is 'em' but single_em_height is not specified - cannot convert from px", nil)
 		}
-	case "":
-		// don't spam the logs
+	case "auto", "":
+		// nothing to do
 	default:
 		log.InfoC(pr.Filename, "Unknown size unit specified for width: "+units, nil)
 	}
