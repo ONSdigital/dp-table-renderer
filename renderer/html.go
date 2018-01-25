@@ -27,7 +27,7 @@ var (
 	backLinkText       = "Back to table"
 
 	// a map of the alignments to their css classes
-	alignmentMap = map[string]string{
+	cssAlignmentMap = map[string]string{
 		models.AlignTop:    "align-top",
 		models.AlignMiddle: "align-middle",
 		models.AlignBottom: "align-bottom",
@@ -186,7 +186,7 @@ func addTableCell(model *tableModel, tr *html.Node, colText string, rowIdx int, 
 
 // mapAlignmentToClass converts a VerticalAlign or Align value into a css class
 func mapAlignmentToClass(align string) string {
-	return alignmentMap[align]
+	return cssAlignmentMap[align]
 }
 
 // addFooter adds a footer to the given element, containing the source and footnotes
