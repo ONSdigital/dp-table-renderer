@@ -29,14 +29,15 @@ var (
 	formatFloat3dp = "0.000"
 	titleFormat    = &xlsxCellStyle{Font: xlsxFont{Bold: true}}
 
-	// a map of the alignments to their cxlsx equivalents
+	// a map of the alignments to their xlsx equivalents
 	xlsxAlignmentMap = map[string]string{
-		models.AlignTop:    "top",
-		models.AlignMiddle: "center",
-		models.AlignBottom: "", // bottom is the default, and doesn't seem to have a value in excelize
-		models.AlignLeft:   "left",
-		models.AlignCenter: "center",
-		models.AlignRight:  "right",
+		models.AlignTop:     "top",
+		models.AlignMiddle:  "center",
+		models.AlignBottom:  "", // bottom is the default, and doesn't seem to have a value in excelize
+		models.AlignLeft:    "left",
+		models.AlignCenter:  "center",
+		models.AlignRight:   "right",
+		models.AlignJustify: "justify",
 	}
 )
 

@@ -19,12 +19,13 @@ var (
 
 // valid values for alignments in the various formats
 var (
-	AlignTop    = "Top"
-	AlignMiddle = "Middle"
-	AlignBottom = "Bottom"
-	AlignLeft   = "Left"
-	AlignCenter = "Center"
-	AlignRight  = "Right"
+	AlignTop     = "Top"
+	AlignMiddle  = "Middle"
+	AlignBottom  = "Bottom"
+	AlignLeft    = "Left"
+	AlignCenter  = "Center"
+	AlignRight   = "Right"
+	AlignJustify = "Justify"
 )
 
 // RenderRequest represents a structure for a table render job
@@ -66,12 +67,13 @@ type ParseRequest struct {
 
 // ParseAlignments defines the css classes that should be interpreted as defining the alignment of cells in a table
 type ParseAlignments struct {
-	Top    string `json:"top"`
-	Middle string `json:"middle"`
-	Bottom string `json:"bottom"`
-	Left   string `json:"left"`
-	Right  string `json:"right"`
-	Center string `json:"center"`
+	Top     string `json:"top"`
+	Middle  string `json:"middle"`
+	Bottom  string `json:"bottom"`
+	Left    string `json:"left"`
+	Right   string `json:"right"`
+	Center  string `json:"center"`
+	Justify string `json:"justify"`
 }
 
 // RowFormat allows us to specify that a row contains headings, and provide a style for html

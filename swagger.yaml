@@ -143,7 +143,7 @@ definitions:
           The alignment of the column.
           For html output this will be rendered as the name of a css class
           that is assumed to be defined in the containing page.
-        enum: [Left, Center, Right]
+        enum: [Left, Center, Right, Justify]
   CellFormat:
     description: |
       A specification that a given cell should be formatted in a particular way
@@ -162,7 +162,7 @@ definitions:
           The alignment of the column.
           For html output this will be rendered as the name of a css class
           that is assumed to be defined in the containing page.
-        enum: [Left, Center, Right]
+        enum: [Left, Center, Right, Justify]
       vertical_align:
         type: string
         description: |

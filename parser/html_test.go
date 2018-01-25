@@ -350,7 +350,7 @@ func TestParseHTML_CellFormats(t *testing.T) {
 			"<tr><td class=\"top right\">r0c0</td><td class=\"top\">r0c1</td><td class=\"top\">r0c2</td></tr>"+
 			"<tr><td class=\"right\">r1c0</td><td colspan=\"2\" rowspan=\"2\">r1c1</td><td>r1c2</td></tr>"+
 			"<tr><td class=\"right\">r2c0</td><td>r2c1</td><td>r2c2</td></tr>"+
-			"<tr><td class=\"top right\">r3c0</td><td colspan=\"2\">r3c1</td><td>r3c2</td></tr>"+
+			"<tr><td class=\"top right\">r3c0</td><td colspan=\"2\" class=\"justify\">r3c1</td><td>r3c2</td></tr>"+
 			"</tbody>"+
 			"</table>", false, 2, 0)
 
@@ -377,6 +377,7 @@ func TestParseHTML_CellFormats(t *testing.T) {
 		So(format, ShouldNotBeNil)
 		So(format.Colspan, ShouldEqual, 2)
 		So(format.Rowspan, ShouldEqual, 0)
+		So(format.Align, ShouldEqual, models.AlignJustify)
 	})
 
 	Convey("ParseHTML should not create formats when no formatting is present in the source table", t, func() {
@@ -425,12 +426,13 @@ func createParseRequest(requestTable string, hasHeaders bool, headerRows int, he
 		HeaderRows:        headerRows,
 		HeaderCols:        headerCols,
 		AlignmentClasses: models.ParseAlignments{
-			Top:    "top",
-			Middle: "middle",
-			Bottom: "bottom",
-			Left:   "left",
-			Center: "center",
-			Right:  "right",
+			Top:     "top",
+			Middle:  "middle",
+			Bottom:  "bottom",
+			Left:    "left",
+			Center:  "center",
+			Right:   "right",
+			Justify: "justify",
 		}}
 	return &request
 }
