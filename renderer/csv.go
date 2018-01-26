@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	"github.com/ONSdigital/dp-table-renderer/models"
-	"github.com/go-ns/log"
+	"github.com/ONSdigital/go-ns/log"
 )
 
 // RenderCSV returns a csv representation of the table generated from the given request
