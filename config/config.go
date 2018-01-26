@@ -7,7 +7,7 @@ import (
 	"github.com/kelseyhightower/envconfig"
 )
 
-// Config is the filing resource handler config
+// Config is the configuration for this service
 type Config struct {
 	Host               string        `envconfig:"HOST"`
 	BindAddr           string        `envconfig:"BIND_ADDR"`
@@ -24,8 +24,8 @@ func Get() (*Config, error) {
 	}
 
 	cfg = &Config{
-		Host:               "http://localhost:23100",
-		BindAddr:           ":23100",
+		Host:               "http://localhost:23300",
+		BindAddr:           ":23300",
 		CORSAllowedOrigins: "*",
 		ShutdownTimeout:    5 * time.Second,
 	}
