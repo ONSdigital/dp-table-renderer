@@ -81,7 +81,7 @@ func setContentType(w http.ResponseWriter, contentType string) {
 	w.Header().Set("Content-Type", contentType)
 }
 
-func setErrorCode(w http.ResponseWriter, err error, typ ...string) {
+func setErrorCode(w http.ResponseWriter, err error) {
 	log.Debug("error is", log.Data{"error": err})
 	switch err.Error() {
 	case "Bad request":

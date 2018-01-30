@@ -89,16 +89,13 @@ func addTable(request *models.RenderRequest, parent *html.Node) *html.Node {
 	if len(request.Title) > 0 || len(request.Subtitle) > 0 {
 		caption := h.CreateNode("caption", atom.Caption, parseValue(request, request.Title))
 		if len(request.Subtitle) > 0 {
-			subtitleID := fmt.Sprintf("table_%s_description", request.Filename)
 			subtitle := h.CreateNode("span", atom.Span,
-				h.Attr("id", subtitleID),
 				h.Attr("class", "caption__subtitle"),
 				parseValue(request, request.Subtitle))
 
 			caption.AppendChild(h.CreateNode("br", atom.Br))
 			caption.AppendChild(subtitle)
 
-			h.AddAttribute(table, "aria-describedby", subtitleID)
 		}
 		table.AppendChild(caption)
 		table.AppendChild(h.Text("\n"))

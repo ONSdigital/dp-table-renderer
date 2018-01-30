@@ -78,7 +78,7 @@ func invokeRenderHTML(renderRequest *models.RenderRequest) (*html.Node, string) 
 
 func TestRenderHTML_Table(t *testing.T) {
 	t.Parallel()
-	Convey("A table should be described by its subtitle", t, func() {
+	Convey("A table should have title and subtitle in the caption", t, func() {
 		request := models.RenderRequest{Filename: "filename", Title: "Heading", Subtitle: "Subtitle"}
 		container, _ := invokeRenderHTML(&request)
 
@@ -86,27 +86,13 @@ func TestRenderHTML_Table(t *testing.T) {
 		So(table, ShouldNotBeNil)
 		So(GetAttribute(table, "id"), ShouldBeEmpty)
 
-		So(GetAttribute(table, "aria-describedby"), ShouldEqual, "table_filename_description")
 		caption := FindNode(table, atom.Caption)
 		So(caption, ShouldNotBeNil)
 		So(caption.FirstChild.Data, ShouldEqual, "Heading")
 		span := FindNode(caption, atom.Span)
 		So(span, ShouldNotBeNil)
 		So(span.FirstChild.Data, ShouldEqual, "Subtitle")
-		So(GetAttribute(span, "id"), ShouldEqual, "table_filename_description")
 		So(GetAttribute(span, "class"), ShouldEqual, "caption__subtitle")
-	})
-
-	Convey("A table without subtitle should not have aria-describedby", t, func() {
-		request := models.RenderRequest{Filename: "myId", Title: "Heading"}
-		container, _ := invokeRenderHTML(&request)
-
-		table := FindNode(container, atom.Table)
-		So(table, ShouldNotBeNil)
-		So(GetAttribute(table, "aria-describedby"), ShouldEqual, "")
-		caption := FindNode(table, atom.Caption)
-		So(caption, ShouldNotBeNil)
-		So(FindNode(caption, atom.Span), ShouldBeNil)
 	})
 
 	Convey("A table without title or subtitle should not have a caption", t, func() {
@@ -115,7 +101,6 @@ func TestRenderHTML_Table(t *testing.T) {
 
 		table := FindNode(container, atom.Table)
 		So(table, ShouldNotBeNil)
-		So(GetAttribute(table, "aria-describedby"), ShouldEqual, "")
 		So(GetAttribute(table, "id"), ShouldBeEmpty)
 		So(FindNode(table, atom.Caption), ShouldBeNil)
 	})
