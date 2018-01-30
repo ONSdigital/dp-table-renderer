@@ -143,7 +143,7 @@ definitions:
           The alignment of the column.
           For html output this will be rendered as the name of a css class
           that is assumed to be defined in the containing page.
-        enum: [Left, Center, Right]
+        enum: [Left, Center, Right, Justify]
   CellFormat:
     description: |
       A specification that a given cell should be formatted in a particular way
@@ -162,7 +162,7 @@ definitions:
           The alignment of the column.
           For html output this will be rendered as the name of a css class
           that is assumed to be defined in the containing page.
-        enum: [Left, Center, Right]
+        enum: [Left, Center, Right, Justify]
       vertical_align:
         type: string
         description: |
@@ -199,12 +199,12 @@ definitions:
           type: integer
           description: |
             The number of column that should be rendered as headings, after ignoring the first row (if applicable).
-        size_units:
+        cell_size_units:
           type: string
           description: |
             The desired unit for cell widths/heights. Pixel widths will be converted to this unit, provided the
             required information is provided - see current_table_width and single_em_height.
-          enum: ["%", "em"]
+          enum: ["%", "em", "auto"]
         current_table_width:
           type: integer
           description: |

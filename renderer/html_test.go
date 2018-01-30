@@ -416,7 +416,7 @@ func TestRenderHTML_ColumnAndRowAlignment(t *testing.T) {
 		rowFormats := []models.RowFormat{{Row: 0, VerticalAlign: models.AlignTop}}
 		colFormats := []models.ColumnFormat{{Column: 0, Align: models.AlignRight}}
 		cellFormats := []models.CellFormat{{Row: 0, Column: 0, VerticalAlign: models.AlignBottom},
-			{Row: 1, Column: 0, Align: models.AlignLeft}}
+			{Row: 1, Column: 0, Align: models.AlignJustify}}
 		cells := [][]string{{"Cell 1", "Cell 2", "Cell 3", "Cell 4"}, {"Cell 1", "Cell 2", "Cell 3", "Cell 4"}}
 		request := models.RenderRequest{Filename: "myId", ColumnFormats: colFormats, RowFormats: rowFormats, CellFormats: cellFormats, Data: cells}
 		container, _ := invokeRenderHTML(&request)
@@ -441,7 +441,7 @@ func TestRenderHTML_ColumnAndRowAlignment(t *testing.T) {
 		So(len(td), ShouldEqual, len(request.Data[1]))
 		So(GetAttribute(td[0], "class"), ShouldNotContainSubstring, "bottom")
 		So(GetAttribute(td[0], "class"), ShouldNotContainSubstring, "right")
-		So(GetAttribute(td[0], "class"), ShouldContainSubstring, "left")
+		So(GetAttribute(td[0], "class"), ShouldContainSubstring, "justify")
 		So(GetAttribute(td[1], "class"), ShouldBeEmpty)
 	})
 }

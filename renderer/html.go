@@ -29,12 +29,13 @@ var (
 
 	// a map of the alignments to their css classes
 	cssAlignmentMap = map[string]string{
-		models.AlignTop:    "align-top",
-		models.AlignMiddle: "align-middle",
-		models.AlignBottom: "align-bottom",
-		models.AlignLeft:   "align-left",
-		models.AlignCenter: "align-center",
-		models.AlignRight:  "align-right",
+		models.AlignTop:     "align-top",
+		models.AlignMiddle:  "align-middle",
+		models.AlignBottom:  "align-bottom",
+		models.AlignLeft:    "align-left",
+		models.AlignCenter:  "align-center",
+		models.AlignRight:   "align-right",
+		models.AlignJustify: "align-justify",
 	}
 )
 
