@@ -114,9 +114,10 @@ func createParseModel(request *models.ParseRequest, tableNode *html.Node) *parse
 	model.rowClasses, model.columnClasses = parseRowAndColumnClasses(model.cells)
 
 	model.alignMap = map[string]string{
-		request.AlignmentClasses.Left:   models.AlignLeft,
-		request.AlignmentClasses.Center: models.AlignCenter,
-		request.AlignmentClasses.Right:  models.AlignRight,
+		request.AlignmentClasses.Left:    models.AlignLeft,
+		request.AlignmentClasses.Center:  models.AlignCenter,
+		request.AlignmentClasses.Right:   models.AlignRight,
+		request.AlignmentClasses.Justify: models.AlignJustify,
 	}
 
 	model.valignMap = map[string]string{
@@ -320,12 +321,15 @@ func createCellFormats(model *parseModel, rowFormats map[int]models.RowFormat, c
 
 // extractWidth extracts width from the style property of the node
 func extractWidth(model *parseModel, node *html.Node) string {
+	if model.request.CellSizeUnits == "auto" {
+		return ""
+	}
 	width := widthStylePattern.FindString(h.GetAttribute(node, "style"))
 	width = strings.Trim(strings.Replace(width, "width:", "", -1), " ")
 	width = strings.Replace(width, model.request.ColumnWidthToIgnore, "", -1)
 	// replace pixel width with % or em
 	if strings.HasSuffix(width, "px") {
-		switch units := model.request.SizeUnits; units {
+		switch units := model.request.CellSizeUnits; units {
 		case "%":
 			if model.request.CurrentTableWidth > 0 {
 				intWidth, err := strconv.Atoi(strings.Trim(width, "px"))
