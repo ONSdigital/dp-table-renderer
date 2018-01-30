@@ -45,9 +45,6 @@ func TestRenderHTML(t *testing.T) {
 		// the footer - source
 		footer := FindNode(container, atom.Footer)
 		So(footer, ShouldNotBeNil)
-		source := FindNodeWithAttributes(footer, atom.P, map[string]string{"class": "table-source"})
-		So(source, ShouldNotBeNil)
-		So(source.FirstChild.Data, ShouldResemble, "Source: "+renderRequest.Source)
 		// footnotes
 		notes := FindNodeWithAttributes(footer, atom.P, map[string]string{"class": "table-notes"})
 		So(notes, ShouldNotBeNil)
@@ -124,14 +121,57 @@ func TestRenderHTML_Table(t *testing.T) {
 	})
 }
 
-func TestRenderHTML_Footer(t *testing.T) {
-	Convey("A renderRequest without a source or footnotes should not have source or notes paragraphs", t, func() {
+func TestRenderHTML_Source(t *testing.T) {
+	Convey("A renderRequest without a source should not have a source paragraph", t, func() {
 		request := models.RenderRequest{Filename: "myId"}
 		container, _ := invokeRenderHTML(&request)
 
 		footer := FindNode(container, atom.Footer)
 		So(footer, ShouldNotBeNil)
 		So(FindNodeWithAttributes(footer, atom.P, map[string]string{"class": "table-source"}), ShouldBeNil)
+	})
+
+	Convey("A renderRequest with a source should have a source paragraph", t, func() {
+		request := models.RenderRequest{Filename: "myId", Source: "mySource"}
+		container, _ := invokeRenderHTML(&request)
+
+		footer := FindNode(container, atom.Footer)
+		So(footer, ShouldNotBeNil)
+		source := FindNodeWithAttributes(footer, atom.P, map[string]string{"class": "table-source"})
+		So(source, ShouldNotBeNil)
+		So(source.FirstChild.Data, ShouldResemble, "Source: "+request.Source)
+	})
+}
+
+func TestRenderHTML_Units(t *testing.T) {
+	Convey("A renderRequest without units should not have a units paragraph", t, func() {
+		request := models.RenderRequest{Filename: "myId"}
+		container, _ := invokeRenderHTML(&request)
+
+		footer := FindNode(container, atom.Footer)
+		So(footer, ShouldNotBeNil)
+		So(FindNodeWithAttributes(footer, atom.P, map[string]string{"class": "table-units"}), ShouldBeNil)
+	})
+
+	Convey("A renderRequest with a source should have a source paragraph", t, func() {
+		request := models.RenderRequest{Filename: "myId", Units: "myUnits"}
+		container, _ := invokeRenderHTML(&request)
+
+		footer := FindNode(container, atom.Footer)
+		So(footer, ShouldNotBeNil)
+		units := FindNodeWithAttributes(footer, atom.P, map[string]string{"class": "table-units"})
+		So(units, ShouldNotBeNil)
+		So(units.FirstChild.Data, ShouldResemble, "Units: "+request.Units)
+	})
+}
+
+func TestRenderHTML_Footer(t *testing.T) {
+	Convey("A renderRequest without footnotes should not have notes paragraph", t, func() {
+		request := models.RenderRequest{Filename: "myId"}
+		container, _ := invokeRenderHTML(&request)
+
+		footer := FindNode(container, atom.Footer)
+		So(footer, ShouldNotBeNil)
 		So(FindNodeWithAttributes(footer, atom.P, map[string]string{"class": "table-notes"}), ShouldBeNil)
 		So(len(FindNodes(footer, atom.Li)), ShouldBeZeroValue)
 	})

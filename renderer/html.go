@@ -22,6 +22,7 @@ var (
 
 	// text that will need internationalising at some point:
 	sourceText         = "Source: "
+	unitsText          = "Units: "
 	notesText          = "Notes"
 	footnoteHiddenText = "Footnote "
 	backLinkText       = "Back to table"
@@ -189,6 +190,12 @@ func mapAlignmentToClass(align string) string {
 // addFooter adds a footer to the given element, containing the source and footnotes
 func addFooter(request *models.RenderRequest, parent *html.Node) {
 	footer := h.CreateNode("footer", atom.Footer, "\n")
+	if len(request.Units) > 0 {
+		footer.AppendChild(h.CreateNode("p", atom.P,
+			h.Attr("class", "table-units"),
+			parseValue(request, unitsText+request.Units)))
+		footer.AppendChild(h.Text("\n"))
+	}
 	if len(request.Source) > 0 {
 		footer.AppendChild(h.CreateNode("p", atom.P,
 			h.Attr("class", "table-source"),

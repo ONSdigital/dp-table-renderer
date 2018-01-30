@@ -21,9 +21,12 @@ func RenderCSV(request *models.RenderRequest) ([]byte, error) {
 		return nil, err
 	}
 
-	// TODO: write units
-
 	err = writeData(writer, model, request)
+	if err != nil {
+		return nil, err
+	}
+
+	err = writeUnits(writer, request)
 	if err != nil {
 		return nil, err
 	}
@@ -75,6 +78,18 @@ func writeData(writer *csv.Writer, model *tableModel, request *models.RenderRequ
 		}
 	}
 	return writeEmptyLine(writer, request)
+}
+
+// writeUnits writes the units as a row in the csv
+func writeUnits(writer *csv.Writer, request *models.RenderRequest) error {
+	if len(request.Units) > 0 {
+		err := writeRow(writer, unitsText, request.Units)
+		if err != nil {
+			log.ErrorC(request.Filename, err, log.Data{"_message": "Unable to write units", "value": request.Units})
+			return err
+		}
+	}
+	return nil
 }
 
 // writeSource writes the source as a row in the csv

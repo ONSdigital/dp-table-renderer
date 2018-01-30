@@ -83,10 +83,9 @@ func RenderXLSX(request *models.RenderRequest) ([]byte, error) {
 
 	insertTitle(model)
 	insertData(model)
+	insertUnits(model)
 	insertSource(model)
 	insertFootnotes(model)
-
-	// TODO: insert units
 
 	mergeCells(model)
 
@@ -143,6 +142,16 @@ func insertSource(model *spreadsheetModel) {
 		model.currentRow++
 		xlsx.SetCellStr(model.sheet, getAxisRef(model.currentRow, 0), sourceText)
 		xlsx.SetCellStr(model.sheet, getAxisRef(model.currentRow, 1), model.request.Source)
+	}
+}
+
+// insertUnits inserts the units in the spreadsheet
+func insertUnits(model *spreadsheetModel) {
+	xlsx := model.xlsx
+	if len(model.request.Units) > 0 {
+		model.currentRow++
+		xlsx.SetCellStr(model.sheet, getAxisRef(model.currentRow, 0), unitsText)
+		xlsx.SetCellStr(model.sheet, getAxisRef(model.currentRow, 1), model.request.Units)
 	}
 }
 
