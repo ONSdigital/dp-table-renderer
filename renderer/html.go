@@ -22,6 +22,7 @@ var (
 
 	// text that will need internationalising at some point:
 	sourceText         = "Source: "
+	unitsText          = "Units: "
 	notesText          = "Notes"
 	footnoteHiddenText = "Footnote "
 	backLinkText       = "Back to table"
@@ -90,16 +91,13 @@ func addTable(request *models.RenderRequest, parent *html.Node) *html.Node {
 	if len(request.Title) > 0 || len(request.Subtitle) > 0 {
 		caption := h.CreateNode("caption", atom.Caption, parseValue(request, request.Title))
 		if len(request.Subtitle) > 0 {
-			subtitleID := fmt.Sprintf("table_%s_description", request.Filename)
 			subtitle := h.CreateNode("span", atom.Span,
-				h.Attr("id", subtitleID),
 				h.Attr("class", "caption__subtitle"),
 				parseValue(request, request.Subtitle))
 
 			caption.AppendChild(h.CreateNode("br", atom.Br))
 			caption.AppendChild(subtitle)
 
-			h.AddAttribute(table, "aria-describedby", subtitleID)
 		}
 		table.AppendChild(caption)
 		table.AppendChild(h.Text("\n"))
@@ -193,6 +191,12 @@ func mapAlignmentToClass(align string) string {
 // addFooter adds a footer to the given element, containing the source and footnotes
 func addFooter(request *models.RenderRequest, parent *html.Node) {
 	footer := h.CreateNode("footer", atom.Footer, "\n")
+	if len(request.Units) > 0 {
+		footer.AppendChild(h.CreateNode("p", atom.P,
+			h.Attr("class", "table-units"),
+			parseValue(request, unitsText+request.Units)))
+		footer.AppendChild(h.Text("\n"))
+	}
 	if len(request.Source) > 0 {
 		footer.AppendChild(h.CreateNode("p", atom.P,
 			h.Attr("class", "table-source"),

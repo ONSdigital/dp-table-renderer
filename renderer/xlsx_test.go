@@ -44,6 +44,7 @@ func TestRenderXLSX(t *testing.T) {
 			Title:     "This is the Heading",
 			Subtitle:  "This is a Subtitle",
 			Source:    "Office of National Statistics",
+			Units:     "myUnits",
 			Data:      data,
 			Footnotes: notes}
 
@@ -73,6 +74,12 @@ func TestRenderXLSX(t *testing.T) {
 		}
 
 		rowOffset += len(request.Data) + 1
+
+		So(len(rows)-rowOffset, ShouldBeGreaterThanOrEqualTo, 1)
+		So(rows[rowOffset][0], ShouldEqual, "Units: ")
+		So(rows[rowOffset][1], ShouldEqual, request.Units)
+
+		rowOffset++
 
 		So(len(rows)-rowOffset, ShouldBeGreaterThanOrEqualTo, 1)
 		So(rows[rowOffset][0], ShouldEqual, "Source: ")
