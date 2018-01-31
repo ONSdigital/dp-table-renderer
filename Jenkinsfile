@@ -15,11 +15,17 @@ node {
         def revision = revisionFrom(readFile('git-tag').trim(), readFile('git-commit').trim())
 
         stage('Build') {
-            sh "GOPATH=${gopath} make"
+            sh "GOPATH=${gopath} BIN_DIR=build make build"
         }
 
         stage('Test') {
             sh "GOPATH=${gopath} make test"
+        }
+
+        stage('Image') {
+            docker.withRegistry("https://${env.ECR_REPOSITORY_URI}", { ->
+                docker.build('dp-table-renderer', '--no-cache --pull --rm .').push(revision)
+            })
         }
     }
 }
