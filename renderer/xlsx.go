@@ -11,7 +11,7 @@ import (
 
 	"github.com/360EntSecGroup-Skylar/excelize"
 	"github.com/ONSdigital/dp-table-renderer/models"
-	"github.com/go-ns/log"
+	"github.com/ONSdigital/go-ns/log"
 )
 
 var (

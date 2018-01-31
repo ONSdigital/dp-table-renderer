@@ -7,7 +7,7 @@ import (
 	"io"
 	"io/ioutil"
 
-	"github.com/go-ns/log"
+	"github.com/ONSdigital/go-ns/log"
 )
 
 // A list of errors returned from package

@@ -18,8 +18,7 @@ func TestSpec(t *testing.T) {
 			})
 
 			Convey("The values should be set to the expected defaults", func() {
-				So(cfg.BindAddr, ShouldEqual, ":23100")
-				So(cfg.Host, ShouldEqual, "http://localhost:23100")
+				So(cfg.BindAddr, ShouldEqual, ":23300")
 				So(cfg.ShutdownTimeout, ShouldEqual, 5*time.Second)
 			})
 		})

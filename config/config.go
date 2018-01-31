@@ -7,9 +7,8 @@ import (
 	"github.com/kelseyhightower/envconfig"
 )
 
-// Config is the filing resource handler config
+// Config is the configuration for this service
 type Config struct {
-	Host               string        `envconfig:"HOST"`
 	BindAddr           string        `envconfig:"BIND_ADDR"`
 	CORSAllowedOrigins string        `envconfig:"CORS_ALLOWED_ORIGINS"`
 	ShutdownTimeout    time.Duration `envconfig:"SHUTDOWN_TIMEOUT"`
@@ -24,8 +23,7 @@ func Get() (*Config, error) {
 	}
 
 	cfg = &Config{
-		Host:               "http://localhost:23100",
-		BindAddr:           ":23100",
+		BindAddr:           ":23300",
 		CORSAllowedOrigins: "*",
 		ShutdownTimeout:    5 * time.Second,
 	}
@@ -36,7 +34,6 @@ func Get() (*Config, error) {
 // Log writes all config properties to log.Debug
 func (cfg *Config) Log() {
 	log.Debug("Configuration", log.Data{
-		"Host":               cfg.Host,
 		"BindAddr":           cfg.BindAddr,
 		"CORSAllowedOrigins": cfg.CORSAllowedOrigins,
 		"ShutdownTimeout":    cfg.ShutdownTimeout,

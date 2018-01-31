@@ -15,7 +15,7 @@ import (
 	h "github.com/ONSdigital/dp-table-renderer/htmlutil"
 	"github.com/ONSdigital/dp-table-renderer/models"
 	"github.com/ONSdigital/dp-table-renderer/renderer"
-	"github.com/go-ns/log"
+	"github.com/ONSdigital/go-ns/log"
 	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"
 )
