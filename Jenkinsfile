@@ -36,8 +36,8 @@ node {
                 "s/^GIT_COMMIT=.*/GIT_COMMIT=${revision}/",
                 "s/^AWS_REGION=.*/AWS_REGION=${env.AWS_DEFAULT_REGION}/",
             ])
-            sh "tar -cvzf frontend-router-${revision}.tar.gz appspec.yml scripts/codedeploy"
-            sh "aws s3 cp frontend-router-${revision}.tar.gz s3://${env.S3_REVISIONS_BUCKET}/"
+            sh "tar -cvzf dp-table-renderer-${revision}.tar.gz appspec.yml scripts/codedeploy"
+            sh "aws s3 cp dp-table-renderer-${revision}.tar.gz s3://${env.S3_REVISIONS_BUCKET}/"
         }
     }
 }
