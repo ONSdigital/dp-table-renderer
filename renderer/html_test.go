@@ -20,7 +20,7 @@ import (
 const footnoteLinkClass = "footnote__link"
 
 func TestRenderHTML(t *testing.T) {
-	
+
 	Convey("Successfully render an html table", t, func() {
 		reader := bytes.NewReader(testdata.LoadExampleRequest(t))
 		renderRequest, err := models.CreateRenderRequest(reader)
@@ -58,24 +58,8 @@ func TestRenderHTML(t *testing.T) {
 	})
 }
 
-func invokeRenderHTML(renderRequest *models.RenderRequest) (*html.Node, string) {
-	response, err := renderer.RenderHTML(renderRequest)
-	So(err, ShouldBeNil)
-	nodes, err := html.ParseFragment(bytes.NewReader(response), &html.Node{
-		Type:     html.ElementNode,
-		Data:     "body",
-		DataAtom: atom.Body,
-	})
-	So(err, ShouldBeNil)
-	So(len(nodes), ShouldBeGreaterThanOrEqualTo, 1)
-	// the containing container
-	node := nodes[0]
-	So(node.DataAtom, ShouldEqual, atom.Figure)
-	return node, string(response)
-}
-
 func TestRenderHTML_Table(t *testing.T) {
-	
+
 	Convey("A table should have title and subtitle in the caption", t, func() {
 		request := models.RenderRequest{Filename: "filename", Title: "Heading", Subtitle: "Subtitle"}
 		container, _ := invokeRenderHTML(&request)
@@ -124,7 +108,7 @@ func TestRenderHTML_Table(t *testing.T) {
 }
 
 func TestRenderHTML_Source(t *testing.T) {
-	
+
 	Convey("A renderRequest without a source should not have a source paragraph", t, func() {
 		request := models.RenderRequest{Filename: "myId"}
 		container, _ := invokeRenderHTML(&request)
@@ -147,7 +131,7 @@ func TestRenderHTML_Source(t *testing.T) {
 }
 
 func TestRenderHTML_Units(t *testing.T) {
-	
+
 	Convey("A renderRequest without units should not have a units paragraph", t, func() {
 		request := models.RenderRequest{Filename: "myId"}
 		container, _ := invokeRenderHTML(&request)
@@ -230,7 +214,7 @@ func TestRenderHTML_Footer(t *testing.T) {
 }
 
 func TestRenderHTML_FootnoteLinks(t *testing.T) {
-	
+
 	Convey("A renderRequest with references to footnotes should convert those to links", t, func() {
 		request := models.RenderRequest{Filename: "myId", Footnotes: []string{"Note1", "Note2"}, Data: [][]string{{"Cell 1[1]", "Cell[2] 2[1]"}, {"Cell 3[3]", "Cell[0][]"}}}
 		container, raw := invokeRenderHTML(&request)
@@ -277,7 +261,7 @@ func TestRenderHTML_FootnoteLinks(t *testing.T) {
 }
 
 func TestRenderHTML_ColumnFormats(t *testing.T) {
-	
+
 	Convey("A renderRequest with column formats should output colgroup", t, func() {
 		formats := []models.ColumnFormat{{Column: 0, Width: "10em"}, {Column: 2, Align: models.AlignRight}}
 		request := models.RenderRequest{Filename: "myId", ColumnFormats: formats,
@@ -388,9 +372,7 @@ func TestRenderHTML_ColumnFormats(t *testing.T) {
 	})
 }
 
-
 func TestRenderHTML_Rows(t *testing.T) {
-	
 
 	Convey("Rows flagged as headers should have the correct class", t, func() {
 		rowFormats := []models.RowFormat{{Row: 0, Heading: true}}
@@ -406,7 +388,7 @@ func TestRenderHTML_Rows(t *testing.T) {
 	})
 
 	Convey("Rows flagged as headers with vertical alignment should have the correct classes", t, func() {
-		rowFormats := []models.RowFormat{{Row: 0, Heading: true, VerticalAlign:"Top"}}
+		rowFormats := []models.RowFormat{{Row: 0, Heading: true, VerticalAlign: "Top"}}
 		cells := [][]string{{"Cell 1", "Cell 2", "Cell 3", "Cell 4"}, {"Cell 1", "Cell 2", "Cell 3", "Cell 4"}}
 		request := models.RenderRequest{Filename: "myId", RowFormats: rowFormats, Data: cells}
 		container, _ := invokeRenderHTML(&request)
@@ -422,7 +404,7 @@ func TestRenderHTML_Rows(t *testing.T) {
 }
 
 func TestRenderHTML_MergeCells(t *testing.T) {
-	
+
 	Convey("A renderRequest with merged cells should have the correct number of cells", t, func() {
 		cellFormats := []models.CellFormat{
 			{Row: 0, Column: 0, Colspan: 2, Rowspan: 2},
@@ -455,7 +437,7 @@ func TestRenderHTML_MergeCells(t *testing.T) {
 }
 
 func TestRenderHTML_ColumnAndRowAlignment(t *testing.T) {
-	
+
 	Convey("A renderRequest with various alignments should have correct classes", t, func() {
 		rowFormats := []models.RowFormat{{Row: 0, VerticalAlign: models.AlignTop}}
 		colFormats := []models.ColumnFormat{{Column: 0, Align: models.AlignRight}}
@@ -491,7 +473,7 @@ func TestRenderHTML_ColumnAndRowAlignment(t *testing.T) {
 }
 
 func TestRenderHTML_RowHeight(t *testing.T) {
-	
+
 	Convey("A renderRequest with row height should have correct style", t, func() {
 		rowFormats := []models.RowFormat{{Row: 0, Height: "5em"}}
 		cells := [][]string{{"Cell 1", "Cell 2", "Cell 3", "Cell 4"}, {"Cell 1", "Cell 2", "Cell 3", "Cell 4"}}
@@ -505,4 +487,54 @@ func TestRenderHTML_RowHeight(t *testing.T) {
 		So(GetAttribute(rows[1], "style"), ShouldBeEmpty)
 
 	})
+}
+
+func TestRenderHTML_KeepHeadersTogether(t *testing.T) {
+
+	Convey("Given a request with row & column headers and KeepHeadersTogether = true", t, func() {
+		request := models.RenderRequest{Filename: "myId",
+			RowFormats:          []models.RowFormat{{Row: 0, Heading: true}},
+			ColumnFormats:       []models.ColumnFormat{{Column: 0, Heading: true}},
+			KeepHeadersTogether: true,
+			Data: [][]string{
+				{"Cell 1", "Cell 2", "Cell 3", "Cell 4"},
+				{"Cell 1", "Cell 2", "Cell 3", "Cell 4"},
+			}}
+		Convey("When rederHTML is invoked", func() {
+			container, _ := invokeRenderHTML(&request)
+			table := FindNode(container, atom.Table)
+			rows := FindNodes(table, atom.Tr)
+
+			Convey("Then the first row should have the correct css class", func() {
+				So(GetAttribute(rows[0], "class"), ShouldContainSubstring, "table__nowrap")
+			})
+
+			Convey("The first column of remaining rows should have the correct css class", func() {
+				So(GetAttribute(rows[1], "class"), ShouldNotContainSubstring, "table__nowrap")
+				colHead := FindNode(rows[1], atom.Th)
+				So(GetAttribute(colHead, "class"), ShouldContainSubstring, "table__nowrap")
+				for _, td := range FindNodes(rows[1], atom.Td) {
+					So(GetAttribute(td, "class"), ShouldNotContainSubstring, "table__nowrap")
+				}
+			})
+
+		})
+
+	})
+}
+
+func invokeRenderHTML(renderRequest *models.RenderRequest) (*html.Node, string) {
+	response, err := renderer.RenderHTML(renderRequest)
+	So(err, ShouldBeNil)
+	nodes, err := html.ParseFragment(bytes.NewReader(response), &html.Node{
+		Type:     html.ElementNode,
+		Data:     "body",
+		DataAtom: atom.Body,
+	})
+	So(err, ShouldBeNil)
+	So(len(nodes), ShouldBeGreaterThanOrEqualTo, 1)
+	// the containing container
+	node := nodes[0]
+	So(node.DataAtom, ShouldEqual, atom.Figure)
+	return node, string(response)
 }

@@ -48,6 +48,21 @@ func ReplaceAttribute(node *html.Node, key string, val string) {
 	node.Attr = append(attr, html.Attribute{Key: key, Val: val})
 }
 
+// AppendAttribute appends the new value to any existing attribute with the same name, separating them with a space
+func AppendAttribute(node *html.Node, key string, val string) {
+	current := ""
+	var attr []html.Attribute
+	for _, a := range node.Attr {
+		if a.Key == key {
+			current += " " + a.Val
+		} else {
+			attr = append(attr, a)
+		}
+	}
+	newValue := strings.Trim(current+" "+val, " ")
+	node.Attr = append(attr, html.Attribute{Key: key, Val: newValue})
+}
+
 // Attr creates a new Attribute
 func Attr(key string, val string) html.Attribute {
 	return html.Attribute{Key: key, Val: val}

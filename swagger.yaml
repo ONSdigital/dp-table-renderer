@@ -270,6 +270,9 @@ definitions:
       units:
         type: string
         description: "Name/decription of the units used in the table, if appropriate"
+      keep_headers_together:
+        type: boolean
+        description: "If true, the html output includes a css class designed to prevent content of heading cells being wrapped over 2 lines. Deliberate line breaks will be honoured."
       footnotes:
         type: array
         description: |
@@ -278,7 +281,7 @@ definitions:
         items:
           type: string
   ParseResponse:
-    description: "Properties that are present in both the RenderRequest and ParseRequest"
+    description: "The response to a parse requests - contains an html representation of the table, and the json that defines it"
     type: object
     properties:
       render_json:

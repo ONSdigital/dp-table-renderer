@@ -55,14 +55,15 @@ func ParseHTML(request *models.ParseRequest) ([]byte, error) {
 
 	model := createParseModel(request, sourceTable)
 	requestJSON := &models.RenderRequest{
-		Filename:     request.Filename,
-		Title:        request.Title,
-		Subtitle:     request.Subtitle,
-		Source:       request.Source,
-		Units:        request.Units,
-		TableType:    tableType,
-		TableVersion: tableVersion,
-		Footnotes:    request.Footnotes}
+		Filename:            request.Filename,
+		Title:               request.Title,
+		Subtitle:            request.Subtitle,
+		Source:              request.Source,
+		Units:               request.Units,
+		KeepHeadersTogether: request.KeepHeadersTogether,
+		TableType:           tableType,
+		TableVersion:        tableVersion,
+		Footnotes:           request.Footnotes}
 
 	rowFormats := createRowFormats(model)
 	requestJSON.RowFormats = convertRowFormatsToSlice(rowFormats)

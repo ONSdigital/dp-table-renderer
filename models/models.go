@@ -30,18 +30,19 @@ var (
 
 // RenderRequest represents a structure for a table render job
 type RenderRequest struct {
-	Title         string         `json:"title,omitempty"`
-	Subtitle      string         `json:"subtitle,omitempty"`
-	Source        string         `json:"source,omitempty"`
-	TableType     string         `json:"type,omitempty"`
-	TableVersion  string         `json:"type_version,omitempty"`
-	Filename      string         `json:"filename,omitempty"`
-	Units         string         `json:"units,omitempty"`
-	RowFormats    []RowFormat    `json:"row_formats"`
-	ColumnFormats []ColumnFormat `json:"column_formats"`
-	CellFormats   []CellFormat   `json:"cell_formats"`
-	Data          [][]string     `json:"data"`
-	Footnotes     []string       `json:"footnotes"`
+	Title               string         `json:"title,omitempty"`
+	Subtitle            string         `json:"subtitle,omitempty"`
+	Source              string         `json:"source,omitempty"`
+	TableType           string         `json:"type,omitempty"`
+	TableVersion        string         `json:"type_version,omitempty"`
+	Filename            string         `json:"filename,omitempty"`
+	Units               string         `json:"units,omitempty"`
+	KeepHeadersTogether bool           `json:"keep_headers_together"`
+	RowFormats          []RowFormat    `json:"row_formats"`
+	ColumnFormats       []ColumnFormat `json:"column_formats"`
+	CellFormats         []CellFormat   `json:"cell_formats"`
+	Data                [][]string     `json:"data"`
+	Footnotes           []string       `json:"footnotes"`
 }
 
 // ParseRequest represents a request to convert an html table (plus supporting data) into the correct RenderRequest format
@@ -51,6 +52,7 @@ type ParseRequest struct {
 	Source              string          `json:"source"`
 	Filename            string          `json:"filename"`
 	Units               string          `json:"units"`
+	KeepHeadersTogether bool            `json:"keep_headers_together"`
 	Footnotes           []string        `json:"footnotes"`
 	TableHTML           string          `json:"table_html"`
 	IgnoreFirstRow      bool            `json:"ignore_first_row"`       // if true, the first row is ignored

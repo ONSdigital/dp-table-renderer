@@ -99,6 +99,39 @@ func TestReplaceAttribute(t *testing.T) {
 	})
 }
 
+func TestAppendAttribute(t *testing.T) {
+	Convey("AppendAttribute should append to an existing attribute", t, func() {
+
+		node := CreateNode("div", atom.Div, Attr("foo", "bar"))
+
+		AppendAttribute(node, "foo", "baz")
+		So(len(node.Attr), ShouldEqual, 1)
+		So(node.Attr[0].Key, ShouldEqual, "foo")
+		So(node.Attr[0].Val, ShouldEqual, "bar baz")
+	})
+
+	Convey("AppendAttribute should add an attribute if it doesn't already exist", t, func() {
+
+		node := CreateNode("div", atom.Div)
+
+		AppendAttribute(node, "foo", "bar")
+		So(len(node.Attr), ShouldEqual, 1)
+		So(node.Attr[0].Val, ShouldEqual, "bar")
+	})
+
+	Convey("AppendAttribute should leave other attributes in place", t, func() {
+
+		node := CreateNode("div", atom.Div, Attr("foo", "bar"), Attr("bar", "baz"))
+
+		AppendAttribute(node, "bar", "foo")
+		So(len(node.Attr), ShouldEqual, 2)
+		So(node.Attr[0].Key, ShouldEqual, "foo")
+		So(node.Attr[0].Val, ShouldEqual, "bar")
+		So(node.Attr[1].Key, ShouldEqual, "bar")
+		So(node.Attr[1].Val, ShouldEqual, "baz foo")
+	})
+}
+
 func TestAttr(t *testing.T) {
 	Convey("Attr should create an attribute", t, func() {
 
