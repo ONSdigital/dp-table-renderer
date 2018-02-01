@@ -61,7 +61,7 @@ func RenderHTML(request *models.RenderRequest) ([]byte, error) {
 	model := createModel(request)
 
 	figure := h.CreateNode("figure", atom.Figure,
-		h.Attr("class", "figure__table"),
+		h.Attr("class", "figure"),
 		h.Attr("id", tableID(request)),
 		"\n")
 
@@ -80,19 +80,23 @@ func RenderHTML(request *models.RenderRequest) ([]byte, error) {
 
 // tableID returns the id for the table, as used in links etc
 func tableID(request *models.RenderRequest) string {
-	return "table_" + request.Filename
+	return "table-" + request.Filename
 }
 
 // addTable creates a table node with a caption and adds it to the given node
 func addTable(request *models.RenderRequest, parent *html.Node) *html.Node {
-	table := h.CreateNode("table", atom.Table, "\n")
+	table := h.CreateNode("table", atom.Table,
+		h.Attr("class", "table"),
+		"\n")
 
 	// add title and subtitle as a caption
 	if len(request.Title) > 0 || len(request.Subtitle) > 0 {
-		caption := h.CreateNode("caption", atom.Caption, parseValue(request, request.Title))
+		caption := h.CreateNode("caption", atom.Caption,
+			h.Attr("class", "table__caption"),
+			parseValue(request, request.Title))
 		if len(request.Subtitle) > 0 {
 			subtitle := h.CreateNode("span", atom.Span,
-				h.Attr("class", "caption__subtitle"),
+				h.Attr("class", "table__subtitle"),
 				parseValue(request, request.Subtitle))
 
 			caption.AppendChild(h.CreateNode("br", atom.Br))
@@ -129,8 +133,15 @@ func addRows(model *tableModel, table *html.Node) {
 	for rowIdx, row := range model.request.Data {
 		tr := h.CreateNode("tr", atom.Tr)
 		table.AppendChild(tr)
+		class := ""
+		if model.rows[rowIdx].Heading {
+			class = "table__header-row"
+		}
 		if len(model.rows[rowIdx].VerticalAlign) > 0 {
-			h.AddAttribute(tr, "class", mapAlignmentToClass(model.rows[rowIdx].VerticalAlign))
+			class = strings.Trim(class + " " + mapAlignmentToClass(model.rows[rowIdx].VerticalAlign), " ")
+		}
+		if len(class) > 0 {
+			h.AddAttribute(tr, "class", class)
 		}
 		if len(model.rows[rowIdx].Height) > 0 {
 			h.AddAttribute(tr, "style", "height: "+model.rows[rowIdx].Height)
@@ -190,26 +201,30 @@ func mapAlignmentToClass(align string) string {
 
 // addFooter adds a footer to the given element, containing the source and footnotes
 func addFooter(request *models.RenderRequest, parent *html.Node) {
-	footer := h.CreateNode("footer", atom.Footer, "\n")
+	footer := h.CreateNode("footer", atom.Footer,
+		h.Attr("class", "figure__footer"),
+		"\n")
 	if len(request.Units) > 0 {
 		footer.AppendChild(h.CreateNode("p", atom.P,
-			h.Attr("class", "table-units"),
+			h.Attr("class", "figure__units"),
 			parseValue(request, unitsText+request.Units)))
 		footer.AppendChild(h.Text("\n"))
 	}
 	if len(request.Source) > 0 {
 		footer.AppendChild(h.CreateNode("p", atom.P,
-			h.Attr("class", "table-source"),
+			h.Attr("class", "figure__source"),
 			parseValue(request, sourceText+request.Source)))
 		footer.AppendChild(h.Text("\n"))
 	}
 	if len(request.Footnotes) > 0 {
 		footer.AppendChild(h.CreateNode("p", atom.P,
-			h.Attr("class", "table-notes"),
+			h.Attr("class", "figure__notes"),
 			notesText))
 		footer.AppendChild(h.Text("\n"))
 
-		ol := h.CreateNode("ol", atom.Ol, "\n")
+		ol := h.CreateNode("ol", atom.Ol,
+			h.Attr("class", "figure__footnotes"),
+			"\n")
 		addFooterItemsToList(request, ol)
 		footer.AppendChild(ol)
 		footer.AppendChild(h.Text("\n"))
@@ -222,11 +237,12 @@ func addFooter(request *models.RenderRequest, parent *html.Node) {
 func addFooterItemsToList(request *models.RenderRequest, ol *html.Node) {
 	for i, note := range request.Footnotes {
 		backLink := h.CreateNode("a", atom.A,
-			h.Attr("class", "footnote__back-link"),
+			h.Attr("class", "figure__footnote-back-link"),
 			h.Attr("href", "#"+tableID(request)),
 			backLinkText)
 		li := h.CreateNode("li", atom.Li,
-			h.Attr("id", fmt.Sprintf("table_%s_note_%d", request.Filename, i+1)),
+			h.Attr("id", fmt.Sprintf("table-%s-note-%d", request.Filename, i+1)),
+			h.Attr("class", "figure__footnote-item"),
 			parseValue(request, note),
 			" ",
 			backLink)
@@ -254,7 +270,7 @@ func replaceValues(request *models.RenderRequest, value string, hasBr bool, hasF
 	if hasFootnote {
 		for i := range request.Footnotes {
 			n := i + 1
-			linkText := fmt.Sprintf("<a href=\"#table_%s_note_%d\" class=\"footnote__link\"><span class=\"visuallyhidden\">%s</span>%d</a>", request.Filename, n, footnoteHiddenText, n)
+			linkText := fmt.Sprintf("<a href=\"#table-%s-note-%d\" class=\"footnote__link\"><span class=\"visuallyhidden\">%s</span>%d</a>", request.Filename, n, footnoteHiddenText, n)
 			value = strings.Replace(value, fmt.Sprintf("[%d]", n), linkText, -1)
 		}
 	}
