@@ -419,6 +419,23 @@ func TestParseHTML_CellFormats(t *testing.T) {
 
 }
 
+func TestParseHTML_KeepHeadingsTogether(t *testing.T) {
+
+	Convey("ParseHTML should honour KeepHeadingsTogether", t, func() {
+		request := models.ParseRequest{
+			Filename:            "abcd1234",
+			KeepHeadersTogether: true,
+			TableHTML:           `<table class="htCore"><tbody><tr><td class="">2016</td></tr></tbody></table>`,
+		}
+
+		response := invokeParseHTMLWithRequest(&request)
+
+		So(response.JSON.KeepHeadersTogether, ShouldEqual, request.KeepHeadersTogether)
+
+	})
+
+}
+
 func getCellFormat(formats []models.CellFormat, row int, col int) *models.CellFormat {
 	for _, format := range formats {
 		if format.Row == row && format.Column == col {
@@ -436,16 +453,17 @@ func invokeParseHTML(requestTable string, hasHeaders bool, headerRows int, heade
 
 func createParseRequest(requestTable string, hasHeaders bool, headerRows int, headerCols int) *models.ParseRequest {
 	request := models.ParseRequest{
-		Filename:          "myFilename",
-		Title:             "myTitle",
-		Subtitle:          "mySubtitle",
-		Source:            "mySource",
-		Footnotes:         []string{"Note0", "Note1"},
-		TableHTML:         requestTable,
-		IgnoreFirstRow:    hasHeaders,
-		IgnoreFirstColumn: hasHeaders,
-		HeaderRows:        headerRows,
-		HeaderCols:        headerCols,
+		Filename:            "myFilename",
+		Title:               "myTitle",
+		Subtitle:            "mySubtitle",
+		Source:              "mySource",
+		KeepHeadersTogether: false,
+		Footnotes:           []string{"Note0", "Note1"},
+		TableHTML:           requestTable,
+		IgnoreFirstRow:      hasHeaders,
+		IgnoreFirstColumn:   hasHeaders,
+		HeaderRows:          headerRows,
+		HeaderCols:          headerCols,
 		AlignmentClasses: models.ParseAlignments{
 			Top:     "top",
 			Middle:  "middle",

@@ -133,15 +133,14 @@ func addRows(model *tableModel, table *html.Node) {
 	for rowIdx, row := range model.request.Data {
 		tr := h.CreateNode("tr", atom.Tr)
 		table.AppendChild(tr)
-		class := ""
 		if model.rows[rowIdx].Heading {
-			class = "table__header-row"
+			h.AddAttribute(tr, "class", "table__header-row")
+			if model.request.KeepHeadersTogether {
+				h.AppendAttribute(tr, "class", "table__nowrap")
+			}
 		}
 		if len(model.rows[rowIdx].VerticalAlign) > 0 {
-			class = strings.Trim(class + " " + mapAlignmentToClass(model.rows[rowIdx].VerticalAlign), " ")
-		}
-		if len(class) > 0 {
-			h.AddAttribute(tr, "class", class)
+			h.AppendAttribute(tr, "class", mapAlignmentToClass(model.rows[rowIdx].VerticalAlign))
 		}
 		if len(model.rows[rowIdx].Height) > 0 {
 			h.AddAttribute(tr, "style", "height: "+model.rows[rowIdx].Height)
@@ -174,6 +173,9 @@ func addTableCell(model *tableModel, tr *html.Node, colText string, rowIdx int, 
 		if cell.rowspan > 1 {
 			h.ReplaceAttribute(node, "scope", "rowgroup")
 		}
+		if model.request.KeepHeadersTogether {
+			h.AddAttribute(node, "class", "table__nowrap")
+		}
 	} else {
 		node = h.CreateNode("td", atom.Td, value)
 	}
@@ -184,12 +186,12 @@ func addTableCell(model *tableModel, tr *html.Node, colText string, rowIdx int, 
 		h.AddAttribute(node, "rowspan", fmt.Sprintf("%d", cell.rowspan))
 	}
 	if len(cell.align) > 0 {
-		h.AddAttribute(node, "class", mapAlignmentToClass(cell.align))
+		h.AppendAttribute(node, "class", mapAlignmentToClass(cell.align))
 	} else if len(model.columns[colIdx].Align) > 0 {
-		h.AddAttribute(node, "class", mapAlignmentToClass(model.columns[colIdx].Align))
+		h.AppendAttribute(node, "class", mapAlignmentToClass(model.columns[colIdx].Align))
 	}
 	if len(cell.valign) > 0 {
-		h.ReplaceAttribute(node, "class", strings.Trim(h.GetAttribute(node, "class")+" "+mapAlignmentToClass(cell.valign), " "))
+		h.AppendAttribute(node, "class", mapAlignmentToClass(cell.valign))
 	}
 	tr.AppendChild(node)
 }
