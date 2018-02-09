@@ -68,14 +68,6 @@ func TestCreateRenderRequestWithInvalidJSON(t *testing.T) {
 		So(err, ShouldNotBeNil)
 		So(err, ShouldResemble, ErrorParsingBody)
 	})
-	Convey("When a render request contains json with missing required fields, validation fails", t, func() {
-		request, err := CreateRenderRequest(strings.NewReader(`{"title":"foo"}`))
-
-		So(err, ShouldBeNil)
-		err = request.ValidateRenderRequest()
-		So(err, ShouldNotBeNil)
-		So(err.Error(), ShouldContainSubstring, "filename")
-	})
 }
 
 func TestCreateParseRequestWithValidJSON(t *testing.T) {
@@ -131,6 +123,6 @@ func TestCreateParseRequestWithInvalidJSON(t *testing.T) {
 		So(err, ShouldBeNil)
 		err = request.ValidateParseRequest()
 		So(err, ShouldNotBeNil)
-		So(err.Error(), ShouldContainSubstring, "filename")
+		So(err.Error(), ShouldContainSubstring, "table_html")
 	})
 }
