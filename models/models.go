@@ -132,10 +132,6 @@ func (rr *RenderRequest) ValidateRenderRequest() error {
 
 	var missingFields []string
 
-	if len(rr.Filename) == 0 {
-		missingFields = append(missingFields, "filename")
-	}
-
 	if missingFields != nil {
 		return fmt.Errorf("Missing mandatory fields: %v", missingFields)
 	}
@@ -171,9 +167,6 @@ func (pr *ParseRequest) ValidateParseRequest() error {
 
 	var missingFields []string
 
-	if len(pr.Filename) == 0 {
-		missingFields = append(missingFields, "filename")
-	}
 	if len(pr.TableHTML) == 0 {
 		missingFields = append(missingFields, "table_html")
 	}

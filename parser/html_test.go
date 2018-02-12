@@ -436,6 +436,25 @@ func TestParseHTML_KeepHeadingsTogether(t *testing.T) {
 
 }
 
+func TestParseHTML_Footnotes(t *testing.T) {
+
+	Convey("ParseHTML should remove empty footnotes", t, func() {
+		request := models.ParseRequest{
+			Footnotes:           []string{"first note", "", "second note", ""},
+			KeepHeadersTogether: true,
+			TableHTML:           `<table class="htCore"><tbody><tr><td class="">2016</td></tr></tbody></table>`,
+		}
+
+		response := invokeParseHTMLWithRequest(&request)
+
+		So(len(response.JSON.Footnotes), ShouldEqual, 2)
+		So(response.JSON.Footnotes[0], ShouldEqual, "first note")
+		So(response.JSON.Footnotes[1], ShouldEqual, "second note")
+
+	})
+
+}
+
 func getCellFormat(formats []models.CellFormat, row int, col int) *models.CellFormat {
 	for _, format := range formats {
 		if format.Row == row && format.Column == col {

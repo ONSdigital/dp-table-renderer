@@ -63,7 +63,7 @@ func ParseHTML(request *models.ParseRequest) ([]byte, error) {
 		KeepHeadersTogether: request.KeepHeadersTogether,
 		TableType:           tableType,
 		TableVersion:        tableVersion,
-		Footnotes:           request.Footnotes}
+	}
 
 	rowFormats := createRowFormats(model)
 	requestJSON.RowFormats = convertRowFormatsToSlice(rowFormats)
@@ -74,6 +74,8 @@ func ParseHTML(request *models.ParseRequest) ([]byte, error) {
 	requestJSON.CellFormats = createCellFormats(model, rowFormats, colFormats)
 
 	requestJSON.Data = parseData(model.cells)
+
+	requestJSON.Footnotes = parseFootnotes(request.Footnotes)
 
 	previewHTML, err := renderer.RenderHTML(requestJSON)
 	if err != nil {
@@ -106,9 +108,10 @@ func parseTableToNode(tableHTML string) (*html.Node, error) {
 
 // createParseModel creates a model from the input request, extracting all properties need to define the output from the input html
 func createParseModel(request *models.ParseRequest, tableNode *html.Node) *parseModel {
-	model := parseModel{}
-	model.request = request
-	model.tableNode = tableNode
+	model := parseModel{
+		request:   request,
+		tableNode: tableNode,
+	}
 
 	model.cells = getCells(tableNode, request.IgnoreFirstRow, request.IgnoreFirstColumn)
 
@@ -186,6 +189,17 @@ func parseRowAndColumnClasses(cells [][]*html.Node) ([]map[string]int, []map[str
 		}
 	}
 	return rowClasses, columnClasses
+}
+
+// parseFootnotes copies the given array, removing any empty strings
+func parseFootnotes(notes []string) []string {
+	footnotes := []string{}
+	for _, note := range notes {
+		if len(note) > 0 {
+			footnotes = append(footnotes, note)
+		}
+	}
+	return footnotes
 }
 
 // createColumnFormats uses the colgroup element to determine widths, and columnClasses to determine alignment
