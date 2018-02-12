@@ -336,7 +336,7 @@ func createCellFormats(model *parseModel, rowFormats map[int]models.RowFormat, c
 
 // extractWidth extracts width from the style property of the node
 func extractWidth(model *parseModel, node *html.Node) string {
-	if model.request.CellSizeUnits == "auto" {
+	if len(model.request.CellSizeUnits) == 0 || model.request.CellSizeUnits == "auto" {
 		return ""
 	}
 	width := widthStylePattern.FindString(h.GetAttribute(node, "style"))

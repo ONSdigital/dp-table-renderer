@@ -267,6 +267,27 @@ func TestParseHTML_ColumnFormats(t *testing.T) {
 
 	})
 
+	Convey("Column width should be ignored", t, func() {
+		request := createParseRequest("<table>"+
+			"<colgroup><col style=\"foo: bar; width: 60px\" /><col style=\"width: 65px;\"/><col/>"+
+			"<tbody>"+
+			"<tr><td class=\"right\">r0c0</td><td>r0c1</td><td>r0c2</td></tr>"+
+			"<tr><td class=\"right\">r1c0</td><td>r1c1</td><td>r1c2</td></tr>"+
+			"<tr><td class=\"top right\">r2c0</td><td>r2c1</td><td>r2c2</td></tr>"+
+			"</tbody>"+
+			"</table>", false, 0, 2)
+
+		request.CellSizeUnits = ""
+		response := invokeParseHTMLWithRequest(request)
+
+		formats := response.JSON.ColumnFormats
+		So(len(formats), ShouldEqual, 2)
+		for _, format := range formats {
+			So(format.Width, ShouldBeEmpty)
+		}
+
+	})
+
 	Convey("Column width in pixels should be converted to percent", t, func() {
 		request := createParseRequest("<table>"+
 			"<colgroup><col style=\"foo: bar; width: 50px\" /><col/><col/>"+
@@ -483,6 +504,7 @@ func createParseRequest(requestTable string, hasHeaders bool, headerRows int, he
 		IgnoreFirstColumn:   hasHeaders,
 		HeaderRows:          headerRows,
 		HeaderCols:          headerCols,
+		CellSizeUnits:       "em",
 		AlignmentClasses: models.ParseAlignments{
 			Top:     "top",
 			Middle:  "middle",

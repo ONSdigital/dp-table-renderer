@@ -203,7 +203,8 @@ definitions:
           type: string
           description: |
             The desired unit for cell widths/heights. Pixel widths will be converted to this unit, provided the
-            required information is provided - see current_table_width and single_em_height.
+            required information is provided - see current_table_width and single_em_height. The default is 'auto',
+            in which case no table cell widths/heights will be specified.
           enum: ["%", "em", "auto"]
         current_table_width:
           type: integer
