@@ -48,7 +48,6 @@ var (
 // ParseHTML parses the html table in the request and generates correctly formatted JSON
 func ParseHTML(request *models.ParseRequest) ([]byte, error) {
 
-	log.Debug("ParseHTML: ", log.Data{"request_body": request.TableHTML})
 	sourceTable, err := parseTableToNode(request.TableHTML)
 	if err != nil {
 		log.Error(err, log.Data{"message": "Unable to parse TableHTML to table element", "ParseRequest": request})
@@ -86,9 +85,7 @@ func ParseHTML(request *models.ParseRequest) ([]byte, error) {
 	}
 	response := ResponseModel{JSON: *requestJSON, PreviewHTML: string(previewHTML)}
 
-	responsebytes, err :=  marshalResponse(response)
-	log.Debug("Parse response:", log.Data{"content": string(responsebytes)})
-	return responsebytes, err
+	return marshalResponse(response)
 }
 
 // parseTableToNode parses a string of html and returns the single table node, or an error if the html doesn't contain a single table
