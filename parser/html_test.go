@@ -361,6 +361,32 @@ func TestParseHTML_ColumnFormats(t *testing.T) {
 
 }
 
+func TestParseHTML_ColumnAlignment(t *testing.T) {
+
+	Convey("ParseHTML should create column formats with correct column index, alignment and heading flag", t, func() {
+		response := invokeParseHTML("<table>"+
+			"<tbody>"+
+			"<tr><td class=\"right\">r0c0</td><td>r0c1</td><td class=\"center\">r0c2</td></tr>"+
+			"<tr><td class=\"right\">r1c0</td><td>r1c1</td><td class=\"center\">r1c2</td></tr>"+
+			"<tr><td class=\"top right\">r2c0</td><td>r2c1</td><td class=\"center\">r2c2</td></tr>"+
+			"</tbody>"+
+			"</table>", false, 1, 1)
+
+		formats := response.JSON.ColumnFormats
+		So(len(formats), ShouldEqual, 2)
+		So(formats[0].Column, ShouldEqual, 0)
+		So(formats[0].Heading, ShouldBeTrue)
+		So(formats[0].Align, ShouldEqual, models.AlignRight)
+
+		So(formats[1].Column, ShouldEqual, 2)
+		So(formats[1].Heading, ShouldBeFalse)
+		So(formats[1].Align, ShouldEqual, models.AlignCenter)
+
+	})
+
+
+}
+
 func TestParseHTML_RowFormats(t *testing.T) {
 
 	Convey("ParseHTML should create row formats with alignment, heading flags", t, func() {

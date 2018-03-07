@@ -18,6 +18,7 @@ import (
 	"github.com/ONSdigital/go-ns/log"
 	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"
+	"sort"
 )
 
 // parseModel contains values calculated from the parse request that are used to create the ResponseModel
@@ -236,6 +237,12 @@ func createColumnFormats(model *parseModel) map[int]models.ColumnFormat {
 		format.Heading = true
 		colFormats[i] = format
 	}
+	// assign column indexes
+	for i, format := range colFormats {
+		format.Column = i
+		colFormats[i] = format
+	}
+
 	return colFormats
 }
 
@@ -283,10 +290,10 @@ func convertColumnFormatsToSlice(colFormats map[int]models.ColumnFormat) []model
 	for k := range colFormats {
 		keys = append(keys, k)
 	}
+	sort.Slice(keys, func(i, j int) bool { return keys[i] < keys[j] })
 	slice := []models.ColumnFormat{}
-	for key := range keys {
+	for _, key := range keys {
 		format := colFormats[key]
-		format.Column = key
 		slice = append(slice, format)
 	}
 	return slice
