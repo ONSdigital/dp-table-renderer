@@ -3,20 +3,25 @@ job "dp-table-renderer" {
   region      = "eu"
   type        = "service"
 
+  update {
+    stagger          = "60s"
+    min_healthy_time = "30s"
+    healthy_deadline = "2m"
+    max_parallel     = 1
+    auto_revert      = true
+  }
+
   group "web" {
     count = "{{WEB_TASK_COUNT}}"
 
     constraint {
       attribute = "${node.class}"
-      value     = "web"
+      operator  = "regexp"
+      value     = "web.*"
     }
 
     task "dp-table-renderer" {
-      driver = "exec"
-
-      artifact {
-        source = "s3::https://s3-eu-west-1.amazonaws.com/{{BUILD_BUCKET}}/dp-table-renderer/{{REVISION}}.tar.gz"
-      }
+      driver = "docker"
 
       artifact {
         source = "s3::https://s3-eu-west-1.amazonaws.com/{{DEPLOYMENT_BUCKET}}/dp-table-renderer/{{REVISION}}.tar.gz"
@@ -24,15 +29,23 @@ job "dp-table-renderer" {
 
       config {
         command = "${NOMAD_TASK_DIR}/start-task"
-        args    = [
-          "${NOMAD_TASK_DIR}/dp-table-renderer",
+
+        args = [
+          "./dp-table-renderer",
         ]
+
+        image = "{{ECR_URL}}:concourse-{{REVISION}}"
+
+        port_map {
+          http = 8080
+        }
       }
 
       service {
         name = "dp-table-renderer"
         port = "http"
         tags = ["web"]
+
         check {
           type     = "http"
           path     = "/healthcheck"
@@ -66,15 +79,12 @@ job "dp-table-renderer" {
 
     constraint {
       attribute = "${node.class}"
-      value     = "publishing"
+      operator  = "regexp"
+      value     = "publishing.*"
     }
 
     task "dp-table-renderer" {
-      driver = "exec"
-
-      artifact {
-        source = "s3::https://s3-eu-west-1.amazonaws.com/{{BUILD_BUCKET}}/dp-table-renderer/{{REVISION}}.tar.gz"
-      }
+      driver = "docker"
 
       artifact {
         source = "s3::https://s3-eu-west-1.amazonaws.com/{{DEPLOYMENT_BUCKET}}/dp-table-renderer/{{REVISION}}.tar.gz"
@@ -82,15 +92,29 @@ job "dp-table-renderer" {
 
       config {
         command = "${NOMAD_TASK_DIR}/start-task"
-        args    = [
-          "${NOMAD_TASK_DIR}/dp-table-renderer",
+
+        args = [
+          "./dp-table-renderer",
         ]
+
+        image = "{{ECR_URL}}:concourse-{{REVISION}}"
+
+        port_map {
+          http = 8080
+        }
       }
 
       service {
         name = "dp-table-renderer"
         port = "http"
         tags = ["publishing"]
+
+        check {
+          type     = "http"
+          path     = "/healthcheck"
+          interval = "10s"
+          timeout  = "2s"
+        }
       }
 
       resources {
