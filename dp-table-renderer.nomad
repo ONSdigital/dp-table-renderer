@@ -17,7 +17,14 @@ job "dp-table-renderer" {
     constraint {
       attribute = "${node.class}"
       operator  = "regexp"
-      value     = "web.*"
+      value     = "web"
+    }
+
+    restart {
+      attempts = 3
+      delay    = "15s"
+      interval = "1m"
+      mode     = "delay"
     }
 
     task "dp-table-renderer" {
@@ -30,9 +37,7 @@ job "dp-table-renderer" {
       config {
         command = "${NOMAD_TASK_DIR}/start-task"
 
-        args = [
-          "./dp-table-renderer",
-        ]
+        args = ["./dp-table-renderer"]
 
         image = "{{ECR_URL}}:concourse-{{REVISION}}"
 
@@ -80,7 +85,14 @@ job "dp-table-renderer" {
     constraint {
       attribute = "${node.class}"
       operator  = "regexp"
-      value     = "publishing.*"
+      value     = "publishing"
+    }
+
+    restart {
+      attempts = 3
+      delay    = "15s"
+      interval = "1m"
+      mode     = "delay"
     }
 
     task "dp-table-renderer" {
@@ -93,9 +105,7 @@ job "dp-table-renderer" {
       config {
         command = "${NOMAD_TASK_DIR}/start-task"
 
-        args = [
-          "./dp-table-renderer",
-        ]
+        args = ["./dp-table-renderer"]
 
         image = "{{ECR_URL}}:concourse-{{REVISION}}"
 
