@@ -1,606 +1,292 @@
 swagger: "2.0"
 info:
-  description: "An API used to customise and submit queries (filters) against a given dataset. Once the filter blueprint has been created it can then be updated with dimension-specific filters that apply to that dataset. Once all the required filters have been applied to the blueprint, it is expected that the client will send a Put request with query parameter `submitted` set to `true` to indicate that processing can begin; this request will result in a filter output resource to be created, copying the data from the blueprint and setting a status of created. The response for this request will give a link to the created filter output document. Once processing has been started the filter output resource will only be updated by authorised requests. Finally, the state will be marked as completed with a complete list of downloads (or failed)."
+  description: "An API used to generate tables in a variety of formats (html, xlsx, csv) from a json source. Also capable of parsing an html table and producing json."
   version: "1.0.0"
   title: "Filter API"
   license:
     name: "Open Government Licence v3.0"
     url: "http://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
-basePath: "/v1"
-tags:
-- name: "Public"
-  description: "Used to filter published datasets"
-- name: "Private"
-  description: "Used to update filter outputs for a published dataset"
 schemes:
 - "http"
-parameters:
-  filter_id:
-    name: filter_id
-    type: string
-    required: true
-    description: "The unique filter ID for customising a dataset"
-    in: path
-  filter_output_id:
-    name: filter_output_id
-    type: string
-    required: true
-    description: "The unique filter outer ID for customising a dataset"
-    in: path
-  limit:
-    name: limit
-    type: integer
-    description: "Limit the number of rows returned in a preview. Defaults to 20 and capped at 100"
-    in: query
-  name:
-    name: name
-    type: string
-    required: true
-    description: "The name of a dimension"
-    in: path
-  option:
-    name: option
-    type: string
-    required: true
-    description: "The single option for a dimension"
-    in: path
-  dimension:
-    name: dimension
-    schema:
-      $ref: '#/definitions/Dimension'
-    required: true
-    description: "A dimension to filter the dataset"
-    in: body
-  options:
-    required: false
-    name: options
-    schema:
-      $ref: '#/definitions/Options'
-    description: "A list of options for a dimension to filter the dataset"
-    in: body
-  new_filter_blueprint:
-    name: filter_blueprint
-    schema:
-      $ref: '#/definitions/NewBlueprintRequest'
-    required: true
-    description: "Model of all editable properties within a filter blueprint"
-    in: body
-  update_filter_output:
-    name: filter_output
-    schema:
-      $ref: '#/definitions/UpdateOutputRequest'
-    required: true
-    description: "Model of all editable properties within a filter output"
-    in: body
-  submitted:
-    name: submitted
-    description: "A flag to indicate the submission of a filter blueprint"
-    in: query
-    type: boolean
-  update_filter:
-    name: filter
-    schema:
-      $ref: '#/definitions/UpdateBlueprintRequest'
-    required: true
-    description: "Model of all editable properties within a filter blueprint"
-    in: body
-securityDefinitions:
-  InternalAPIKey:
-    name: internal-token
-    description: "API key used to allow only internal services to update the state of an import job"
-    in: header
-    type: apiKey
 paths:
-  /filters:
+  /render/{render_type}:
     post:
-      tags:
-      - "Public"
-      summary: "Create a filter for a dataset"
-      description: "Create a blueprint for listing a selection of dimensions and dimension options to be added to filter for a dataset"
+      summary: "Generate a table from json input"
+      description: "Create an html, csv or xlsx representation of the given table for display or download"
+      consumes:
+        - "application/json"
       produces:
-      - "application/json"
+        - "text/html"
+        - "text/csv"
+        - "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
       parameters:
-      - $ref: '#/parameters/new_filter_blueprint'
-      responses:
-        201:
-          description: "filter blueprint was created"
+        - name: render_type
+          type: string
+          enum: [html, csv, xlsx]
+          required: true
+          description: "The type of output required"
+          in: path
+        - name: table_definition
           schema:
-            $ref: '#/definitions/NewBlueprintResponse'
-        400:
+            $ref: '#/definitions/RenderRequest'
+          required: true
+          description: "The definition of the table to be generated"
+          in: body
+      responses:
+        '200':
+          description: "An appropriate representation of the table is returned in the body"
+        '400':
           description: "Invalid request body"
-        500:
+        '404':
+          description: "Unknown render type"
+        '500':
           $ref: '#/responses/InternalError'
-  /filters/{filter_id}:
-    parameters:
-      - $ref: '#/parameters/filter_id'
-    get:
-      tags:
-      - "Public"
-      summary: "Get a blueprint of a filter"
-      description: "Get document describing the filter"
-      produces:
-      - "application/json"
-      responses:
-        200:
-          description: "The filter blueprint was found and document is returned"
-          schema:
-            $ref: '#/definitions/NewBlueprintResponse'
-        404:
-           $ref: '#/responses/FilterNotFound'
-        500:
-          $ref: '#/responses/InternalError'
-    put:
-      tags:
-      - "Public"
-      summary: "Update blueprint of a filter"
-      description: |
-        Update the filter by providing new properties
-      parameters:
-      - $ref: '#/parameters/submitted'
-      - $ref: '#/parameters/update_filter'
-      responses:
-        200:
-          description: "The filter job has been updated"
-          schema:
-            $ref: '#/definitions/UpdateBlueprintResponse'
-        400:
-          description: "Invalid request body"
-        404:
-          $ref: '#/responses/FilterNotFound'
-        422:
-          description: "Unprocessable entity - instance has been removed"
-        500:
-          $ref: '#/responses/InternalError'
-  /filters/{filter_id}/dimensions:
-    get:
-      tags:
-       - "Public"
-      summary: "Get all dimensions used by this filter blueprint"
-      description: |
-        Return a list of all dimensions which are going to be used to filter on
-      parameters:
-      - $ref: '#/parameters/filter_id'
-      responses:
-        200:
-          description: "A list of dimension URLs"
-          schema:
-            type: array
-            items:
-              $ref: '#/definitions/Dimension'
-        404:
-          $ref: '#/responses/FilterNotFound'
-        500:
-          $ref: '#/responses/InternalError'
-  /filters/{filter_id}/dimensions/{name}:
-    parameters:
-      - $ref: '#/parameters/filter_id'
-      - $ref: '#/parameters/name'
-    get:
-      tags:
-      - "Public"
-      summary: "Check if a dimension exists within a filter blueprint"
-      description: "Check if a dimension exists within a filter blueprint"
-      responses:
-        204:
-          description: "Dimension exists for filter"
-        400:
-          description: "Filte was not found"
-        404:
-          description: "Dimension name was not found"
-        500:
-          $ref: '#/responses/InternalError'
+  /parse/html:
     post:
-      tags:
-      - "Public"
-      summary: "Add a dimension to filter blueprint on with a list of options"
-      description: "Add a dimension to filter blueprint on with a list of options"
+      summary: "Parse an html table and generate a json definition"
+      description: "a request to convert an html table (plus supporting data) into the correct RenderRequest format"
+      consumes:
+        - "application/json"
       produces:
-      - "application/json"
+        - "application/json"
       parameters:
-      - $ref: '#/parameters/options'
+        - name: parse_request
+          schema:
+            $ref: '#/definitions/ParseRequest'
+          required: true
+          description: "Object containing the html of the table to be parsed, plus supporting information"
+          in: body
       responses:
-        201:
-          description: "The dimension was created"
-        400:
+        '200':
+          description: "A json representation of the table is returned in the body"
+          schema:
+            $ref: '#/definitions/ParseResponse'
+        '400':
           description: "Invalid request body"
-        404:
-          description: "Filter job was not found"
-        422:
-          description: "Unprocessable entity - instance has been removed"
-        500:
-          $ref: '#/responses/InternalError'
-    delete:
-      tags:
-      - "Public"
-      summary: "Remove a dimension and any options set within the dimension"
-      description: "Remove a dimension and any options set within the dimension"
-      responses:
-        200:
-          description: "The dimension was removed"
-        400:
-          description: "Filter blueprint was not found"
-        404:
-          description: "Dimension name was not found"
-        500:
-          $ref: '#/responses/InternalError'
-  /filters/{filter_id}/dimensions/{name}/options:
-    parameters:
-      - $ref: '#/parameters/filter_id'
-      - $ref: '#/parameters/name'
-    get:
-      tags:
-      - "Public"
-      summary: "Get all options from a dimension which have been set"
-      description: "Get a list of all options which will be used to filter the dimension"
-      responses:
-        200:
-          description: "A list of all options for a dimension was returned"
-          schema:
-            type: array
-            items:
-              $ref: '#/definitions/Option'
-        400:
-          description: "Filter blueprint was not found"
-        404:
-          description: "Dimension name was not found"
-        500:
-          $ref: '#/responses/InternalError'
-  /filters/{filter_id}/dimensions/{name}/options/{option}:
-    parameters:
-      - $ref: '#/parameters/filter_id'
-      - $ref: '#/parameters/name'
-      - $ref: '#/parameters/option'
-    get:
-      tags:
-      - "Public"
-      summary: "Check if a option exists within a dimension"
-      description: "Check if a option exists within a dimension"
-      responses:
-        204:
-          description: "Option exists within the dimension"
-        400:
-          $ref: '#/responses/FilterOrDimensionNotFound'
-        404:
-          description: "Dimension option was not found"
-        500:
-          $ref: '#/responses/InternalError'
-    post:
-      tags:
-      - "Public"
-      summary: "Add an option to a dimension of a filter blueprint"
-      description: "Add an option to a dimension of a filter blueprint"
-      responses:
-        201:
-          description: "Option was added"
-        400:
-          description: "Filter blueprint was not found"
-        404:
-          description: " Dimension name was not found"
-        422:
-          description: "Unprocessable entity - instance has been removed"
-        500:
-          $ref: '#/responses/InternalError'
-    delete:
-      tags:
-      - "Public"
-      summary: "Remove an option from a dimension"
-      description: "Remove a single option from a dimension"
-      responses:
-        200:
-          description: "Option was removed"
-        400:
-          description: |
-            This error code could be one or more of:
-            * Filter blueprint was not found
-            * Dimension name was not found
-        404:
-          description: "Dimension option was not found"
-        500:
-          $ref: '#/responses/InternalError'
-  /filter-outputs/{filter_id}:
-    parameters:
-      - $ref: '#/parameters/filter_id'
-    get:
-      tags:
-      - "Public"
-      summary: "Get a filter output"
-      description: "Get document describing the filter output"
-      produces:
-      - "application/json"
-      responses:
-        200:
-          description: "The filter output was found and document is returned"
-          schema:
-            $ref: '#/definitions/FilterOutputResponse'
-        404:
-           $ref: '#/responses/FilterOutputNotFound'
-        500:
-          $ref: '#/responses/InternalError'
-    put:
-      tags:
-      - "Private"
-      summary: "Update filter output with downloads and state"
-      description: |
-        Update the filter output state and to contain downloads
-      parameters:
-      - $ref: '#/parameters/update_filter_output'
-      security:
-      - InternalAPIKey: []
-      responses:
-        200:
-          description: "The filter output has been updated"
-        400:
-          description: "Invalid request body"
-        401:
-          description: "Unauthorised, request lacks valid authentication credentials"
-        403:
-          description: "Forbidden, the filter output state has been set to `completed`, resource has a list of downloadable files"
-        404:
-          $ref: '#/responses/FilterOutputNotFound'
-        500:
-          $ref: '#/responses/InternalError'
-  /filter-outputs/{filter_id}/preview:
-    parameters:
-      - $ref: '#/parameters/filter_id'
-      - $ref: '#/parameters/limit'
-    get:
-      tags:
-      - "Public"
-      summary: "Get a preview of the output filter"
-      description: "Get a preview of up to 100 observations using the state of the filter output job. By default only 20 rows will be returned. To change this use the `limit` query. It could be possible no results are returned due to data sparsity."
-      produces:
-      - "application/json"
-      responses:
-        200:
-          description: "A preview of the current filter state has been returned"
-          schema:
-            $ref: '#/definitions/Preview'
-        400:
-          description: "No dimensions are present in the filter output"
-        404:
-          description: "The filter id was not found"
-        500:
+        '500':
           $ref: '#/responses/InternalError'
 responses:
-  FilterNotFound:
-    description: "Filter blueprint not found"
-  FilterOutputNotFound:
-    description: "Filter output not found"
-  FilterOrDimensionNotFound:
-    description: "Filter blueprint or dimension name not found"
   InternalError:
     description: "Failed to process the request due to an internal error"
 definitions:
-  FilterOutputResponse:
-    description: "A model for the response body when retrieving a filter output"
+  RenderRequest:
+    description: "A definition of a table that should be rendered"
+    type: object
+    required: ["filename"]
     allOf:
+    - $ref: '#/definitions/TableMetaData'
     - type: object
       properties:
-        downloads:
-          $ref: '#/definitions/Downloads'
-    - $ref: '#/definitions/JobState'
-  NewBlueprintRequest:
-    description: "A model used to create new filter blueprints. Dimensions are optional"
-    allOf:
-    - $ref: '#/definitions/JobState'
-    - type: object
-      properties:
-        dimensions:
-          readOnly: false
+        row_formats:
           type: array
-          description: "A list of dimensions in the filter job"
+          description: "A list of format definitions for rows of the table"
           items:
-             $ref: '#/definitions/DimensionOptions'
-  UpdateBlueprintRequest:
-    description: "A model used to update filter blueprints. Dimensions are optional, while downloads and events are for internal use only."
-    allOf:
-    - $ref: '#/definitions/JobState'
-    - type: object
-      properties:
-        events:
-          readOnly: false
-          type: object
+            $ref: '#/definitions/RowFormat'
+        column_formats:
+          type: array
+          description: "A list of format definitions for columns of the table"
+          items:
+            $ref: '#/definitions/ColumnFormat'
+        cell_formats:
+          type: array
+          description: "A list of format definitions for individual cells in the table"
+          items:
+            $ref: '#/definitions/CellFormat'
+        data:
+          type: array
           description: |
-            A list of events which happened to the blueprint, can only be updated if authorised.
+            The content of the cells in the table (a two-dimensional array of strings).
+            Should contain values for each possible cell in the table,
+            even if that cell will be hidden because another cell has a colspan or rowspan that covers it.
           items:
-            $ref: '#/definitions/Events'
-  NewBlueprintResponse:
-    description: "A model for the response body when creating a new filter blueprint"
-    allOf:
-    - $ref: '#/definitions/JobState'
-    - type: object
-  UpdateBlueprintResponse:
-    description: "A model for the response body when updating a filter blueprint"
-    allOf:
-    - $ref: '#/definitions/JobState'
-    - type: object
-      properties:
-        links:
-          type: object
-          properties:
-            filter_output:
-              description: "A link object containing the url to the filter output document, this is only returned once the submitted query parameter is set to true."
-              type: object
-              properties:
-                href:
-                  description: "A URL to the filter output document"
-                  example: "http://localhost:8080/filter-outputs/95c4669b-3ae9-4ba7-b690-87e890a1c543"
-                  type: string
-                id:
-                  description: "An ID of the created filter output document"
-                  example: "95c4669b-3ae9-4ba7-b690-87e890a1c543"
-                  type: string
-  UpdateOutputRequest:
-    description: "A model used to update filter outputs. Only the downloads list and state are editable"
+            type: array
+            items:
+              type: string
+  RowFormat:
+    description: |
+      A specification that a given row should be formatted in a particular way - as a header, or with vertical alignment
     type: object
     properties:
-      state:
+      row:
+        type: integer
+        description: "The index of the row this format applies to. Zero indexed."
+      heading:
+        type: boolean
+        description: 'Whether this row should be formatted as a heading'
+      height:
+        type: string
+        description: "The desired height of this row, as a valid css width property. E.g. '5em'"
+      vertical_align:
         type: string
         description: |
-          The state of the job can be in five states;
-          * created - The job is ready to be updated with filters. (default state)
-          * submitted - The job has been submitted to be processed. This will lock the job and no further changes can be done
-          * in progress -
-          * completed - The job has been completed and can be downloaded using the `downloadUrl`
-          * failed - The job failed to be processed
-      downloads:
-        $ref: '#/definitions/Downloads'
-      events:
-        $ref: '#/definitions/Events'
-  JobState:
+          The vertical alignment of the row.
+          For html output this will be rendered as the name of a css class
+          that is assumed to be defined in the containing page.
+        enum: [Top, Middle, Bottom]
+  ColumnFormat:
     description: |
-      A description of a job to generate a customised dataset
-    type: object
-    required: ["instance_id"]
-    properties:
-      filter_id:
-        readOnly: true
-        type: string
-        description: "A unique id for this resource"
-      instance_id:
-        type: string
-        description: 'An instance ID for he specific dataset version to be filtered'
-      dimension_list_url:
-        readOnly: true
-        type: string
-        description: "A url that lists all dimensions currently set for filter"
-      links:
-        $ref: '#/definitions/FilterLinks'
-      events:
-        $ref: '#/definitions/Events'
-  Dimension:
-    type: object
-    description: "A dimension to filter on a dataset. Information on a dimension can be gathered using the `Dataset API`"
-    properties:
-      name:
-        type: string
-        description: "The name of the dimension to filter on"
-      dimension_url:
-        type: string
-        description: "A link to the filtered options within the dimension"
-        items:
-          type: string
-          example: "/filters/00001/dimensions/age"
-  DimensionOptions:
-    type: object
-    description: "A dimension to filter on a dataset. Information on a dimension can be gathered using the `Dataset API`"
-    properties:
-      name:
-        type: string
-        description: "The name of the dimension to filter on"
-      options:
-        type: array
-        description: "A list of options for dimension to filter on a dataset"
-        items:
-          type: string
-  Downloads:
-    type: object
-    description: |
-      The url to download the customised dataset. This will be blank until the jobs `state` has been marked completed and can only be updated if authorised
-    properties:
-      xls:
-        $ref: '#/definitions/DownloadFile'
-      json:
-        $ref: '#/definitions/DownloadFile'
-      csv:
-        $ref: '#/definitions/DownloadFile'
-  Option:
-    type: object
-    description: "An option for a dimension to filter on a dataset. Information on a dimension option can be gathered using the `Dataset API`"
-    properties:
-      dimension_option_url:
-        type: string
-        description: "A link to a filtered dimension option"
-      option:
-        type: string
-        description: "The filtered dimension option"
-  Options:
-    type: object
-    description: "A list of options for dimension to filter on a dataset"
-    properties:
-      options:
-        type: array
-        description: "A list of options for dimension to filter on a dataset"
-        items:
-          type: string
-  Events:
-    type: object
-    description: |
-      A list of events which happened to the resource, can only be updated if authorised.
-    properties:
-      info:
-        type: array
-        items:
-          $ref: '#/definitions/Event'
-      error:
-        type: array
-        items:
-          $ref: '#/definitions/Event'
-  Event:
-    type: object
-    description: "A description of an event which has happened to the resource"
-    properties:
-      time:
-        type: string
-        description: "The time of the event happened"
-      type:
-        type: string
-        description: "The type of event which happened"
-      message:
-        type: string
-        description: "The description of the event which has happened"
-  DownloadFile:
+      A specification that a given column should be formatted in a particular way - as a header, or with a specific width
     type: object
     properties:
-      url:
-        type: string
-        description: "The URL to the generated file"
-      size:
-        type: string
-        description: "The size of the file in bytes"
-  FilterLinks:
-    description: "A list of links related to this resource"
-    readOnly: true
-    type: object
-    properties:
-      version:
-        type: object
-        properties:
-          href:
-            description: "A URL to the version being filtered"
-            example: "http://localhost:8080/datasets/DE3BC0B6-D6C4-4E20-917E-95D7EA8C91DC/editions/2017/version/1"
-            type: string
-          id:
-            description: "An ID of the version being filtered"
-            example: "de3bc0b6-d6c4-4e20-917e-95d7ea8c91dc"
-            type: string
-      preview:
-        type: object
-        properties:
-          href:
-            description: "A URL to a preview of the filter output"
-            example: "http://localhost:8080/filter-outputs/DE3BC0B6-D6C4-4E20-917E-95D7EA8C91DC/preview"
-            type: string
-  Preview:
-    description: "A preview of the current filter state"
-    readOnly: true
-    type: object
-    properties:
-      headers:
-        description: "A list of all headers in the dataset"
-        type: array
-        items:
-          type: string
-      number_of_rows:
-        description: "The number of rows, this can be in the range of 0 - 20"
+      col:
         type: integer
-      number_of_columns:
-        description: "The number of columns"
+        description: "The index of the column this format applies to. Zero indexed."
+      heading:
+        type: boolean
+        description: 'Whether this column should be formatted as a heading'
+      width:
+        type: string
+        description: "The desired width of this column, as a valid css width property. E.g. '5em'"
+      align:
+        type: string
+        description: |
+          The alignment of the column.
+          For html output this will be rendered as the name of a css class
+          that is assumed to be defined in the containing page.
+        enum: [Left, Center, Right, Justify]
+  CellFormat:
+    description: |
+      A specification that a given cell should be formatted in a particular way
+       - with alignment or spanning multiple columns/rows
+    type: object
+    properties:
+      row:
         type: integer
-      rows:
-        description: "A list of all rows for the preview as a two dimensional array"
+        description: "The row index of the cell this format applies to. Zero indexed."
+      col:
+        type: integer
+        description: "The column index of the cell this format applies to. Zero indexed."
+      align:
+        type: string
+        description: |
+          The alignment of the column.
+          For html output this will be rendered as the name of a css class
+          that is assumed to be defined in the containing page.
+        enum: [Left, Center, Right, Justify]
+      vertical_align:
+        type: string
+        description: |
+          The vertical alignment of the cell.
+          For html output this will be rendered as the name of a css class
+          that is assumed to be defined in the containing page.
+        enum: [Top, Middle, Bottom]
+  ParseRequest:
+    description: "A model for the response body when retrieving a filter output"
+    type: object
+    required: ["filename", "table_html"]
+    allOf:
+    - $ref: '#/definitions/TableMetaData'
+    - type: object
+      properties:
+        table_html:
+          type: string
+          description: "An html snippet containing the &lt;table&gt;...&lt;/table&gt; that should be parsed"
+        ignore_first_row:
+          type: boolean
+          description: |
+            If true, the first row in the source table is ignored. Can be useful with some js spreadsheet components
+            that insert row and column headers.
+        ignore_first_column:
+          type: boolean
+          description: |
+            If true, the first cell of each row in the source table is ignored. Can be useful with some js spreadsheet
+            components that insert row and column headers.
+        header_rows:
+          type: integer
+          description: |
+            The number of rows that should be rendered as headings, after ignoring the first row (if applicable).
+        header_cols:
+          type: integer
+          description: |
+            The number of column that should be rendered as headings, after ignoring the first row (if applicable).
+        cell_size_units:
+          type: string
+          description: |
+            The desired unit for cell widths/heights. Pixel widths will be converted to this unit, provided the
+            required information is provided - see current_table_width and single_em_height. The default is 'auto',
+            in which case no table cell widths/heights will be specified.
+          enum: ["%", "em", "auto"]
+        current_table_width:
+          type: integer
+          description: |
+            The width of the table, used to convert pixel widths to %.
+        current_table_height:
+          type: integer
+          description: |
+            The height of the table, used to convert pixel heights to %.
+        single_em_height:
+          type: number
+          description: |
+            Used to convert height/width from pixels to em. The height of the following:
+            &lt;div style="display: none; font-size: 1em; margin: 0; padding:0; height: auto; line-height: 1; border:0;"&gt;m&lt;/div&gt;.
+        column_width_to_ignore:
+          type: string
+          description: |
+            If the source html applies a default column width that shouldn't be included in the output, specify it here.
+            e.g. '50px'
+        alignment_classes:
+          description: |
+            The names of classes that should be interpreted as defining alignment of cells. The presence of these classes
+            on table cells will be used to determine the align & vertical_align properties of row/column/cell formats.
+          $ref: '#/definitions/AlignmentClasses'
+  AlignmentClasses:
+    description: "defines the css classes that should be interpreted as defining the alignment of cells in a table"
+    type: object
+    properties:
+      top:
+        type: string
+        description: "The css class indicating vertical alignment at the top"
+      middle:
+        type: string
+        description: "The css class indicating vertical alignment in the middle"
+      bottom:
+        type: string
+        description: "The css class indicating vertical alignment at the bottom"
+      left:
+        type: string
+        description: "The css class indicating alignment on the left"
+      center:
+        type: string
+        description: "The css class indicating alignment in the centre"
+      right:
+        type: string
+        description: "The css class indicating alignment on the right"
+  TableMetaData:
+    description: "Properties that are present in both the RenderRequest and ParseRequest"
+    type: object
+    required: ["filename"]
+    properties:
+      filename:
+        type: string
+        description: "A unique id for the table"
+      title:
+        type: string
+        description: "The main title of the table"
+      subtitle:
+        type: string
+        description: "An additional title or short description of the table"
+      source:
+        type: string
+        description: "Where the data in the table came from"
+      units:
+        type: string
+        description: "Name/decription of the units used in the table, if appropriate"
+      keep_headers_together:
+        type: boolean
+        description: "If true, the html output includes a css class designed to prevent content of heading cells being wrapped over 2 lines. Deliberate line breaks will be honoured."
+      footnotes:
         type: array
+        description: |
+          Notes associated with (and potentially referenced from) the table.
+          The order of footnotes is important, e.g. [1] will be converted into a link to the first footnote.
         items:
-          type: array
-          items:
-            type: string
+          type: string
+  ParseResponse:
+    description: "The response to a parse requests - contains an html representation of the table, and the json that defines it"
+    type: object
+    properties:
+      render_json:
+        $ref: '#/definitions/RenderRequest'
+      preview_html:
+        type: string
+        description: "The html of the table as it would be generated from json"

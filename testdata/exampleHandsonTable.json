@@ -1,0 +1,29 @@
+{
+  "filename": "abcd1234",
+  "title": "This is an example table",
+  "subtitle": "with a subtitle",
+  "source": "Office for National Statistics",
+  "units": "just made up numbers",
+  "footnotes": [
+    "Note 1",
+    "Note 2"
+  ],
+  "size_units": "em",
+  "single_em_height": 15,
+  "current_table_width": 339,
+  "current_table_height": 165,
+  "column_width_to_ignore": "50px",
+  "header_rows": 1,
+  "header_cols": 2,
+  "ignore_first_row": true,
+  "ignore_first_column": false,
+  "table_html": "<table class=\"htCore\"><colgroup><col style=\"width: 50px;\"><col style=\"width: 89px;\"><col style=\"width: 50px;\"><col style=\"width: 50px;\"><col style=\"width: 50px;\"><col style=\"width: 50px;\"></colgroup><thead><tr><th class=\"\" style=\"height: 25px;\"><div class=\"relative\"><span class=\"colHeader\">A</span></div></th><th class=\"\"><div class=\"relative\"><span class=\"colHeader\">B</span></div></th><th class=\"\"><div class=\"relative\"><span class=\"colHeader\">C</span></div></th><th class=\"\"><div class=\"relative\"><span class=\"colHeader\">D</span></div></th><th class=\"\"><div class=\"relative\"><span class=\"colHeader\">E</span></div></th><th class=\"\"><div class=\"relative\"><span class=\"colHeader\">F</span></div></th></tr></thead><tbody><tr><td class=\"htRight\"></td><td class=\"htRight htTop\"></td><td class=\"htTop\">a</td><td class=\"htTop\">b</td><td class=\"htTop\">c</td><td class=\"htTop\">d</td></tr><tr><td class=\"htTop\" rowspan=\"5\" colspan=\"1\">year[1]</td><td class=\"htRight\">2016[2]</td><td class=\"\">10</td><td class=\"\">11</td><td class=\"\">12</td><td class=\"\">13</td></tr><tr><td class=\"htTop\" style=\"display: none;\"></td><td class=\"htRight\">2017</td><td class=\"\">10</td><td class=\"\">11</td><td class=\"\">12</td><td class=\"\">13</td></tr><tr><td class=\"htTop\" style=\"display: none;\"></td><td class=\"htRight\">2018</td><td class=\"\">10</td><td class=\"\">11</td><td class=\"\">12</td><td class=\"\">13</td></tr><tr><td class=\"htTop\" style=\"display: none;\"></td><td class=\"htRight\">2019</td><td class=\"\">10</td><td class=\"\">11</td><td class=\"\">12</td><td class=\"\">13</td></tr><tr><td class=\"htTop\" style=\"display: none;\"></td><td class=\"htRight\">2020</td><td class=\"\">10</td><td class=\"\">11</td><td class=\"\">12</td><td class=\"\">13</td></tr></tbody></table>",
+  "alignment_classes": {
+    "top": "htTop",
+    "middle": "htMiddle",
+    "bottom": "htBottom",
+    "left": "htLeft",
+    "center": "htCenter",
+    "right": "htRight"
+  }
+}

@@ -1,0 +1,7 @@
+FROM onsdigital/dp-concourse-tools-ubuntu
+
+WORKDIR /app/
+
+ADD dp-table-renderer .
+
+CMD ./dp-table-renderer
