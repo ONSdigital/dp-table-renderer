@@ -16,7 +16,6 @@ job "dp-table-renderer" {
 
     constraint {
       attribute = "${node.class}"
-      operator  = "regexp"
       value     = "web"
     }
 
@@ -84,7 +83,6 @@ job "dp-table-renderer" {
 
     constraint {
       attribute = "${node.class}"
-      operator  = "regexp"
       value     = "publishing"
     }
 
