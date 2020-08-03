@@ -189,7 +189,7 @@ func TestRenderHTML_Footer(t *testing.T) {
 	})
 
 	Convey("Footnotes should end with a link back to the top of the table", t, func() {
-		request := models.RenderRequest{Filename: "myId", Footnotes: []string{"Note1", "Note2"}}
+		request := models.RenderRequest{Filename: "myId", Footnotes: []string{"Note1", "Note2"}, Title: "Table Title"}
 		container, _ := invokeRenderHTML(&request)
 		footer := FindNode(container, atom.Footer)
 		So(footer, ShouldNotBeNil)
@@ -201,7 +201,7 @@ func TestRenderHTML_Footer(t *testing.T) {
 			So(back.DataAtom, ShouldEqual, atom.A)
 			So(GetAttribute(back, "class"), ShouldEqual, "figure__footnote-back-link")
 			So(GetAttribute(back, "href"), ShouldEqual, "#table-"+request.Filename)
-			So(GetText(back), ShouldResemble, "Back to table")
+			So(GetText(back), ShouldResemble, "Back to table Table Title")
 		}
 	})
 
