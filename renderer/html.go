@@ -242,6 +242,12 @@ func addFooterItemsToList(request *models.RenderRequest, ol *html.Node) {
 			h.Attr("class", "figure__footnote-back-link"),
 			h.Attr("href", "#"+tableID(request)),
 			backLinkText)
+
+		accessibleText := h.CreateNode("span", atom.Span,
+			h.Attr("class", "visuallyhidden"),
+			fmt.Sprintf(" %s", request.Title))
+		backLink.AppendChild(accessibleText)
+
 		li := h.CreateNode("li", atom.Li,
 			h.Attr("id", fmt.Sprintf("table-%s-note-%d", request.Filename, i+1)),
 			h.Attr("class", "figure__footnote-item"),
