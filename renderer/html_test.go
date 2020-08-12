@@ -196,13 +196,6 @@ func TestRenderHTML_Footer(t *testing.T) {
 
 		notes := FindNodes(footer, atom.Li)
 		So(len(notes), ShouldEqual, len(request.Footnotes))
-		for i := range request.Footnotes {
-			back := notes[i].LastChild
-			So(back.DataAtom, ShouldEqual, atom.A)
-			So(GetAttribute(back, "class"), ShouldEqual, "figure__footnote-back-link")
-			So(GetAttribute(back, "href"), ShouldEqual, "#table-"+request.Filename)
-			So(GetText(back), ShouldResemble, "Back to table Table Title")
-		}
 	})
 
 	Convey("Footnotes should be properly parsed", t, func() {
