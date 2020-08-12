@@ -25,7 +25,6 @@ var (
 	unitsText          = "Units: "
 	notesText          = "Notes"
 	footnoteHiddenText = "Footnote "
-	backLinkText       = "Back to table"
 
 	// a map of the alignments to their css classes
 	cssAlignmentMap = map[string]string{
@@ -238,22 +237,10 @@ func addFooter(request *models.RenderRequest, parent *html.Node) {
 // addFooterItemsToList adds one li node for each footnote to the given list node
 func addFooterItemsToList(request *models.RenderRequest, ol *html.Node) {
 	for i, note := range request.Footnotes {
-		backLink := h.CreateNode("a", atom.A,
-			h.Attr("class", "figure__footnote-back-link"),
-			h.Attr("href", "#"+tableID(request)),
-			backLinkText)
-
-		accessibleText := h.CreateNode("span", atom.Span,
-			h.Attr("class", "visuallyhidden"),
-			fmt.Sprintf(" %s", request.Title))
-		backLink.AppendChild(accessibleText)
-
 		li := h.CreateNode("li", atom.Li,
 			h.Attr("id", fmt.Sprintf("table-%s-note-%d", request.Filename, i+1)),
 			h.Attr("class", "figure__footnote-item"),
-			parseValue(request, note),
-			" ",
-			backLink)
+			parseValue(request, note))
 		ol.AppendChild(li)
 		ol.AppendChild(h.Text("\n"))
 	}
