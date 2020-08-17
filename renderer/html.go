@@ -161,13 +161,14 @@ func addTableCell(model *tableModel, tr *html.Node, colText string, rowIdx int, 
 		return
 	}
 	value := parseValue(model.request, colText)
+	hasContent := len(colText) > 0
 	var node *html.Node
-	if model.rows[rowIdx].Heading {
+	if model.rows[rowIdx].Heading && hasContent {
 		node = h.CreateNode("th", atom.Th, h.Attr("scope", "col"), value)
 		if cell.colspan > 1 {
 			h.ReplaceAttribute(node, "scope", "colgroup")
 		}
-	} else if model.columns[colIdx].Heading {
+	} else if model.columns[colIdx].Heading && hasContent {
 		node = h.CreateNode("th", atom.Th, h.Attr("scope", "row"), value)
 		if cell.rowspan > 1 {
 			h.ReplaceAttribute(node, "scope", "rowgroup")
