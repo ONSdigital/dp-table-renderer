@@ -353,6 +353,21 @@ func TestRenderHTML_ColumnFormats(t *testing.T) {
 			So(GetAttribute(col, "style"), ShouldBeEmpty)
 		}
 	})
+
+	Convey("Column that have no content shold not become headers but instead td", t, func() {
+		colFormats := []models.ColumnFormat{{Column: 0, Heading: true}}
+		rowFormats := []models.RowFormat{{Row: 0, Heading: true}}
+		cells := [][]string{{"", "Head 1", "Head 2", "Head 3"}, {"Head 4", "Cell 2", "Cell 3", "Cell 4"}}
+		request := models.RenderRequest{Filename: "myId", ColumnFormats: colFormats, RowFormats: rowFormats, Data: cells}
+		container, _ := invokeRenderHTML(&request)
+		table := FindNode(container, atom.Table)
+
+		rows := FindNodes(table, atom.Tr)
+		headers := FindNodes(rows[0], atom.Th)
+		emptyHeaders := FindNodes(rows[0], atom.Td)
+		So(len(headers), ShouldEqual, len(cells[0])-1)
+		So(len(emptyHeaders), ShouldEqual, 1)
+	})
 }
 
 func TestRenderHTML_Rows(t *testing.T) {
