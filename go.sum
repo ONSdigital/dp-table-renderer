@@ -1,5 +1,6 @@
 github.com/360EntSecGroup-Skylar/excelize v1.2.1-0.20180108150359-50cdaed5a36f h1:X2ppbMFz2R4DeROWpa7uP5aoFgoX27tDNjhHYsmZQgw=
 github.com/360EntSecGroup-Skylar/excelize v1.2.1-0.20180108150359-50cdaed5a36f/go.mod h1:R8KYLmGns0vDPe6/HyphW0mzW+MFexlGDafU0ykVEnU=
+github.com/ONSdigital/dp v0.0.0-20201012070017-947dfc347b48 h1:vzUibEMlV7GlVYEfNMH1BFW+cXI92LecGZnIznLNJ78=
 github.com/ONSdigital/dp-api-clients-go v1.1.0/go.mod h1:9lqor0I7caCnRWr04gU/r7x5dqxgoODob8L48q+cE4E=
 github.com/ONSdigital/dp-api-clients-go v1.24.0/go.mod h1:Ds0lw6Rejqu46iyZTd5tiHriQW6CRhh56ucmmlCy6O8=
 github.com/ONSdigital/dp-api-clients-go v1.28.0/go.mod h1:iyJy6uRL4B6OYOJA0XMr5UHt6+Q8XmN9uwmURO+9Oj4=

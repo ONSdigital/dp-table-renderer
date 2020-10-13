@@ -5,6 +5,7 @@ go 1.13
 require (
 	github.com/360EntSecGroup-Skylar/excelize v1.2.1-0.20180108150359-50cdaed5a36f
 	github.com/ONSdigital/dp-healthcheck v1.0.5
+	github.com/ONSdigital/dp-net v1.0.5-0.20200805150805-cac050646ab5
 	github.com/ONSdigital/go-ns v0.0.0-20191104121206-f144c4ec2e58
 	github.com/ONSdigital/log.go v1.0.1
 	github.com/gorilla/context v1.1.1 // indirect

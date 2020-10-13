@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/ONSdigital/dp-healthcheck/healthcheck"
-	"github.com/ONSdigital/go-ns/server"
+	dphttp "github.com/ONSdigital/dp-net/http"
 	"github.com/ONSdigital/log.go/log"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
@@ -12,7 +12,7 @@ import (
 	"net/http"
 )
 
-var httpServer *server.Server
+var httpServer *dphttp.Server
 
 // RendererAPI manages rendering tables from json
 type RendererAPI struct {
@@ -24,7 +24,7 @@ func CreateRendererAPI(ctx context.Context, bindAddr string, allowedOrigins stri
 	router := mux.NewRouter()
 	routes(router, hc)
 
-	httpServer = server.New(bindAddr, createCORSHandler(allowedOrigins, router))
+	httpServer = dphttp.NewServer(bindAddr, router)
 	// Disable this here to allow main to manage graceful shutdown of the entire app.
 	httpServer.HandleOSSignals = false
 
