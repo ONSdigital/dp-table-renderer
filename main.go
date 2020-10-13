@@ -47,7 +47,7 @@ func main() {
 
 	apiErrors := make(chan error, 1)
 
-	api.CreateRendererAPI(cfg.BindAddr, cfg.CORSAllowedOrigins, apiErrors, &healthCheck)
+	api.CreateRendererAPI(ctx, cfg.BindAddr, cfg.CORSAllowedOrigins, apiErrors, &healthCheck)
 
 	// Gracefully shutdown the application closing any open resources.
 	gracefulShutdown := func() {

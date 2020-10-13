@@ -1,12 +1,14 @@
 package api
 
 import (
-	"errors"
+	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/ONSdigital/dp-table-renderer/models"
 	"github.com/ONSdigital/dp-table-renderer/renderer"
-	"github.com/ONSdigital/go-ns/log"
+	"github.com/ONSdigital/log.go/log"
+
 	"github.com/gorilla/mux"
 )
 
@@ -29,16 +31,17 @@ func (api *RendererAPI) renderTable(w http.ResponseWriter, r *http.Request) {
 
 	vars := mux.Vars(r)
 	renderType := vars["render_type"]
+	ctx := r.Context()
 
 	renderRequest, err := models.CreateRenderRequest(r.Body)
 	if err != nil {
-		log.Error(err, nil)
+		log.Event(ctx, "error with creating model render request", log.ERROR, log.Error(err))
 		http.Error(w, badRequest, http.StatusBadRequest)
 		return
 	}
 
 	if err = renderRequest.ValidateRenderRequest(); err != nil {
-		log.Error(err, nil)
+		log.Event(ctx, "error with validating model render request", log.ERROR, log.Error(err))
 		http.Error(w, badRequest, http.StatusBadRequest)
 		return
 	}
@@ -56,33 +59,33 @@ func (api *RendererAPI) renderTable(w http.ResponseWriter, r *http.Request) {
 		bytes, err = renderer.RenderCSV(renderRequest)
 		setContentType(w, contentCSV)
 	default:
-		log.Error(errors.New("Unknown render type"), log.Data{"render_type": renderType})
+		log.Event(ctx, "Unknown render type", log.ERROR)
 		http.Error(w, unknownRenderType, http.StatusNotFound)
 		return
 	}
 	if err != nil {
-		log.Error(err, log.Data{"render_request": renderRequest})
-		setErrorCode(w, err)
+		log.Event(ctx, "Unknown render request", log.ERROR, log.Error(err))
+		setErrorCode(ctx, w, err)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
 	_, err = w.Write(bytes)
 	if err != nil {
-		log.Error(err, log.Data{"render_request": renderRequest})
-		setErrorCode(w, err)
+		log.Event(ctx, "failed to write data to connection", log.ERROR, log.Error(err))
+		setErrorCode(ctx, w, err)
 		return
 	}
 
-	log.InfoC(renderRequest.Filename, "Rendered a table", log.Data{"render_type": renderType, "response_bytes": len(bytes)})
+	log.Event(ctx, fmt.Sprintf("rendered a table: %s, response_bytes: %d", renderRequest.Filename, len(bytes)), log.INFO)
 }
 
 func setContentType(w http.ResponseWriter, contentType string) {
 	w.Header().Set("Content-Type", contentType)
 }
 
-func setErrorCode(w http.ResponseWriter, err error) {
-	log.Debug("error is", log.Data{"error": err})
+func setErrorCode(ctx context.Context, w http.ResponseWriter, err error) {
+	log.Event(ctx, "error code:", log.ERROR, log.Error(err))
 	switch err.Error() {
 	case "Bad request":
 		http.Error(w, "Bad request", http.StatusBadRequest)

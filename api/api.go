@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/ONSdigital/dp-healthcheck/healthcheck"
-	"github.com/ONSdigital/go-ns/log"
 	"github.com/ONSdigital/go-ns/server"
+	"github.com/ONSdigital/log.go/log"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 
@@ -20,7 +20,7 @@ type RendererAPI struct {
 }
 
 // CreateRendererAPI manages all the routes configured to the renderer
-func CreateRendererAPI(bindAddr string, allowedOrigins string, errorChan chan error, hc *healthcheck.HealthCheck) {
+func CreateRendererAPI(ctx context.Context, bindAddr string, allowedOrigins string, errorChan chan error, hc *healthcheck.HealthCheck) {
 	router := mux.NewRouter()
 	routes(router, hc)
 
@@ -29,9 +29,9 @@ func CreateRendererAPI(bindAddr string, allowedOrigins string, errorChan chan er
 	httpServer.HandleOSSignals = false
 
 	go func() {
-		log.Debug("Starting table renderer...", nil)
+		log.Event(ctx, "starting table renderer", log.INFO)
 		if err := httpServer.ListenAndServe(); err != nil {
-			log.ErrorC("Main", err, log.Data{"MethodInError": "httpServer.ListenAndServe()"})
+			log.Event(ctx, "error occurred when running ListenAndServe", log.ERROR, log.Error(err))
 			errorChan <- err
 		}
 	}()
@@ -62,6 +62,6 @@ func Close(ctx context.Context) error {
 		return err
 	}
 
-	log.Info("graceful shutdown of http server complete", nil)
+	log.Event(ctx, "graceful shutdown of http server complete", log.INFO)
 	return nil
 }
