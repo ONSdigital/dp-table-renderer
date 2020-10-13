@@ -3,7 +3,6 @@ package config
 import (
 	"time"
 
-	"github.com/ONSdigital/go-ns/log"
 	"github.com/kelseyhightower/envconfig"
 )
 
@@ -33,14 +32,4 @@ func Get() (*Config, error) {
 	}
 
 	return cfg, envconfig.Process("", cfg)
-}
-
-// Log writes all config properties to log.Debug
-func (cfg *Config) Log() {
-	log.Debug("Configuration", log.Data{
-		"BindAddr":           cfg.BindAddr,
-		"CORSAllowedOrigins": cfg.CORSAllowedOrigins,
-		"ShutdownTimeout":    cfg.ShutdownTimeout,
-	})
-
 }

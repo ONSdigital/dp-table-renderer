@@ -10,7 +10,7 @@ import (
 	"github.com/ONSdigital/dp-healthcheck/healthcheck"
 	"github.com/ONSdigital/dp-table-renderer/api"
 	"github.com/ONSdigital/dp-table-renderer/config"
-	"github.com/ONSdigital/go-ns/log"
+	"github.com/ONSdigital/log.go/log"
 )
 
 var (
@@ -31,16 +31,16 @@ func main() {
 
 	cfg, err := config.Get()
 	if err != nil {
-		log.Error(err, nil)
+		log.Event(ctx, "unable to retrieve service configuration", log.FATAL, log.Error(err))
 		os.Exit(1)
 	}
 
-	cfg.Log()
+	log.Event(ctx, "got service configuration", log.INFO, log.Data{"config": cfg})
 
 	// Create healthcheck
 	versionInfo, err := healthcheck.NewVersionInfo(BuildTime, GitCommit, Version)
 	if err != nil {
-		// LOG
+		log.Event(ctx, "unable to retrieve health check version info", log.ERROR, log.Error(err))
 	}
 	healthCheck := healthcheck.New(versionInfo, cfg.HealthCheckCriticalTimeout, cfg.HealthCheckInterval)
 	healthCheck.Start(ctx)
@@ -51,26 +51,26 @@ func main() {
 
 	// Gracefully shutdown the application closing any open resources.
 	gracefulShutdown := func() {
-		log.Info(fmt.Sprintf("Shutdown with timeout: %s", cfg.ShutdownTimeout), nil)
+		log.Event(ctx, fmt.Sprintf("Shutdown with timeout: %s", cfg.ShutdownTimeout), log.INFO)
 		ctx, cancel := context.WithTimeout(context.Background(), cfg.ShutdownTimeout)
 
 		if err = api.Close(ctx); err != nil {
-			log.Error(err, nil)
+			log.Event(ctx, "error with graceful shutdown", log.Error(err))
 		}
 
 		cancel()
 
-		log.Info("Shutdown complete", nil)
+		log.Event(ctx, "Shutdown complete", log.INFO)
 		os.Exit(1)
 	}
 
 	for {
 		select {
 		case err := <-apiErrors:
-			log.ErrorC("api error received", err, nil)
+			log.Event(ctx, "api error received", log.ERROR, log.Error(err))
 			gracefulShutdown()
 		case <-signals:
-			log.Debug("os signal received", nil)
+			log.Event(ctx, "os signal received", log.INFO)
 			gracefulShutdown()
 		}
 	}

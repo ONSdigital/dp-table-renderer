@@ -50,8 +50,7 @@ func createCORSHandler(allowedOrigins string, router *mux.Router) http.Handler {
 func routes(router *mux.Router, hc *healthcheck.HealthCheck) *RendererAPI {
 	api := RendererAPI{router: router}
 
-	router.Path("/health").Methods("GET").HandlerFunc(hc.Handler)
-
+	api.router.StrictSlash(true).Path("/health").HandlerFunc(hc.Handler)
 	api.router.HandleFunc("/render/{render_type}", api.renderTable).Methods("POST")
 	api.router.HandleFunc("/parse/html", api.parseHTML).Methods("POST")
 	return &api
