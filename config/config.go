@@ -9,9 +9,11 @@ import (
 
 // Config is the configuration for this service
 type Config struct {
-	BindAddr           string        `envconfig:"BIND_ADDR"`
-	CORSAllowedOrigins string        `envconfig:"CORS_ALLOWED_ORIGINS"`
-	ShutdownTimeout    time.Duration `envconfig:"SHUTDOWN_TIMEOUT"`
+	BindAddr                   string        `envconfig:"BIND_ADDR"`
+	CORSAllowedOrigins         string        `envconfig:"CORS_ALLOWED_ORIGINS"`
+	ShutdownTimeout            time.Duration `envconfig:"SHUTDOWN_TIMEOUT"`
+	HealthCheckInterval        time.Duration `envconfig:"HEALTHCHECK_INTERVAL"`
+	HealthCheckCriticalTimeout time.Duration `envconfig:"HEALTHCHECK_CRITICAL_TIMEOUT"`
 }
 
 var cfg *Config
@@ -23,9 +25,11 @@ func Get() (*Config, error) {
 	}
 
 	cfg = &Config{
-		BindAddr:           ":23300",
-		CORSAllowedOrigins: "*",
-		ShutdownTimeout:    5 * time.Second,
+		BindAddr:                   ":23300",
+		CORSAllowedOrigins:         "*",
+		ShutdownTimeout:            5 * time.Second,
+		HealthCheckInterval:        30 * time.Second,
+		HealthCheckCriticalTimeout: 90 * time.Second,
 	}
 
 	return cfg, envconfig.Process("", cfg)

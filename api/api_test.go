@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"strings"
 
+	"github.com/ONSdigital/dp-healthcheck/healthcheck"
 	"github.com/gorilla/mux"
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -22,6 +23,8 @@ var (
 	parseBody      = `{"title":"table_title", "filename": "file_name", "table_html":"<table></table>"}`
 )
 
+var hcMock = healthcheck.HealthCheck{}
+
 func TestSuccessfullyRenderTable(t *testing.T) {
 	t.Parallel()
 	Convey("Successfully render an html table", t, func() {
@@ -30,7 +33,7 @@ func TestSuccessfullyRenderTable(t *testing.T) {
 		So(err, ShouldBeNil)
 
 		w := httptest.NewRecorder()
-		api := routes(mux.NewRouter())
+		api := routes(mux.NewRouter(), &hcMock)
 		api.router.ServeHTTP(w, r)
 		So(w.Code, ShouldEqual, http.StatusOK)
 		So(w.Header().Get("Content-Type"), ShouldEqual, "text/html")
@@ -48,7 +51,7 @@ func TestSuccessfullyRenderSpreadsheet(t *testing.T) {
 		So(err, ShouldBeNil)
 
 		w := httptest.NewRecorder()
-		api := routes(mux.NewRouter())
+		api := routes(mux.NewRouter(), &hcMock)
 		api.router.ServeHTTP(w, r)
 		So(w.Code, ShouldEqual, http.StatusOK)
 		So(w.Header().Get("Content-Type"), ShouldEqual, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
@@ -65,7 +68,7 @@ func TestSuccessfullyRenderCSV(t *testing.T) {
 		So(err, ShouldBeNil)
 
 		w := httptest.NewRecorder()
-		api := routes(mux.NewRouter())
+		api := routes(mux.NewRouter(), &hcMock)
 		api.router.ServeHTTP(w, r)
 		So(w.Code, ShouldEqual, http.StatusOK)
 		So(w.Header().Get("Content-Type"), ShouldEqual, "text/csv")
@@ -82,7 +85,7 @@ func TestSuccessfullyParseTable(t *testing.T) {
 		So(err, ShouldBeNil)
 
 		w := httptest.NewRecorder()
-		api := routes(mux.NewRouter())
+		api := routes(mux.NewRouter(), &hcMock)
 		api.router.ServeHTTP(w, r)
 		So(w.Code, ShouldEqual, http.StatusOK)
 		So(w.Header().Get("Content-Type"), ShouldEqual, "application/json")
@@ -100,7 +103,7 @@ func TestRejectInvalidRequest(t *testing.T) {
 		So(err, ShouldBeNil)
 
 		w := httptest.NewRecorder()
-		api := routes(mux.NewRouter())
+		api := routes(mux.NewRouter(), &hcMock)
 		api.router.ServeHTTP(w, r)
 		So(w.Code, ShouldEqual, http.StatusNotFound)
 		So(w.Body.String(), ShouldResemble, "Unknown render type\n")
@@ -112,7 +115,7 @@ func TestRejectInvalidRequest(t *testing.T) {
 		So(err, ShouldBeNil)
 
 		w := httptest.NewRecorder()
-		api := routes(mux.NewRouter())
+		api := routes(mux.NewRouter(), &hcMock)
 		api.router.ServeHTTP(w, r)
 		So(w.Code, ShouldEqual, http.StatusBadRequest)
 

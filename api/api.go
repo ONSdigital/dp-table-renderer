@@ -3,7 +3,7 @@ package api
 import (
 	"context"
 
-	"github.com/ONSdigital/dp-table-renderer/health"
+	"github.com/ONSdigital/dp-healthcheck/healthcheck"
 	"github.com/ONSdigital/go-ns/log"
 	"github.com/ONSdigital/go-ns/server"
 	"github.com/gorilla/handlers"
@@ -20,9 +20,9 @@ type RendererAPI struct {
 }
 
 // CreateRendererAPI manages all the routes configured to the renderer
-func CreateRendererAPI(bindAddr string, allowedOrigins string, errorChan chan error) {
+func CreateRendererAPI(bindAddr string, allowedOrigins string, errorChan chan error, hc *healthcheck.HealthCheck) {
 	router := mux.NewRouter()
-	routes(router)
+	routes(router, hc)
 
 	httpServer = server.New(bindAddr, createCORSHandler(allowedOrigins, router))
 	// Disable this here to allow main to manage graceful shutdown of the entire app.
@@ -47,10 +47,10 @@ func createCORSHandler(allowedOrigins string, router *mux.Router) http.Handler {
 }
 
 // routes contain all endpoints for the renderer
-func routes(router *mux.Router) *RendererAPI {
+func routes(router *mux.Router, hc *healthcheck.HealthCheck) *RendererAPI {
 	api := RendererAPI{router: router}
 
-	router.Path("/healthcheck").Methods("GET").HandlerFunc(health.EmptyHealthcheck)
+	router.Path("/health").Methods("GET").HandlerFunc(hc.Handler)
 
 	api.router.HandleFunc("/render/{render_type}", api.renderTable).Methods("POST")
 	api.router.HandleFunc("/parse/html", api.parseHTML).Methods("POST")
