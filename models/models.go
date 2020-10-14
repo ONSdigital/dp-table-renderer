@@ -7,7 +7,7 @@ import (
 	"io"
 	"io/ioutil"
 
-	"github.com/ONSdigital/go-ns/log"
+	"github.com/ONSdigital/log.go/log"
 )
 
 // A list of errors returned from package
@@ -108,14 +108,14 @@ type CellFormat struct {
 func CreateRenderRequest(reader io.Reader) (*RenderRequest, error) {
 	bytes, err := ioutil.ReadAll(reader)
 	if err != nil {
-		log.Error(err, log.Data{"request_body": string(bytes)})
+		log.Event(nil, "error reading request body", log.ERROR, log.Error(err))
 		return nil, ErrorReadingBody
 	}
 
 	var request RenderRequest
 	err = json.Unmarshal(bytes, &request)
 	if err != nil {
-		log.Error(err, log.Data{"request_body": string(bytes)})
+		log.Event(nil, "error unmarshalling JSON", log.ERROR, log.Error(err))
 		return nil, ErrorParsingBody
 	}
 
@@ -143,14 +143,14 @@ func (rr *RenderRequest) ValidateRenderRequest() error {
 func CreateParseRequest(reader io.Reader) (*ParseRequest, error) {
 	bytes, err := ioutil.ReadAll(reader)
 	if err != nil {
-		log.Error(err, log.Data{"request_body": string(bytes)})
+		log.Event(nil, "error reading body", log.ERROR, log.Error(err))
 		return nil, ErrorReadingBody
 	}
 
 	var request ParseRequest
 	err = json.Unmarshal(bytes, &request)
 	if err != nil {
-		log.Error(err, log.Data{"request_body": string(bytes)})
+		log.Event(nil, "error unmarshalling JSON", log.ERROR, log.Error(err))
 		return nil, ErrorParsingBody
 	}
 
@@ -174,16 +174,16 @@ func (pr *ParseRequest) ValidateParseRequest() error {
 	switch units := pr.CellSizeUnits; units {
 	case "%":
 		if pr.CurrentTableWidth <= 0 {
-			log.InfoC(pr.Filename, "size_units is '%' but current_table_width is not specified - cannot convert from px", nil)
+			log.Event(nil, fmt.Sprintf("%s: size_units is 'percentage', but current_table_width is not specified - cannot convert from px", pr.Filename), log.INFO)
 		}
 	case "em":
 		if pr.SingleEmHeight <= 0 {
-			log.InfoC(pr.Filename, "size_units is 'em' but single_em_height is not specified - cannot convert from px", nil)
+			log.Event(nil, fmt.Sprintf("%s: size_units is 'em', but single_em_height is not specified - cannot convert from px", pr.Filename), log.INFO)
 		}
 	case "auto", "":
 		// nothing to do
 	default:
-		log.InfoC(pr.Filename, "Unknown size unit specified for width: "+units, nil)
+		log.Event(nil, fmt.Sprintf("%s: unknown size unit specified for width: %s", pr.Filename, units), log.INFO)
 	}
 
 	if missingFields != nil {

@@ -15,10 +15,12 @@ import (
 	h "github.com/ONSdigital/dp-table-renderer/htmlutil"
 	"github.com/ONSdigital/dp-table-renderer/models"
 	"github.com/ONSdigital/dp-table-renderer/renderer"
-	"github.com/ONSdigital/go-ns/log"
+	"github.com/ONSdigital/log.go/log"
+
+	"sort"
+
 	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"
-	"sort"
 )
 
 // parseModel contains values calculated from the parse request that are used to create the ResponseModel
@@ -50,7 +52,7 @@ func ParseHTML(request *models.ParseRequest) ([]byte, error) {
 
 	sourceTable, err := parseTableToNode(request.TableHTML)
 	if err != nil {
-		log.Error(err, log.Data{"message": "Unable to parse TableHTML to table element", "ParseRequest": request})
+		log.Event(nil, "Unable to parse TableHTML to table element", log.ERROR, log.Error(err))
 		return nil, err
 	}
 
@@ -80,7 +82,7 @@ func ParseHTML(request *models.ParseRequest) ([]byte, error) {
 
 	previewHTML, err := renderer.RenderHTML(requestJSON)
 	if err != nil {
-		log.Error(err, log.Data{"message": "Unable to render preview HTML", "ParseRequest": request, "RenderRequest": requestJSON})
+		log.Event(nil, "Unable to render preview HTMLt", log.ERROR, log.Error(err))
 		return nil, err
 	}
 	response := ResponseModel{JSON: *requestJSON, PreviewHTML: string(previewHTML)}
@@ -359,7 +361,7 @@ func extractWidth(model *parseModel, node *html.Node) string {
 					proportion := float32(intWidth) / float32(model.request.CurrentTableWidth)
 					width = fmt.Sprintf("%.1f%%", proportion*100.0)
 				} else {
-					log.ErrorC(model.request.Filename, err, log.Data{"Width not parsable as an integer": width})
+					log.Event(nil, fmt.Sprintf("%s: width not parsable as an integer (width: %s)", model.request.Filename, width), log.ERROR, log.Error(err))
 				}
 			}
 		case "em":
@@ -368,7 +370,7 @@ func extractWidth(model *parseModel, node *html.Node) string {
 				if err == nil {
 					width = fmt.Sprintf("%.2fem", (float32(intWidth))/model.request.SingleEmHeight)
 				} else {
-					log.ErrorC(model.request.Filename, err, log.Data{"Width not parsable as an integer": width})
+					log.Event(nil, fmt.Sprintf("%s: width not parsable as an integer (width: %s)", model.request.Filename, width), log.ERROR, log.Error(err))
 				}
 			}
 		}

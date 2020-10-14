@@ -11,7 +11,7 @@ import (
 
 	"github.com/360EntSecGroup-Skylar/excelize"
 	"github.com/ONSdigital/dp-table-renderer/models"
-	"github.com/ONSdigital/go-ns/log"
+	"github.com/ONSdigital/log.go/log"
 )
 
 var (
@@ -212,7 +212,7 @@ func getCellValueAndStyle(model *spreadsheetModel, row int, col int) (interface{
 	value := model.request.Data[row][col]
 	cellContent, cellStyle, err := parseValueAndFormat(value)
 	if err != nil {
-		log.ErrorC(model.request.Filename, err, log.Data{"_message": "Unable to parse value", "value": value})
+		log.Event(nil, fmt.Sprintf("unable to parse value: %s", value), log.ERROR, log.Error(err))
 		cellContent = value
 	}
 	align, valign, isHeading := getCellAlignmentAndHeading(model, row, col)
@@ -277,12 +277,12 @@ func getStyleRef(model *spreadsheetModel, format *xlsxCellStyle) int {
 	}
 	bytes, e := json.Marshal(*format)
 	if e != nil {
-		log.ErrorC(model.request.Filename, e, log.Data{"_message": "Unable to marshal an xlsxCellStyle"})
+		log.Event(nil, fmt.Sprintf("unable to marshal an xlsxCellStyle for file: %s", model.request.Filename), log.ERROR, log.Error(e))
 		return 0
 	}
 	style, err := model.xlsx.NewStyle(string(bytes))
 	if err != nil {
-		log.Error(err, log.Data{"_message": "Unable create new style for spreadsheet", "value": string(bytes)})
+		log.Event(nil, fmt.Sprintf("unable to create a new style for the spreadsheet. Value: %s", string(bytes)), log.ERROR, log.Error(e))
 		return 0
 	}
 	model.cellStyles[*format] = style
