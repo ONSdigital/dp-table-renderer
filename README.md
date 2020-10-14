@@ -9,6 +9,8 @@ Given json defining a table, capable of rendering a table in multiple formats
 | Environment variable       | Default                  | Description                                            |
 | -------------------------- | ------------------------ | -----------                                            |
 | BIND_ADDR                  | :23100                   | The host and port to bind to                           |
+| HealthCheckInterval           | Interval between health checks                                                            |    30 seconds |
+| HealthCheckCriticalTimeout    | Amount of time to pass since last healthy health check to be deemed a critical failure    |    90 seconds |
 | CORS_ALLOWED_ORIGINS       | *                        | The allowed origins for CORS requests                  |
 | SHUTDOWN_TIMEOUT           | 5s                       | The graceful shutdown timeout ([`time.Duration`](https://golang.org/pkg/time/#Duration) format) |
 
