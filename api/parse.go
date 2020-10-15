@@ -1,7 +1,6 @@
 package api
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/ONSdigital/dp-table-renderer/models"
@@ -45,6 +44,5 @@ func (api *RendererAPI) parseHTML(w http.ResponseWriter, r *http.Request) {
 		setErrorCode(ctx, w, err)
 		return
 	}
-
-	log.Event(ctx, fmt.Sprintf("Parsed an HTML table to JSON. response_bytes: %d", len(bytes)), log.INFO)
+	log.Event(ctx, "parsed an HTML table to JSON", log.Data{"response_bytes": len(bytes)}, log.INFO)
 }

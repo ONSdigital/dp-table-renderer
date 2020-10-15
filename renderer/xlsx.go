@@ -213,7 +213,7 @@ func getCellValueAndStyle(ctx context.Context, model *spreadsheetModel, row int,
 	value := model.request.Data[row][col]
 	cellContent, cellStyle, err := parseValueAndFormat(value)
 	if err != nil {
-		log.Event(ctx, fmt.Sprintf("unable to parse value: %s", value), log.ERROR, log.Error(err))
+		log.Event(ctx, "unable to parse value", log.Data{"value": value}, log.ERROR, log.Error(err))
 		cellContent = value
 	}
 	align, valign, isHeading := getCellAlignmentAndHeading(model, row, col)
@@ -278,12 +278,12 @@ func getStyleRef(ctx context.Context, model *spreadsheetModel, format *xlsxCellS
 	}
 	bytes, e := json.Marshal(*format)
 	if e != nil {
-		log.Event(ctx, fmt.Sprintf("unable to marshal an xlsxCellStyle for file: %s", model.request.Filename), log.ERROR, log.Error(e))
+		log.Event(ctx, "unable to marshal an xlsxCellStyle for file", log.Data{"file_name": model.request.Filename}, log.ERROR, log.Error(e))
 		return 0
 	}
 	style, err := model.xlsx.NewStyle(string(bytes))
 	if err != nil {
-		log.Event(ctx, fmt.Sprintf("unable to create a new style for the spreadsheet. Value: %s", string(bytes)), log.ERROR, log.Error(e))
+		log.Event(ctx, "unable to create a new style for the spreadsheet", log.Data{"value": string(bytes)}, log.ERROR, log.Error(e))
 		return 0
 	}
 	model.cellStyles[*format] = style

@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
@@ -51,7 +50,7 @@ func main() {
 
 	// Gracefully shutdown the application closing any open resources.
 	gracefulShutdown := func() {
-		log.Event(ctx, fmt.Sprintf("Shutdown with timeout: %s", cfg.ShutdownTimeout), log.INFO)
+		log.Event(ctx, "shutdown with timeout", log.Data{"timeout": cfg.ShutdownTimeout}, log.INFO)
 		ctx, cancel := context.WithTimeout(context.Background(), cfg.ShutdownTimeout)
 
 		if err = api.Close(ctx); err != nil {

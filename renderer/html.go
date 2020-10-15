@@ -278,7 +278,7 @@ func replaceValues(ctx context.Context, request *models.RenderRequest, value str
 		DataAtom: atom.Body,
 	})
 	if err != nil {
-		log.Event(ctx, fmt.Sprintf("Unable to parse value: %s", original), log.ERROR, log.Error(err))
+		log.Event(ctx, "unable to parse value", log.Data{"value": original}, log.ERROR, log.Error(err))
 		return []*html.Node{{Type: html.TextNode, Data: original}}
 	}
 	return nodes
@@ -311,7 +311,7 @@ func indexColumnFormats(ctx context.Context, request *models.RenderRequest) []mo
 	// replace with actual ColumnFormats where they exist
 	for _, format := range request.ColumnFormats {
 		if format.Column >= count || format.Column < 0 {
-			log.Event(ctx, fmt.Sprintf("ColumnFormat specified for non-existent column. Filename: %s, ColumnFormat: %v, column_count: %d", request.Filename, format, count), log.INFO)
+			log.Event(ctx, "ColumnFormat specified for non-existent column", log.Data{"file_name": request.Filename, "column_format": format, "column_count": count}, log.INFO)
 		} else {
 			columns[format.Column] = format
 		}
@@ -330,7 +330,7 @@ func indexRowFormats(ctx context.Context, request *models.RenderRequest) []model
 	// replace with actual RowFormats where they exist
 	for _, format := range request.RowFormats {
 		if format.Row >= count || format.Row < 0 {
-			log.Event(ctx, fmt.Sprintf("ColumnFormat specified for non-existent row. Filename: %s, RowFormat: %v, row_count: %d", request.Filename, format, count), log.INFO)
+			log.Event(ctx, "ColumnFormat specified for non-existent column", log.Data{"file_name": request.Filename, "row_format": format, "row_count": count}, log.INFO)
 		} else {
 			rows[format.Row] = format
 		}

@@ -362,7 +362,7 @@ func extractWidth(ctx context.Context, model *parseModel, node *html.Node) strin
 					proportion := float32(intWidth) / float32(model.request.CurrentTableWidth)
 					width = fmt.Sprintf("%.1f%%", proportion*100.0)
 				} else {
-					log.Event(ctx, fmt.Sprintf("%s: width not parsable as an integer (width: %s)", model.request.Filename, width), log.ERROR, log.Error(err))
+					log.Event(ctx, "width not parsable as an integer", log.Data{"file_name": model.request.Filename, "width": width}, log.ERROR, log.Error(err))
 				}
 			}
 		case "em":
@@ -371,7 +371,7 @@ func extractWidth(ctx context.Context, model *parseModel, node *html.Node) strin
 				if err == nil {
 					width = fmt.Sprintf("%.2fem", (float32(intWidth))/model.request.SingleEmHeight)
 				} else {
-					log.Event(ctx, fmt.Sprintf("%s: width not parsable as an integer (width: %s)", model.request.Filename, width), log.ERROR, log.Error(err))
+					log.Event(ctx, "width not parsable as an integer", log.Data{"file_name": model.request.Filename, "width": width}, log.ERROR, log.Error(err))
 				}
 			}
 		}

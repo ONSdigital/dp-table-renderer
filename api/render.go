@@ -2,7 +2,6 @@ package api
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 
 	"github.com/ONSdigital/dp-table-renderer/models"
@@ -76,8 +75,7 @@ func (api *RendererAPI) renderTable(w http.ResponseWriter, r *http.Request) {
 		setErrorCode(ctx, w, err)
 		return
 	}
-
-	log.Event(ctx, fmt.Sprintf("rendered a table: %s, response_bytes: %d", renderRequest.Filename, len(bytes)), log.INFO)
+	log.Event(ctx, "rendered a table", log.Data{"file_name": renderRequest.Filename, "response_bytes": len(bytes)}, log.INFO)
 }
 
 func setContentType(w http.ResponseWriter, contentType string) {

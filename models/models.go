@@ -175,16 +175,16 @@ func (pr *ParseRequest) ValidateParseRequest(ctx context.Context) error {
 	switch units := pr.CellSizeUnits; units {
 	case "%":
 		if pr.CurrentTableWidth <= 0 {
-			log.Event(ctx, fmt.Sprintf("%s: size_units is 'percentage', but current_table_width is not specified - cannot convert from px", pr.Filename), log.INFO)
+			log.Event(ctx, "size_units is 'percentage' but current_table_width is not specified - cannot convert from px", log.Data{"file_name": pr.Filename}, log.INFO)
 		}
 	case "em":
 		if pr.SingleEmHeight <= 0 {
-			log.Event(ctx, fmt.Sprintf("%s: size_units is 'em', but single_em_height is not specified - cannot convert from px", pr.Filename), log.INFO)
+			log.Event(ctx, "size_units is 'percentage' but current_table_width is not specified - cannot convert from px", log.Data{"file_name": pr.Filename}, log.INFO)
 		}
 	case "auto", "":
 		// nothing to do
 	default:
-		log.Event(ctx, fmt.Sprintf("%s: unknown size unit specified for width: %s", pr.Filename, units), log.INFO)
+		log.Event(ctx, "unknown size unit specified for width", log.Data{"file_name": pr.Filename, "unit": units}, log.INFO)
 	}
 
 	if missingFields != nil {
