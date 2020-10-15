@@ -2,6 +2,7 @@ package renderer
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 
 	"regexp"
@@ -57,20 +58,20 @@ type cellModel struct {
 }
 
 // RenderHTML returns an HTML representation of the table generated from the given request
-func RenderHTML(request *models.RenderRequest) ([]byte, error) {
-	model := createModel(request)
+func RenderHTML(ctx context.Context, request *models.RenderRequest) ([]byte, error) {
+	model := createModel(ctx, request)
 
 	figure := h.CreateNode("figure", atom.Figure,
 		h.Attr("class", "figure"),
 		h.Attr("id", tableID(request)),
 		"\n")
 
-	table := addTable(request, figure)
+	table := addTable(ctx, request, figure)
 
 	addColumnGroup(model, table)
-	addRows(model, table)
+	addRows(ctx, model, table)
 
-	addFooter(request, figure)
+	addFooter(ctx, request, figure)
 
 	var buf bytes.Buffer
 	html.Render(&buf, figure)
@@ -84,7 +85,7 @@ func tableID(request *models.RenderRequest) string {
 }
 
 // addTable creates a table node with a caption and adds it to the given node
-func addTable(request *models.RenderRequest, parent *html.Node) *html.Node {
+func addTable(ctx context.Context, request *models.RenderRequest, parent *html.Node) *html.Node {
 	table := h.CreateNode("table", atom.Table,
 		h.Attr("class", "table"),
 		"\n")
@@ -93,11 +94,11 @@ func addTable(request *models.RenderRequest, parent *html.Node) *html.Node {
 	if len(request.Title) > 0 || len(request.Subtitle) > 0 {
 		caption := h.CreateNode("caption", atom.Caption,
 			h.Attr("class", "table__caption"),
-			parseValue(request, request.Title))
+			parseValue(ctx, request, request.Title))
 		if len(request.Subtitle) > 0 {
 			subtitle := h.CreateNode("span", atom.Span,
 				h.Attr("class", "table__subtitle"),
-				parseValue(request, request.Subtitle))
+				parseValue(ctx, request, request.Subtitle))
 
 			caption.AppendChild(h.CreateNode("br", atom.Br))
 			caption.AppendChild(subtitle)
@@ -129,7 +130,7 @@ func addColumnGroup(model *tableModel, table *html.Node) {
 }
 
 // adds all rows to the table. Rows contain th or td cells as appropriate.
-func addRows(model *tableModel, table *html.Node) {
+func addRows(ctx context.Context, model *tableModel, table *html.Node) {
 	for rowIdx, row := range model.request.Data {
 		tr := h.CreateNode("tr", atom.Tr)
 		table.AppendChild(tr)
@@ -146,14 +147,14 @@ func addRows(model *tableModel, table *html.Node) {
 			h.AddAttribute(tr, "style", "height: "+model.rows[rowIdx].Height)
 		}
 		for colIdx, col := range row {
-			addTableCell(model, tr, col, rowIdx, colIdx)
+			addTableCell(ctx, model, tr, col, rowIdx, colIdx)
 		}
 		table.AppendChild(h.Text("\n"))
 	}
 }
 
 // adds an individual table cell to the given tr node
-func addTableCell(model *tableModel, tr *html.Node, colText string, rowIdx int, colIdx int) {
+func addTableCell(ctx context.Context, model *tableModel, tr *html.Node, colText string, rowIdx int, colIdx int) {
 	cell := model.cells[rowIdx][colIdx]
 	if cell == nil {
 		cell = emptyCellModel
@@ -161,7 +162,7 @@ func addTableCell(model *tableModel, tr *html.Node, colText string, rowIdx int, 
 	if cell.skip {
 		return
 	}
-	value := parseValue(model.request, colText)
+	value := parseValue(ctx, model.request, colText)
 	hasContent := len(colText) > 0
 	var node *html.Node
 	if model.rows[rowIdx].Heading && hasContent {
@@ -203,20 +204,20 @@ func mapAlignmentToClass(align string) string {
 }
 
 // addFooter adds a footer to the given element, containing the source and footnotes
-func addFooter(request *models.RenderRequest, parent *html.Node) {
+func addFooter(ctx context.Context, request *models.RenderRequest, parent *html.Node) {
 	footer := h.CreateNode("footer", atom.Footer,
 		h.Attr("class", "figure__footer"),
 		"\n")
 	if len(request.Units) > 0 {
 		footer.AppendChild(h.CreateNode("p", atom.P,
 			h.Attr("class", "figure__units"),
-			parseValue(request, unitsText+request.Units)))
+			parseValue(ctx, request, unitsText+request.Units)))
 		footer.AppendChild(h.Text("\n"))
 	}
 	if len(request.Source) > 0 {
 		footer.AppendChild(h.CreateNode("p", atom.P,
 			h.Attr("class", "figure__source"),
-			parseValue(request, sourceText+request.Source)))
+			parseValue(ctx, request, sourceText+request.Source)))
 		footer.AppendChild(h.Text("\n"))
 	}
 	if len(request.Footnotes) > 0 {
@@ -228,7 +229,7 @@ func addFooter(request *models.RenderRequest, parent *html.Node) {
 		ol := h.CreateNode("ol", atom.Ol,
 			h.Attr("class", "figure__footnotes"),
 			"\n")
-		addFooterItemsToList(request, ol)
+		addFooterItemsToList(ctx, request, ol)
 		footer.AppendChild(ol)
 		footer.AppendChild(h.Text("\n"))
 	}
@@ -237,29 +238,29 @@ func addFooter(request *models.RenderRequest, parent *html.Node) {
 }
 
 // addFooterItemsToList adds one li node for each footnote to the given list node
-func addFooterItemsToList(request *models.RenderRequest, ol *html.Node) {
+func addFooterItemsToList(ctx context.Context, request *models.RenderRequest, ol *html.Node) {
 	for i, note := range request.Footnotes {
 		li := h.CreateNode("li", atom.Li,
 			h.Attr("id", fmt.Sprintf("table-%s-note-%d", request.Filename, i+1)),
 			h.Attr("class", "figure__footnote-item"),
-			parseValue(request, note))
+			parseValue(ctx, request, note))
 		ol.AppendChild(li)
 		ol.AppendChild(h.Text("\n"))
 	}
 }
 
 // Parses the string to replace \n with <br /> and wrap [1] with a link to the footnote
-func parseValue(request *models.RenderRequest, value string) []*html.Node {
+func parseValue(ctx context.Context, request *models.RenderRequest, value string) []*html.Node {
 	hasBr := newLine.MatchString(value)
 	hasFootnote := len(request.Footnotes) > 0 && footnoteLink.MatchString(value)
 	if hasBr || hasFootnote {
-		return replaceValues(request, value, hasBr, hasFootnote)
+		return replaceValues(ctx, request, value, hasBr, hasFootnote)
 	}
 	return []*html.Node{{Type: html.TextNode, Data: value}}
 }
 
 // replaceValues uses regexp to replace new lines and footnotes with <br/> and <a>.../<a> tags, then parses the result into an array of nodes
-func replaceValues(request *models.RenderRequest, value string, hasBr bool, hasFootnote bool) []*html.Node {
+func replaceValues(ctx context.Context, request *models.RenderRequest, value string, hasBr bool, hasFootnote bool) []*html.Node {
 	original := value
 	if hasBr {
 		value = newLine.ReplaceAllLiteralString(value, "<br />")
@@ -277,23 +278,23 @@ func replaceValues(request *models.RenderRequest, value string, hasBr bool, hasF
 		DataAtom: atom.Body,
 	})
 	if err != nil {
-		log.Event(nil, fmt.Sprintf("Unable to parse value: %s", original), log.ERROR, log.Error(err))
+		log.Event(ctx, fmt.Sprintf("Unable to parse value: %s", original), log.ERROR, log.Error(err))
 		return []*html.Node{{Type: html.TextNode, Data: original}}
 	}
 	return nodes
 }
 
 // Creates a tableModel containing calculations that are referenced more than once while rendering the table
-func createModel(request *models.RenderRequest) *tableModel {
+func createModel(ctx context.Context, request *models.RenderRequest) *tableModel {
 	m := tableModel{request: request}
-	m.columns = indexColumnFormats(request)
-	m.rows = indexRowFormats(request)
+	m.columns = indexColumnFormats(ctx, request)
+	m.rows = indexRowFormats(ctx, request)
 	m.cells = createCellModels(request)
 	return &m
 }
 
 // indexes the ColumnFormats so that columns[i] gives the correct format for column i
-func indexColumnFormats(request *models.RenderRequest) []models.ColumnFormat {
+func indexColumnFormats(ctx context.Context, request *models.RenderRequest) []models.ColumnFormat {
 	// find the maximum number of columns in the data - should be the same in every row, but don't trust that
 	count := 0
 	for i := range request.Data {
@@ -310,7 +311,7 @@ func indexColumnFormats(request *models.RenderRequest) []models.ColumnFormat {
 	// replace with actual ColumnFormats where they exist
 	for _, format := range request.ColumnFormats {
 		if format.Column >= count || format.Column < 0 {
-			log.Event(nil, fmt.Sprintf("ColumnFormat specified for non-existent column. Filename: %s, ColumnFormat: %v, column_count: %d", request.Filename, format, count), log.INFO)
+			log.Event(ctx, fmt.Sprintf("ColumnFormat specified for non-existent column. Filename: %s, ColumnFormat: %v, column_count: %d", request.Filename, format, count), log.INFO)
 		} else {
 			columns[format.Column] = format
 		}
@@ -319,7 +320,7 @@ func indexColumnFormats(request *models.RenderRequest) []models.ColumnFormat {
 }
 
 // indexes the RowFormats so that rows[i] gives the correct format for row i
-func indexRowFormats(request *models.RenderRequest) []models.RowFormat {
+func indexRowFormats(ctx context.Context, request *models.RenderRequest) []models.RowFormat {
 	count := len(request.Data)
 	// create default RowFormats
 	rows := make([]models.RowFormat, count)
@@ -329,7 +330,7 @@ func indexRowFormats(request *models.RenderRequest) []models.RowFormat {
 	// replace with actual RowFormats where they exist
 	for _, format := range request.RowFormats {
 		if format.Row >= count || format.Row < 0 {
-			log.Event(nil, fmt.Sprintf("ColumnFormat specified for non-existent row. Filename: %s, RowFormat: %v, row_count: %d", request.Filename, format, count), log.INFO)
+			log.Event(ctx, fmt.Sprintf("ColumnFormat specified for non-existent row. Filename: %s, RowFormat: %v, row_count: %d", request.Filename, format, count), log.INFO)
 		} else {
 			rows[format.Row] = format
 		}

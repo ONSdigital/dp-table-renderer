@@ -1,6 +1,7 @@
 package renderer
 
 import (
+	"context"
 	"testing"
 
 	"github.com/360EntSecGroup-Skylar/excelize"
@@ -10,6 +11,8 @@ import (
 
 // it's not possible to extract details of cell styling (alignment, font, number format) from an xlsx file in any sensible fashion
 // so this test exists to test some of the internal methods of xlsx.go. It's not ideal, but better than no tests relating to style.
+
+var mockContext = context.TODO()
 
 func TestCellStyles(t *testing.T) {
 	t.Parallel()
@@ -34,7 +37,7 @@ func TestCellStyles(t *testing.T) {
 
 		model := &spreadsheetModel{
 			request:    request,
-			tableModel: createModel(request),
+			tableModel: createModel(mockContext, request),
 			cellStyles: make(map[xlsxCellStyle]int),
 			xlsx:       excelize.NewFile(),
 			currentRow: 0,
@@ -103,7 +106,7 @@ func TestCellStyles(t *testing.T) {
 }
 
 func invokeGetCellValueAndStyle(model *spreadsheetModel, row int, col int) xlsxCellStyle {
-	_, styleIndex := getCellValueAndStyle(model, row, col)
+	_, styleIndex := getCellValueAndStyle(mockContext, model, row, col)
 	style := xlsxCellStyle{}
 	for key, value := range model.cellStyles {
 		if value == styleIndex {

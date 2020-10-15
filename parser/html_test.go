@@ -1,6 +1,7 @@
 package parser_test
 
 import (
+	"context"
 	"testing"
 
 	"encoding/json"
@@ -18,13 +19,15 @@ import (
 	"golang.org/x/net/html/atom"
 )
 
+var mockContext = context.TODO()
+
 func TestParseHTML(t *testing.T) {
 	Convey("ParseHTML should successfully parse the example request", t, func() {
 
-		request, err := models.CreateParseRequest(bytes.NewReader(testdata.LoadExampleHandsonTable(t)))
+		request, err := models.CreateParseRequest(context.TODO(), bytes.NewReader(testdata.LoadExampleHandsonTable(t)))
 		So(err, ShouldBeNil)
 
-		resultBytes, err := parser.ParseHTML(request)
+		resultBytes, err := parser.ParseHTML(mockContext, request)
 
 		So(err, ShouldBeNil)
 		So(resultBytes, ShouldNotBeNil)
@@ -67,7 +70,7 @@ func TestParseHTML(t *testing.T) {
 			Footnotes: []string{"Note0", "Note1"},
 			TableHTML: "<table></table>"}
 
-		resultBytes, err := parser.ParseHTML(&request)
+		resultBytes, err := parser.ParseHTML(mockContext, &request)
 
 		So(err, ShouldBeNil)
 		So(resultBytes, ShouldNotBeNil)
@@ -102,7 +105,7 @@ func TestParseHTML(t *testing.T) {
 	Convey("ParseHTML should return an error if the request contains invalid html", t, func() {
 		request := models.ParseRequest{Filename: "myFilename", TableHTML: "<table"}
 
-		result, err := parser.ParseHTML(&request)
+		result, err := parser.ParseHTML(mockContext, &request)
 
 		So(result, ShouldBeNil)
 		So(err, ShouldNotBeNil)
@@ -111,7 +114,7 @@ func TestParseHTML(t *testing.T) {
 	Convey("ParseHTML should return an error if the request does not contain a table", t, func() {
 		request := models.ParseRequest{Filename: "myFilename", TableHTML: "<div></div>"}
 
-		result, err := parser.ParseHTML(&request)
+		result, err := parser.ParseHTML(mockContext, &request)
 
 		So(result, ShouldBeNil)
 		So(err, ShouldNotBeNil)
@@ -384,7 +387,6 @@ func TestParseHTML_ColumnAlignment(t *testing.T) {
 
 	})
 
-
 }
 
 func TestParseHTML_RowFormats(t *testing.T) {
@@ -544,7 +546,7 @@ func createParseRequest(requestTable string, hasHeaders bool, headerRows int, he
 }
 
 func invokeParseHTMLWithRequest(request *models.ParseRequest) *parser.ResponseModel {
-	resultBytes, err := parser.ParseHTML(request)
+	resultBytes, err := parser.ParseHTML(mockContext, request)
 
 	So(err, ShouldBeNil)
 	So(resultBytes, ShouldNotBeNil)

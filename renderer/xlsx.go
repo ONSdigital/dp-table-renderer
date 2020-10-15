@@ -1,6 +1,7 @@
 package renderer
 
 import (
+	"context"
 	"fmt"
 
 	"bytes"
@@ -69,21 +70,21 @@ type spreadsheetModel struct {
 }
 
 // RenderXLSX returns an xlsx representation of the table generated from the given request
-func RenderXLSX(request *models.RenderRequest) ([]byte, error) {
+func RenderXLSX(ctx context.Context, request *models.RenderRequest) ([]byte, error) {
 
 	xlsx := excelize.NewFile()
 
 	model := &spreadsheetModel{
 		request:    request,
-		tableModel: createModel(request),
+		tableModel: createModel(ctx, request),
 		cellStyles: make(map[xlsxCellStyle]int),
 		xlsx:       xlsx,
 		currentRow: 0,
 		sheet:      "Sheet1",
 	}
 
-	insertTitle(model)
-	insertData(model)
+	insertTitle(ctx, model)
+	insertData(ctx, model)
 	insertUnits(model)
 	insertSource(model)
 	insertFootnotes(model)
@@ -96,23 +97,23 @@ func RenderXLSX(request *models.RenderRequest) ([]byte, error) {
 }
 
 // insertTitle inserts title and subtitle in the spreadsheet
-func insertTitle(model *spreadsheetModel) {
+func insertTitle(ctx context.Context, model *spreadsheetModel) {
 	xlsx := model.xlsx
 	request := model.request
 
 	axisRef := getAxisRef(model.currentRow, 0)
 	xlsx.SetCellStr(model.sheet, axisRef, request.Title)
-	xlsx.SetCellStyle(model.sheet, axisRef, axisRef, getStyleRef(model, titleFormat))
+	xlsx.SetCellStyle(model.sheet, axisRef, axisRef, getStyleRef(ctx, model, titleFormat))
 	model.currentRow++
 
 	axisRef = getAxisRef(model.currentRow, 0)
 	xlsx.SetCellStr(model.sheet, axisRef, request.Subtitle)
-	xlsx.SetCellStyle(model.sheet, axisRef, axisRef, getStyleRef(model, titleFormat))
+	xlsx.SetCellStyle(model.sheet, axisRef, axisRef, getStyleRef(ctx, model, titleFormat))
 	model.currentRow++
 }
 
 // insertData inserts each cell of the table in the spreadsheet, unless hidden by a merged cell
-func insertData(model *spreadsheetModel) {
+func insertData(ctx context.Context, model *spreadsheetModel) {
 	xlsx := model.xlsx
 	tableModel := model.tableModel
 	model.firstDataRow = model.currentRow + 1
@@ -121,7 +122,7 @@ func insertData(model *spreadsheetModel) {
 		model.currentRow++
 		for c := range row {
 			if cellIsVisible(tableModel, r, c) {
-				value, style := getCellValueAndStyle(model, r, c)
+				value, style := getCellValueAndStyle(ctx, model, r, c)
 				axisRef := getAxisRef(model.currentRow, c)
 				xlsx.SetCellValue(model.sheet, axisRef, value)
 				xlsx.SetCellStyle(model.sheet, axisRef, axisRef, style)
@@ -208,11 +209,11 @@ func getAxisRef(row int, col int) string {
 }
 
 // getCellValueAndStyle converts the cell value to the appropriate type [string|int|float] and creates the correct cell style for formatting and alignment
-func getCellValueAndStyle(model *spreadsheetModel, row int, col int) (interface{}, int) {
+func getCellValueAndStyle(ctx context.Context, model *spreadsheetModel, row int, col int) (interface{}, int) {
 	value := model.request.Data[row][col]
 	cellContent, cellStyle, err := parseValueAndFormat(value)
 	if err != nil {
-		log.Event(nil, fmt.Sprintf("unable to parse value: %s", value), log.ERROR, log.Error(err))
+		log.Event(ctx, fmt.Sprintf("unable to parse value: %s", value), log.ERROR, log.Error(err))
 		cellContent = value
 	}
 	align, valign, isHeading := getCellAlignmentAndHeading(model, row, col)
@@ -222,7 +223,7 @@ func getCellValueAndStyle(model *spreadsheetModel, row int, col int) (interface{
 		cellStyle.Font.Bold = true
 		cellStyle.Alignment.WrapText = true
 	}
-	return cellContent, getStyleRef(model, cellStyle)
+	return cellContent, getStyleRef(ctx, model, cellStyle)
 }
 
 // parseValueAndFormat parses the value string into an integer or float if possible, and creates a style with an appropriate number format according to the type and number of decimal places
@@ -271,18 +272,18 @@ func getCellAlignmentAndHeading(model *spreadsheetModel, row int, col int) (stri
 }
 
 // getStyleRef finds an existing style with the required properties, creating one if none can be found, and returning the index of that style
-func getStyleRef(model *spreadsheetModel, format *xlsxCellStyle) int {
+func getStyleRef(ctx context.Context, model *spreadsheetModel, format *xlsxCellStyle) int {
 	if i, exists := model.cellStyles[*format]; exists {
 		return i
 	}
 	bytes, e := json.Marshal(*format)
 	if e != nil {
-		log.Event(nil, fmt.Sprintf("unable to marshal an xlsxCellStyle for file: %s", model.request.Filename), log.ERROR, log.Error(e))
+		log.Event(ctx, fmt.Sprintf("unable to marshal an xlsxCellStyle for file: %s", model.request.Filename), log.ERROR, log.Error(e))
 		return 0
 	}
 	style, err := model.xlsx.NewStyle(string(bytes))
 	if err != nil {
-		log.Event(nil, fmt.Sprintf("unable to create a new style for the spreadsheet. Value: %s", string(bytes)), log.ERROR, log.Error(e))
+		log.Event(ctx, fmt.Sprintf("unable to create a new style for the spreadsheet. Value: %s", string(bytes)), log.ERROR, log.Error(e))
 		return 0
 	}
 	model.cellStyles[*format] = style

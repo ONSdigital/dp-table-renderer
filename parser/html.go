@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"context"
 	"encoding/json"
 
 	"bufio"
@@ -48,11 +49,11 @@ var (
 )
 
 // ParseHTML parses the html table in the request and generates correctly formatted JSON
-func ParseHTML(request *models.ParseRequest) ([]byte, error) {
+func ParseHTML(ctx context.Context, request *models.ParseRequest) ([]byte, error) {
 
 	sourceTable, err := parseTableToNode(request.TableHTML)
 	if err != nil {
-		log.Event(nil, "Unable to parse TableHTML to table element", log.ERROR, log.Error(err))
+		log.Event(ctx, "Unable to parse TableHTML to table element", log.ERROR, log.Error(err))
 		return nil, err
 	}
 
@@ -71,7 +72,7 @@ func ParseHTML(request *models.ParseRequest) ([]byte, error) {
 	rowFormats := createRowFormats(model)
 	requestJSON.RowFormats = convertRowFormatsToSlice(rowFormats)
 
-	colFormats := createColumnFormats(model)
+	colFormats := createColumnFormats(ctx, model)
 	requestJSON.ColumnFormats = convertColumnFormatsToSlice(colFormats)
 
 	requestJSON.CellFormats = createCellFormats(model, rowFormats, colFormats)
@@ -80,9 +81,9 @@ func ParseHTML(request *models.ParseRequest) ([]byte, error) {
 
 	requestJSON.Footnotes = parseFootnotes(request.Footnotes)
 
-	previewHTML, err := renderer.RenderHTML(requestJSON)
+	previewHTML, err := renderer.RenderHTML(ctx, requestJSON)
 	if err != nil {
-		log.Event(nil, "Unable to render preview HTMLt", log.ERROR, log.Error(err))
+		log.Event(ctx, "Unable to render preview HTMLt", log.ERROR, log.Error(err))
 		return nil, err
 	}
 	response := ResponseModel{JSON: *requestJSON, PreviewHTML: string(previewHTML)}
@@ -206,7 +207,7 @@ func parseFootnotes(notes []string) []string {
 }
 
 // createColumnFormats uses the colgroup element to determine widths, and columnClasses to determine alignment
-func createColumnFormats(model *parseModel) map[int]models.ColumnFormat {
+func createColumnFormats(ctx context.Context, model *parseModel) map[int]models.ColumnFormat {
 	numRows := len(model.cells)
 	colFormats := make(map[int]models.ColumnFormat)
 	// extract alignment from the column classes
@@ -226,7 +227,7 @@ func createColumnFormats(model *parseModel) map[int]models.ColumnFormat {
 		colgroup = colgroup[1:]
 	}
 	for i, col := range colgroup {
-		width := extractWidth(model, col)
+		width := extractWidth(ctx, model, col)
 		if len(width) > 0 {
 			format := colFormats[i]
 			format.Width = width
@@ -344,7 +345,7 @@ func createCellFormats(model *parseModel, rowFormats map[int]models.RowFormat, c
 }
 
 // extractWidth extracts width from the style property of the node
-func extractWidth(model *parseModel, node *html.Node) string {
+func extractWidth(ctx context.Context, model *parseModel, node *html.Node) string {
 	if len(model.request.CellSizeUnits) == 0 || model.request.CellSizeUnits == "auto" {
 		return ""
 	}
@@ -361,7 +362,7 @@ func extractWidth(model *parseModel, node *html.Node) string {
 					proportion := float32(intWidth) / float32(model.request.CurrentTableWidth)
 					width = fmt.Sprintf("%.1f%%", proportion*100.0)
 				} else {
-					log.Event(nil, fmt.Sprintf("%s: width not parsable as an integer (width: %s)", model.request.Filename, width), log.ERROR, log.Error(err))
+					log.Event(ctx, fmt.Sprintf("%s: width not parsable as an integer (width: %s)", model.request.Filename, width), log.ERROR, log.Error(err))
 				}
 			}
 		case "em":
@@ -370,7 +371,7 @@ func extractWidth(model *parseModel, node *html.Node) string {
 				if err == nil {
 					width = fmt.Sprintf("%.2fem", (float32(intWidth))/model.request.SingleEmHeight)
 				} else {
-					log.Event(nil, fmt.Sprintf("%s: width not parsable as an integer (width: %s)", model.request.Filename, width), log.ERROR, log.Error(err))
+					log.Event(ctx, fmt.Sprintf("%s: width not parsable as an integer (width: %s)", model.request.Filename, width), log.ERROR, log.Error(err))
 				}
 			}
 		}

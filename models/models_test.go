@@ -1,6 +1,7 @@
 package models
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"testing"
@@ -19,10 +20,12 @@ func (f reader) Read(bytes []byte) (int, error) {
 	return 0, fmt.Errorf("Reader failed")
 }
 
+var mockContext = context.TODO()
+
 func TestCreateRenderRequestWithValidJSON(t *testing.T) {
 	Convey("When a render request has a minimally valid json body, a valid struct is returned", t, func() {
 		reader := strings.NewReader(`{"title":"table_title", "filename":"filename"}`)
-		request, err := CreateRenderRequest(reader)
+		request, err := CreateRenderRequest(mockContext, reader)
 
 		So(err, ShouldBeNil)
 		So(request.ValidateRenderRequest(), ShouldBeNil)
@@ -32,7 +35,7 @@ func TestCreateRenderRequestWithValidJSON(t *testing.T) {
 
 	Convey("When a render request has a valid json body, a valid struct is returned", t, func() {
 		reader := bytes.NewReader(testdata.LoadExampleRequest(t))
-		request, err := CreateRenderRequest(reader)
+		request, err := CreateRenderRequest(mockContext, reader)
 
 		So(err, ShouldBeNil)
 		So(request.ValidateRenderRequest(), ShouldBeNil)
@@ -49,13 +52,13 @@ func TestCreateRenderRequestWithValidJSON(t *testing.T) {
 
 func TestCreateRenderRequestWithNoBody(t *testing.T) {
 	Convey("When a render request has no body, an error is returned", t, func() {
-		_, err := CreateRenderRequest(reader{})
+		_, err := CreateRenderRequest(mockContext, reader{})
 		So(err, ShouldNotBeNil)
 		So(err, ShouldEqual, ErrorReadingBody)
 	})
 
 	Convey("When a render request has an empty body, an error is returned", t, func() {
-		filter, err := CreateRenderRequest(strings.NewReader("{}"))
+		filter, err := CreateRenderRequest(mockContext, strings.NewReader("{}"))
 		So(err, ShouldNotBeNil)
 		So(err, ShouldResemble, ErrorNoData)
 		So(filter, ShouldNotBeNil)
@@ -64,7 +67,7 @@ func TestCreateRenderRequestWithNoBody(t *testing.T) {
 
 func TestCreateRenderRequestWithInvalidJSON(t *testing.T) {
 	Convey("When a render request contains json with an invalid syntax, and error is returned", t, func() {
-		_, err := CreateRenderRequest(strings.NewReader(`{"foo`))
+		_, err := CreateRenderRequest(mockContext, strings.NewReader(`{"foo`))
 		So(err, ShouldNotBeNil)
 		So(err, ShouldResemble, ErrorParsingBody)
 	})
@@ -73,20 +76,20 @@ func TestCreateRenderRequestWithInvalidJSON(t *testing.T) {
 func TestCreateParseRequestWithValidJSON(t *testing.T) {
 	Convey("When a parse request has a minimally valid json body, a valid struct is returned", t, func() {
 		reader := strings.NewReader(`{"table_html":"<table></table>", "filename":"filename"}`)
-		request, err := CreateParseRequest(reader)
+		request, err := CreateParseRequest(mockContext, reader)
 
 		So(err, ShouldBeNil)
-		So(request.ValidateParseRequest(), ShouldBeNil)
+		So(request.ValidateParseRequest(mockContext), ShouldBeNil)
 		So(request.TableHTML, ShouldEqual, "<table></table>")
 		So(request.Filename, ShouldEqual, "filename")
 	})
 
 	Convey("When a parse request has a valid json body, a valid struct is returned", t, func() {
 		reader := bytes.NewReader(testdata.LoadExampleHandsonTable(t))
-		request, err := CreateParseRequest(reader)
+		request, err := CreateParseRequest(mockContext, reader)
 
 		So(err, ShouldBeNil)
-		So(request.ValidateParseRequest(), ShouldBeNil)
+		So(request.ValidateParseRequest(mockContext), ShouldBeNil)
 		So(request.Title, ShouldEqual, "This is an example table")
 		So(request.HeaderCols, ShouldEqual, 2)
 		So(request.HeaderRows, ShouldEqual, 1)
@@ -98,13 +101,13 @@ func TestCreateParseRequestWithValidJSON(t *testing.T) {
 
 func TestCreateParseRequestWithNoBody(t *testing.T) {
 	Convey("When a parse request has no body, an error is returned", t, func() {
-		_, err := CreateParseRequest(reader{})
+		_, err := CreateParseRequest(mockContext, reader{})
 		So(err, ShouldNotBeNil)
 		So(err, ShouldEqual, ErrorReadingBody)
 	})
 
 	Convey("When a parse request has an empty body, an error is returned", t, func() {
-		filter, err := CreateParseRequest(strings.NewReader("{}"))
+		filter, err := CreateParseRequest(mockContext, strings.NewReader("{}"))
 		So(err, ShouldNotBeNil)
 		So(err, ShouldResemble, ErrorNoData)
 		So(filter, ShouldNotBeNil)
@@ -113,15 +116,15 @@ func TestCreateParseRequestWithNoBody(t *testing.T) {
 
 func TestCreateParseRequestWithInvalidJSON(t *testing.T) {
 	Convey("When a parse request contains json with an invalid syntax, and error is returned", t, func() {
-		_, err := CreateParseRequest(strings.NewReader(`{"foo`))
+		_, err := CreateParseRequest(mockContext, strings.NewReader(`{"foo`))
 		So(err, ShouldNotBeNil)
 		So(err, ShouldResemble, ErrorParsingBody)
 	})
 	Convey("When a parse request contains json with missing required fields, validation fails", t, func() {
-		request, err := CreateParseRequest(strings.NewReader(`{"title":"foo"}`))
+		request, err := CreateParseRequest(mockContext, strings.NewReader(`{"title":"foo"}`))
 
 		So(err, ShouldBeNil)
-		err = request.ValidateParseRequest()
+		err = request.ValidateParseRequest(mockContext)
 		So(err, ShouldNotBeNil)
 		So(err.Error(), ShouldContainSubstring, "table_html")
 	})

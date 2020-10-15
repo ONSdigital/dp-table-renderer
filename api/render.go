@@ -33,7 +33,7 @@ func (api *RendererAPI) renderTable(w http.ResponseWriter, r *http.Request) {
 	renderType := vars["render_type"]
 	ctx := r.Context()
 
-	renderRequest, err := models.CreateRenderRequest(r.Body)
+	renderRequest, err := models.CreateRenderRequest(ctx, r.Body)
 	if err != nil {
 		log.Event(ctx, "error with creating model render request", log.ERROR, log.Error(err))
 		http.Error(w, badRequest, http.StatusBadRequest)
@@ -50,13 +50,13 @@ func (api *RendererAPI) renderTable(w http.ResponseWriter, r *http.Request) {
 
 	switch renderType {
 	case "html":
-		bytes, err = renderer.RenderHTML(renderRequest)
+		bytes, err = renderer.RenderHTML(ctx, renderRequest)
 		setContentType(w, contentHTML)
 	case "xlsx":
-		bytes, err = renderer.RenderXLSX(renderRequest)
+		bytes, err = renderer.RenderXLSX(ctx, renderRequest)
 		setContentType(w, contentXLSX)
 	case "csv":
-		bytes, err = renderer.RenderCSV(renderRequest)
+		bytes, err = renderer.RenderCSV(ctx, renderRequest)
 		setContentType(w, contentCSV)
 	default:
 		log.Event(ctx, "Unknown render type", log.ERROR)

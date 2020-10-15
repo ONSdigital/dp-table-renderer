@@ -18,20 +18,20 @@ func (api *RendererAPI) parseHTML(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
 
-	parseRequest, err := models.CreateParseRequest(r.Body)
+	parseRequest, err := models.CreateParseRequest(ctx, r.Body)
 	if err != nil {
 		log.Event(ctx, "error occurred when trying to create model parse request", log.ERROR, log.Error(err))
 		http.Error(w, badRequest, http.StatusBadRequest)
 		return
 	}
 
-	if err = parseRequest.ValidateParseRequest(); err != nil {
+	if err = parseRequest.ValidateParseRequest(ctx); err != nil {
 		log.Event(ctx, "error occurred when trying to validate model parse request", log.ERROR, log.Error(err))
 		http.Error(w, badRequest, http.StatusBadRequest)
 		return
 	}
 
-	bytes, err := parser.ParseHTML(parseRequest)
+	bytes, err := parser.ParseHTML(ctx, parseRequest)
 	setContentType(w, contentJSON)
 	if err != nil {
 		log.Event(ctx, "error occurred when trying to parse HTML", log.ERROR, log.Error(err))

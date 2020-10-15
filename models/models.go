@@ -1,6 +1,7 @@
 package models
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -105,17 +106,17 @@ type CellFormat struct {
 }
 
 // CreateRenderRequest manages the creation of a RenderRequest from a reader
-func CreateRenderRequest(reader io.Reader) (*RenderRequest, error) {
+func CreateRenderRequest(ctx context.Context, reader io.Reader) (*RenderRequest, error) {
 	bytes, err := ioutil.ReadAll(reader)
 	if err != nil {
-		log.Event(nil, "error reading request body", log.ERROR, log.Error(err))
+		log.Event(ctx, "error reading request body", log.ERROR, log.Error(err))
 		return nil, ErrorReadingBody
 	}
 
 	var request RenderRequest
 	err = json.Unmarshal(bytes, &request)
 	if err != nil {
-		log.Event(nil, "error unmarshalling JSON", log.ERROR, log.Error(err))
+		log.Event(ctx, "error unmarshalling JSON", log.ERROR, log.Error(err))
 		return nil, ErrorParsingBody
 	}
 
@@ -140,17 +141,17 @@ func (rr *RenderRequest) ValidateRenderRequest() error {
 }
 
 // CreateParseRequest manages the creation of a ParseRequest from a reader
-func CreateParseRequest(reader io.Reader) (*ParseRequest, error) {
+func CreateParseRequest(ctx context.Context, reader io.Reader) (*ParseRequest, error) {
 	bytes, err := ioutil.ReadAll(reader)
 	if err != nil {
-		log.Event(nil, "error reading body", log.ERROR, log.Error(err))
+		log.Event(ctx, "error reading body", log.ERROR, log.Error(err))
 		return nil, ErrorReadingBody
 	}
 
 	var request ParseRequest
 	err = json.Unmarshal(bytes, &request)
 	if err != nil {
-		log.Event(nil, "error unmarshalling JSON", log.ERROR, log.Error(err))
+		log.Event(ctx, "error unmarshalling JSON", log.ERROR, log.Error(err))
 		return nil, ErrorParsingBody
 	}
 
@@ -163,7 +164,7 @@ func CreateParseRequest(reader io.Reader) (*ParseRequest, error) {
 }
 
 // ValidateParseRequest checks the content of the request structure
-func (pr *ParseRequest) ValidateParseRequest() error {
+func (pr *ParseRequest) ValidateParseRequest(ctx context.Context) error {
 
 	var missingFields []string
 
@@ -174,16 +175,16 @@ func (pr *ParseRequest) ValidateParseRequest() error {
 	switch units := pr.CellSizeUnits; units {
 	case "%":
 		if pr.CurrentTableWidth <= 0 {
-			log.Event(nil, fmt.Sprintf("%s: size_units is 'percentage', but current_table_width is not specified - cannot convert from px", pr.Filename), log.INFO)
+			log.Event(ctx, fmt.Sprintf("%s: size_units is 'percentage', but current_table_width is not specified - cannot convert from px", pr.Filename), log.INFO)
 		}
 	case "em":
 		if pr.SingleEmHeight <= 0 {
-			log.Event(nil, fmt.Sprintf("%s: size_units is 'em', but single_em_height is not specified - cannot convert from px", pr.Filename), log.INFO)
+			log.Event(ctx, fmt.Sprintf("%s: size_units is 'em', but single_em_height is not specified - cannot convert from px", pr.Filename), log.INFO)
 		}
 	case "auto", "":
 		// nothing to do
 	default:
-		log.Event(nil, fmt.Sprintf("%s: unknown size unit specified for width: %s", pr.Filename, units), log.INFO)
+		log.Event(ctx, fmt.Sprintf("%s: unknown size unit specified for width: %s", pr.Filename, units), log.INFO)
 	}
 
 	if missingFields != nil {

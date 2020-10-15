@@ -2,6 +2,7 @@ package renderer_test
 
 import (
 	"bytes"
+	"context"
 	"testing"
 
 	"encoding/csv"
@@ -13,11 +14,13 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
+var mockContext = context.TODO()
+
 func TestRenderCSV(t *testing.T) {
 	t.Parallel()
 	Convey("A csv should be rendered without error", t, func() {
 		reader := bytes.NewReader(testdata.LoadExampleRequest(t))
-		request, err := models.CreateRenderRequest(reader)
+		request, err := models.CreateRenderRequest(mockContext, reader)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -131,7 +134,7 @@ func TestRenderCSV(t *testing.T) {
 }
 
 func invokeRenderCSV(request *models.RenderRequest) [][]string {
-	resultBytes, e := renderer.RenderCSV(request)
+	resultBytes, e := renderer.RenderCSV(mockContext, request)
 	So(e, ShouldBeNil)
 
 	csv := csv.NewReader(bytes.NewReader(resultBytes))

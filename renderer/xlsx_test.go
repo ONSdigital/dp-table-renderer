@@ -16,12 +16,12 @@ func TestRenderXLSX(t *testing.T) {
 	t.Parallel()
 	Convey("A Spreadsheet should be rendered without error", t, func() {
 		reader := bytes.NewReader(testdata.LoadExampleRequest(t))
-		request, err := models.CreateRenderRequest(reader)
+		request, err := models.CreateRenderRequest(mockContext, reader)
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		resultBytes, e := renderer.RenderXLSX(request)
+		resultBytes, e := renderer.RenderXLSX(mockContext, request)
 		So(e, ShouldBeNil)
 
 		xlsx, e := excelize.OpenReader(bytes.NewReader(resultBytes))
@@ -48,7 +48,7 @@ func TestRenderXLSX(t *testing.T) {
 			Data:      data,
 			Footnotes: notes}
 
-		resultBytes, e := renderer.RenderXLSX(&request)
+		resultBytes, e := renderer.RenderXLSX(mockContext, &request)
 		So(e, ShouldBeNil)
 
 		xlsx, e := excelize.OpenReader(bytes.NewReader(resultBytes))
@@ -104,7 +104,7 @@ func TestRenderXLSX(t *testing.T) {
 			Data:      data,
 			Footnotes: notes}
 
-		resultBytes, e := renderer.RenderXLSX(&request)
+		resultBytes, e := renderer.RenderXLSX(mockContext, &request)
 		So(e, ShouldBeNil)
 
 		xlsx, e := excelize.OpenReader(bytes.NewReader(resultBytes))
@@ -135,7 +135,7 @@ func TestRenderXLSX(t *testing.T) {
 				"ba", "bb", "bc", "bd"}}
 		request := models.RenderRequest{Filename: "filename", Data: data}
 
-		resultBytes, e := renderer.RenderXLSX(&request)
+		resultBytes, e := renderer.RenderXLSX(mockContext, &request)
 		So(e, ShouldBeNil)
 
 		xlsx, e := excelize.OpenReader(bytes.NewReader(resultBytes))
@@ -171,7 +171,7 @@ func TestRenderXLSX(t *testing.T) {
 			{Row: 0, Column: 1, Colspan: 1, Rowspan: 1}}
 		request := models.RenderRequest{Filename: "filename", Data: data, CellFormats: formats}
 
-		resultBytes, e := renderer.RenderXLSX(&request)
+		resultBytes, e := renderer.RenderXLSX(mockContext, &request)
 		So(e, ShouldBeNil)
 
 		xlsx, e := excelize.OpenReader(bytes.NewReader(resultBytes))

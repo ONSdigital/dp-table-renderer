@@ -23,7 +23,7 @@ func TestRenderHTML(t *testing.T) {
 
 	Convey("Successfully render an html table", t, func() {
 		reader := bytes.NewReader(testdata.LoadExampleRequest(t))
-		renderRequest, err := models.CreateRenderRequest(reader)
+		renderRequest, err := models.CreateRenderRequest(mockContext, reader)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -522,7 +522,7 @@ func TestRenderHTML_KeepHeadersTogether(t *testing.T) {
 }
 
 func invokeRenderHTML(renderRequest *models.RenderRequest) (*html.Node, string) {
-	response, err := renderer.RenderHTML(renderRequest)
+	response, err := renderer.RenderHTML(mockContext, renderRequest)
 	So(err, ShouldBeNil)
 	nodes, err := html.ParseFragment(bytes.NewReader(response), &html.Node{
 		Type:     html.ElementNode,
