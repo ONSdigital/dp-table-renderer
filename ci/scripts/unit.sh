@@ -1,5 +1,5 @@
 #!/bin/bash -eux
 
-pushd dp-frontend-homepage-controller
+pushd dp-table-renderer
   make test
 popd
