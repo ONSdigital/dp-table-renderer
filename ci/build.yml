@@ -6,14 +6,16 @@ image_resource:
   type: docker-image
   source:
     repository: golang
-    tag: 1.9.4
+    tag: 1.13.9
 
 inputs:
   - name: dp-table-renderer
-    path: go/src/github.com/ONSdigital/dp-table-renderer
 
 outputs:
   - name: build
 
+caches:
+  - path: go/
+
 run:
-  path: go/src/github.com/ONSdigital/dp-table-renderer/ci/scripts/build.sh
+  path: dp-table-renderer/ci/scripts/build.sh
