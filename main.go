@@ -25,13 +25,20 @@ func main() {
 	log.Namespace = "dp-table-renderer"
 	ctx := context.Background()
 
+	if err := run(ctx); err != nil {
+		log.Event(ctx, "unable to run application", log.Error(err), log.FATAL)
+		os.Exit(1)
+	}
+}
+
+func run(ctx context.Context) error {
 	signals := make(chan os.Signal, 1)
 	signal.Notify(signals, syscall.SIGINT, syscall.SIGTERM)
 
 	cfg, err := config.Get()
 	if err != nil {
 		log.Event(ctx, "unable to retrieve service configuration", log.FATAL, log.Error(err))
-		os.Exit(1)
+		return err
 	}
 
 	log.Event(ctx, "got service configuration", log.INFO, log.Data{"config": cfg})
@@ -49,18 +56,20 @@ func main() {
 	api.CreateRendererAPI(ctx, cfg.BindAddr, cfg.CORSAllowedOrigins, apiErrors, &healthCheck)
 
 	// Gracefully shutdown the application closing any open resources.
-	gracefulShutdown := func() {
+	gracefulShutdown := func() error {
 		log.Event(ctx, "shutdown with timeout", log.Data{"timeout": cfg.ShutdownTimeout}, log.INFO)
 		ctx, cancel := context.WithTimeout(context.Background(), cfg.ShutdownTimeout)
 
 		if err = api.Close(ctx); err != nil {
 			log.Event(ctx, "error with graceful shutdown", log.Error(err))
+			cancel()
+			return err
 		}
 
 		cancel()
 
 		log.Event(ctx, "Shutdown complete", log.INFO)
-		os.Exit(1)
+		return nil
 	}
 
 	for {
@@ -68,9 +77,11 @@ func main() {
 		case err := <-apiErrors:
 			log.Event(ctx, "api error received", log.ERROR, log.Error(err))
 			gracefulShutdown()
+			return err
 		case <-signals:
 			log.Event(ctx, "os signal received", log.INFO)
 			gracefulShutdown()
+			return nil
 		}
 	}
 }
