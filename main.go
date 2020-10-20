@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -25,7 +26,7 @@ func main() {
 	log.Namespace = "dp-table-renderer"
 	ctx := context.Background()
 
-	if err := run(ctx); err != nil {
+	if err := run(ctx); err != nil && err != http.ErrServerClosed {
 		log.Event(ctx, "unable to run application", log.Error(err), log.FATAL)
 		os.Exit(1)
 	}
