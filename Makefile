@@ -13,6 +13,11 @@ VERSION ?= $(shell git tag --points-at HEAD | grep ^v | head -n 1)
 export GOOS=$(shell go env GOOS)
 export GOARCH=$(shell go env GOARCH)
 
+all: audit test build
+
+audit:
+	nancy go.sum
+
 build:
 	go build -tags 'production' -o $(BUILD_DIR)/dp-table-renderer -ldflags "-X main.BuildTime=$(BUILD_TIME) -X main.GitCommit=$(GIT_COMMIT) -X main.Version=$(VERSION)"
 
@@ -23,4 +28,4 @@ debug:
 test:
 	go test -cover $(shell go list ./... | grep -v /vendor/)
 
-.PHONY: build debug test
+.PHONY: audit build debug test
