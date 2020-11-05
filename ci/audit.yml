@@ -1,7 +1,15 @@
-#!/bin/bash -eux
+---
+platform: linux
 
-export cwd=$(pwd)
+image_resource:
+  type: docker-image
+  source:
+    repository: onsdigital/dp-concourse-tools-nancy
+    tag: latest
 
-pushd $cwd/dp-table-renderer
-  make audit
-popd
+inputs:
+  - name: dp-table-renderer
+    path: dp-table-renderer
+
+run:
+  path: dp-table-renderer/ci/scripts/audit.sh
