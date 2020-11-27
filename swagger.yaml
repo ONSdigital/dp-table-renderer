@@ -2,7 +2,7 @@ swagger: "2.0"
 info:
   description: "An API used to generate tables in a variety of formats (html, xlsx, csv) from a json source. Also capable of parsing an html table and producing json."
   version: "1.0.0"
-  title: "Filter API"
+  title: "Table Renderer API"
   license:
     name: "Open Government Licence v3.0"
     url: "http://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
@@ -44,7 +44,7 @@ paths:
   /parse/html:
     post:
       summary: "Parse an html table and generate a json definition"
-      description: "a request to convert an html table (plus supporting data) into the correct RenderRequest format"
+      description: "A request to convert an html table (plus supporting data) into the correct RenderRequest format"
       consumes:
         - "application/json"
       produces:
