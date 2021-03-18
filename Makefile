@@ -16,7 +16,7 @@ export GOARCH=$(shell go env GOARCH)
 all: audit test build
 
 audit:
-	nancy go.sum
+	go list -json -m all | nancy sleuth
 
 build:
 	go build -tags 'production' -o $(BUILD_DIR)/dp-table-renderer -ldflags "-X main.BuildTime=$(BUILD_TIME) -X main.GitCommit=$(GIT_COMMIT) -X main.Version=$(VERSION)"
