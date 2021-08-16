@@ -8,7 +8,7 @@ Given json defining a table, capable of rendering a table in multiple formats
 
 | Environment variable       | Default                  | Description                                            |
 | -------------------------- | ------------------------ | -----------                                            |
-| BIND_ADDR                  | :23100                   | The host and port to bind to                           |
+| BIND_ADDR                  | :23300                   | The host and port to bind to                           |
 | HEALTH_CHECK_INTERVAL           | Interval between health checks                                                            |    30 seconds |
 | HEALTH_CHECK_CRITICAL_TIMEOUT    | Amount of time to pass since last healthy health check to be deemed a critical failure    |    90 seconds |
 | CORS_ALLOWED_ORIGINS       | *                        | The allowed origins for CORS requests                  |
