@@ -8,7 +8,7 @@ import (
 	"io"
 	"io/ioutil"
 
-	"github.com/ONSdigital/log.go/log"
+	"github.com/ONSdigital/log.go/v2/log"
 )
 
 // A list of errors returned from package
@@ -109,14 +109,14 @@ type CellFormat struct {
 func CreateRenderRequest(ctx context.Context, reader io.Reader) (*RenderRequest, error) {
 	bytes, err := ioutil.ReadAll(reader)
 	if err != nil {
-		log.Event(ctx, "error reading request body", log.ERROR, log.Error(err))
+		log.Error(ctx, "error reading request body", err)
 		return nil, ErrorReadingBody
 	}
 
 	var request RenderRequest
 	err = json.Unmarshal(bytes, &request)
 	if err != nil {
-		log.Event(ctx, "error unmarshalling JSON", log.ERROR, log.Error(err))
+		log.Error(ctx, "error unmarshalling JSON", err)
 		return nil, ErrorParsingBody
 	}
 
@@ -144,14 +144,14 @@ func (rr *RenderRequest) ValidateRenderRequest() error {
 func CreateParseRequest(ctx context.Context, reader io.Reader) (*ParseRequest, error) {
 	bytes, err := ioutil.ReadAll(reader)
 	if err != nil {
-		log.Event(ctx, "error reading body", log.ERROR, log.Error(err))
+		log.Error(ctx, "error reading body", err)
 		return nil, ErrorReadingBody
 	}
 
 	var request ParseRequest
 	err = json.Unmarshal(bytes, &request)
 	if err != nil {
-		log.Event(ctx, "error unmarshalling JSON", log.ERROR, log.Error(err))
+		log.Error(ctx, "error unmarshalling JSON", err)
 		return nil, ErrorParsingBody
 	}
 
@@ -175,16 +175,16 @@ func (pr *ParseRequest) ValidateParseRequest(ctx context.Context) error {
 	switch units := pr.CellSizeUnits; units {
 	case "%":
 		if pr.CurrentTableWidth <= 0 {
-			log.Event(ctx, "size_units is 'percentage' but current_table_width is not specified - cannot convert from px", log.Data{"file_name": pr.Filename}, log.INFO)
+			log.Info(ctx, "size_units is 'percentage' but current_table_width is not specified - cannot convert from px", log.Data{"file_name": pr.Filename})
 		}
 	case "em":
 		if pr.SingleEmHeight <= 0 {
-			log.Event(ctx, "size_units is 'percentage' but current_table_width is not specified - cannot convert from px", log.Data{"file_name": pr.Filename}, log.INFO)
+			log.Info(ctx, "size_units is 'percentage' but current_table_width is not specified - cannot convert from px", log.Data{"file_name": pr.Filename})
 		}
 	case "auto", "":
 		// nothing to do
 	default:
-		log.Event(ctx, "unknown size unit specified for width", log.Data{"file_name": pr.Filename, "unit": units}, log.INFO)
+		log.Info(ctx, "unknown size unit specified for width", log.Data{"file_name": pr.Filename, "unit": units})
 	}
 
 	if missingFields != nil {

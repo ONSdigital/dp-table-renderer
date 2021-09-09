@@ -5,7 +5,7 @@ import (
 
 	"github.com/ONSdigital/dp-healthcheck/healthcheck"
 	dphttp "github.com/ONSdigital/dp-net/http"
-	"github.com/ONSdigital/log.go/log"
+	"github.com/ONSdigital/log.go/v2/log"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 
@@ -29,9 +29,9 @@ func CreateRendererAPI(ctx context.Context, bindAddr string, allowedOrigins stri
 	httpServer.HandleOSSignals = false
 
 	go func() {
-		log.Event(ctx, "starting table renderer", log.INFO)
+		log.Info(ctx, "starting table renderer")
 		if err := httpServer.ListenAndServe(); err != nil {
-			log.Event(ctx, "error occurred when running ListenAndServe", log.ERROR, log.Error(err))
+			log.Error(ctx, "error occurred when running ListenAndServe", err)
 			errorChan <- err
 		}
 	}()
@@ -62,6 +62,6 @@ func Close(ctx context.Context) error {
 		return err
 	}
 
-	log.Event(ctx, "graceful shutdown of http server complete", log.INFO)
+	log.Info(ctx, "graceful shutdown of http server complete")
 	return nil
 }

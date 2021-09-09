@@ -16,7 +16,7 @@ import (
 	h "github.com/ONSdigital/dp-table-renderer/htmlutil"
 	"github.com/ONSdigital/dp-table-renderer/models"
 	"github.com/ONSdigital/dp-table-renderer/renderer"
-	"github.com/ONSdigital/log.go/log"
+	"github.com/ONSdigital/log.go/v2/log"
 
 	"sort"
 
@@ -53,7 +53,7 @@ func ParseHTML(ctx context.Context, request *models.ParseRequest) ([]byte, error
 
 	sourceTable, err := parseTableToNode(request.TableHTML)
 	if err != nil {
-		log.Event(ctx, "Unable to parse TableHTML to table element", log.ERROR, log.Error(err))
+		log.Error(ctx, "Unable to parse TableHTML to table element", err)
 		return nil, err
 	}
 
@@ -83,7 +83,7 @@ func ParseHTML(ctx context.Context, request *models.ParseRequest) ([]byte, error
 
 	previewHTML, err := renderer.RenderHTML(ctx, requestJSON)
 	if err != nil {
-		log.Event(ctx, "Unable to render preview HTMLt", log.ERROR, log.Error(err))
+		log.Error(ctx, "Unable to render preview HTMLt", err)
 		return nil, err
 	}
 	response := ResponseModel{JSON: *requestJSON, PreviewHTML: string(previewHTML)}
@@ -362,7 +362,7 @@ func extractWidth(ctx context.Context, model *parseModel, node *html.Node) strin
 					proportion := float32(intWidth) / float32(model.request.CurrentTableWidth)
 					width = fmt.Sprintf("%.1f%%", proportion*100.0)
 				} else {
-					log.Event(ctx, "width not parsable as an integer", log.Data{"file_name": model.request.Filename, "width": width}, log.ERROR, log.Error(err))
+					log.Error(ctx, "width not parsable as an integer", err, log.Data{"file_name": model.request.Filename, "width": width})
 				}
 			}
 		case "em":
@@ -371,7 +371,7 @@ func extractWidth(ctx context.Context, model *parseModel, node *html.Node) strin
 				if err == nil {
 					width = fmt.Sprintf("%.2fem", (float32(intWidth))/model.request.SingleEmHeight)
 				} else {
-					log.Event(ctx, "width not parsable as an integer", log.Data{"file_name": model.request.Filename, "width": width}, log.ERROR, log.Error(err))
+					log.Error(ctx, "width not parsable as an integer", err, log.Data{"file_name": model.request.Filename, "width": width})
 				}
 			}
 		}

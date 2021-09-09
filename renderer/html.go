@@ -11,7 +11,7 @@ import (
 
 	h "github.com/ONSdigital/dp-table-renderer/htmlutil"
 	"github.com/ONSdigital/dp-table-renderer/models"
-	"github.com/ONSdigital/log.go/log"
+	"github.com/ONSdigital/log.go/v2/log"
 
 	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"
@@ -278,7 +278,7 @@ func replaceValues(ctx context.Context, request *models.RenderRequest, value str
 		DataAtom: atom.Body,
 	})
 	if err != nil {
-		log.Event(ctx, "unable to parse value", log.Data{"value": original}, log.ERROR, log.Error(err))
+		log.Error(ctx, "unable to parse value", err, log.Data{"value": original})
 		return []*html.Node{{Type: html.TextNode, Data: original}}
 	}
 	return nodes
@@ -311,7 +311,7 @@ func indexColumnFormats(ctx context.Context, request *models.RenderRequest) []mo
 	// replace with actual ColumnFormats where they exist
 	for _, format := range request.ColumnFormats {
 		if format.Column >= count || format.Column < 0 {
-			log.Event(ctx, "ColumnFormat specified for non-existent column", log.Data{"file_name": request.Filename, "column_format": format, "column_count": count}, log.INFO)
+			log.Info(ctx, "ColumnFormat specified for non-existent column", log.Data{"file_name": request.Filename, "column_format": format, "column_count": count})
 		} else {
 			columns[format.Column] = format
 		}
@@ -330,7 +330,7 @@ func indexRowFormats(ctx context.Context, request *models.RenderRequest) []model
 	// replace with actual RowFormats where they exist
 	for _, format := range request.RowFormats {
 		if format.Row >= count || format.Row < 0 {
-			log.Event(ctx, "ColumnFormat specified for non-existent column", log.Data{"file_name": request.Filename, "row_format": format, "row_count": count}, log.INFO)
+			log.Info(ctx, "ColumnFormat specified for non-existent column", log.Data{"file_name": request.Filename, "row_format": format, "row_count": count})
 		} else {
 			rows[format.Row] = format
 		}

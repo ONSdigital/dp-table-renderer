@@ -7,7 +7,7 @@ import (
 	"fmt"
 
 	"github.com/ONSdigital/dp-table-renderer/models"
-	"github.com/ONSdigital/log.go/log"
+	"github.com/ONSdigital/log.go/v2/log"
 )
 
 // RenderCSV returns a csv representation of the table generated from the given request
@@ -50,12 +50,12 @@ func RenderCSV(ctx context.Context, request *models.RenderRequest) ([]byte, erro
 func writeTitles(ctx context.Context, writer *csv.Writer, request *models.RenderRequest) error {
 	err := writeRow(writer, request.Title)
 	if err != nil {
-		log.Event(ctx, "unable to write title to csv", log.Data{"title": request.Title}, log.ERROR, log.Error(err))
+		log.Error(ctx, "unable to write title to csv", err, log.Data{"title": request.Title})
 		return err
 	}
 	err = writeRow(writer, request.Subtitle)
 	if err != nil {
-		log.Event(ctx, "unable to write subtitle to csv", log.Data{"subtitle": request.Subtitle}, log.ERROR, log.Error(err))
+		log.Error(ctx, "unable to write subtitle to csv", err, log.Data{"subtitle": request.Subtitle})
 		return err
 	}
 	return writeEmptyLine(ctx, writer, request)
@@ -74,7 +74,7 @@ func writeData(ctx context.Context, writer *csv.Writer, model *tableModel, reque
 		}
 		err := writer.Write(out)
 		if err != nil {
-			log.Event(ctx, "unable to write row", log.Data{"row": r}, log.ERROR, log.Error(err))
+			log.Error(ctx, "unable to write row", err, log.Data{"row": r})
 			return err
 		}
 	}
@@ -86,7 +86,7 @@ func writeUnits(ctx context.Context, writer *csv.Writer, request *models.RenderR
 	if len(request.Units) > 0 {
 		err := writeRow(writer, unitsText, request.Units)
 		if err != nil {
-			log.Event(ctx, "unable to write units", log.Data{"units": request.Units}, log.ERROR, log.Error(err))
+			log.Error(ctx, "unable to write units", err, log.Data{"units": request.Units})
 			return err
 		}
 	}
@@ -98,7 +98,7 @@ func writeSource(ctx context.Context, writer *csv.Writer, request *models.Render
 	if len(request.Source) > 0 {
 		err := writeRow(writer, sourceText, request.Source)
 		if err != nil {
-			log.Event(ctx, "unable to write source", log.Data{"source": request.Source}, log.ERROR, log.Error(err))
+			log.Error(ctx, "unable to write source", err, log.Data{"source": request.Source})
 			return err
 		}
 	}
@@ -110,13 +110,13 @@ func writeFootnotes(ctx context.Context, writer *csv.Writer, request *models.Ren
 	if len(request.Footnotes) > 0 {
 		err := writeRow(writer, notesText)
 		if err != nil {
-			log.Event(ctx, "unable to write notes header", log.ERROR, log.Error(err))
+			log.Error(ctx, "unable to write notes header", err)
 			return err
 		}
 		for i, note := range request.Footnotes {
 			err := writeRow(writer, fmt.Sprintf("%d", i+1), note)
 			if err != nil {
-				log.Event(ctx, "unable to write notes", log.Data{"notes": i}, log.ERROR, log.Error(err))
+				log.Error(ctx, "unable to write notes", err, log.Data{"notes": i})
 				return err
 			}
 		}
@@ -128,7 +128,7 @@ func writeFootnotes(ctx context.Context, writer *csv.Writer, request *models.Ren
 func writeEmptyLine(ctx context.Context, writer *csv.Writer, request *models.RenderRequest) error {
 	err := writeRow(writer, "")
 	if err != nil {
-		log.Event(ctx, "unable to write empty line to csv", log.ERROR, log.Error(err))
+		log.Error(ctx, "unable to write empty line to csv", err)
 		return err
 	}
 	return nil

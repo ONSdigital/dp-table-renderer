@@ -10,7 +10,7 @@ import (
 	"github.com/ONSdigital/dp-healthcheck/healthcheck"
 	"github.com/ONSdigital/dp-table-renderer/api"
 	"github.com/ONSdigital/dp-table-renderer/config"
-	"github.com/ONSdigital/log.go/log"
+	"github.com/ONSdigital/log.go/v2/log"
 )
 
 var (
@@ -27,7 +27,7 @@ func main() {
 	ctx := context.Background()
 
 	if err := run(ctx); err != nil && err != http.ErrServerClosed {
-		log.Event(ctx, "unable to run application", log.Error(err), log.FATAL)
+		log.Fatal(ctx, "unable to run application", err)
 		os.Exit(1)
 	}
 }
@@ -38,16 +38,16 @@ func run(ctx context.Context) error {
 
 	cfg, err := config.Get()
 	if err != nil {
-		log.Event(ctx, "unable to retrieve service configuration", log.FATAL, log.Error(err))
+		log.Fatal(ctx, "unable to retrieve service configuration", err)
 		return err
 	}
 
-	log.Event(ctx, "got service configuration", log.INFO, log.Data{"config": cfg})
+	log.Info(ctx, "got service configuration", log.Data{"config": cfg})
 
 	// Create healthcheck
 	versionInfo, err := healthcheck.NewVersionInfo(BuildTime, GitCommit, Version)
 	if err != nil {
-		log.Event(ctx, "unable to retrieve health check version info", log.ERROR, log.Error(err))
+		log.Error(ctx, "unable to retrieve health check version info", err)
 	}
 	healthCheck := healthcheck.New(versionInfo, cfg.HealthCheckCriticalTimeout, cfg.HealthCheckInterval)
 	healthCheck.Start(ctx)
@@ -58,29 +58,29 @@ func run(ctx context.Context) error {
 
 	// Gracefully shutdown the application closing any open resources.
 	gracefulShutdown := func() error {
-		log.Event(ctx, "shutdown with timeout", log.Data{"timeout": cfg.ShutdownTimeout}, log.INFO)
+		log.Info(ctx, "shutdown with timeout", log.Data{"timeout": cfg.ShutdownTimeout})
 		ctx, cancel := context.WithTimeout(context.Background(), cfg.ShutdownTimeout)
 
 		if err = api.Close(ctx); err != nil {
-			log.Event(ctx, "error with graceful shutdown", log.Error(err))
+			log.Error(ctx, "error with graceful shutdown", err)
 			cancel()
 			return err
 		}
 
 		cancel()
 
-		log.Event(ctx, "Shutdown complete", log.INFO)
+		log.Info(ctx, "Shutdown complete")
 		return nil
 	}
 
 	for {
 		select {
 		case err := <-apiErrors:
-			log.Event(ctx, "api error received", log.ERROR, log.Error(err))
+			log.Error(ctx, "api error received", err)
 			gracefulShutdown()
 			return err
 		case <-signals:
-			log.Event(ctx, "os signal received", log.INFO)
+			log.Info(ctx, "os signal received")
 			gracefulShutdown()
 			return nil
 		}

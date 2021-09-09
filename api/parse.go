@@ -5,7 +5,7 @@ import (
 
 	"github.com/ONSdigital/dp-table-renderer/models"
 	"github.com/ONSdigital/dp-table-renderer/parser"
-	"github.com/ONSdigital/log.go/log"
+	"github.com/ONSdigital/log.go/v2/log"
 )
 
 // Content types
@@ -19,13 +19,13 @@ func (api *RendererAPI) parseHTML(w http.ResponseWriter, r *http.Request) {
 
 	parseRequest, err := models.CreateParseRequest(ctx, r.Body)
 	if err != nil {
-		log.Event(ctx, "error occurred when trying to create model parse request", log.ERROR, log.Error(err))
+		log.Error(ctx, "error occurred when trying to create model parse request", err)
 		http.Error(w, badRequest, http.StatusBadRequest)
 		return
 	}
 
 	if err = parseRequest.ValidateParseRequest(ctx); err != nil {
-		log.Event(ctx, "error occurred when trying to validate model parse request", log.ERROR, log.Error(err))
+		log.Error(ctx, "error occurred when trying to validate model parse request", err)
 		http.Error(w, badRequest, http.StatusBadRequest)
 		return
 	}
@@ -33,16 +33,16 @@ func (api *RendererAPI) parseHTML(w http.ResponseWriter, r *http.Request) {
 	bytes, err := parser.ParseHTML(ctx, parseRequest)
 	setContentType(w, contentJSON)
 	if err != nil {
-		log.Event(ctx, "error occurred when trying to parse HTML", log.ERROR, log.Error(err))
+		log.Error(ctx, "error occurred when trying to parse HTML", err)
 		setErrorCode(ctx, w, err)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
 	if _, err = w.Write(bytes); err != nil {
-		log.Event(ctx, "error occurred when trying to parse HTML", log.ERROR, log.Error(err))
+		log.Error(ctx, "error occurred when trying to parse HTML", err)
 		setErrorCode(ctx, w, err)
 		return
 	}
-	log.Event(ctx, "parsed an HTML table to JSON", log.Data{"response_bytes": len(bytes)}, log.INFO)
+	log.Info(ctx, "parsed an HTML table to JSON", log.Data{"response_bytes": len(bytes)})
 }
