@@ -162,7 +162,7 @@ func addTableCell(ctx context.Context, model *tableModel, tr *html.Node, colText
 	if cell.skip {
 		return
 	}
-	value := parseValue(ctx, model.request, colText)
+	value := parseValueWithHtml(ctx, model.request, colText)
 	hasContent := len(colText) > 0
 	var node *html.Node
 	if model.rows[rowIdx].Heading && hasContent {
@@ -257,6 +257,22 @@ func parseValue(ctx context.Context, request *models.RenderRequest, value string
 		return replaceValues(ctx, request, value, hasBr, hasFootnote)
 	}
 	return []*html.Node{{Type: html.TextNode, Data: value}}
+}
+
+// Parses the string to replace \n with <br /> and wrap [1] with a link to the footnote
+// keeping any HTML tags that are present
+func parseValueWithHtml(ctx context.Context, request *models.RenderRequest, value string) []*html.Node {
+	hasBr := newLine.MatchString(value)
+	hasFootnote := len(request.Footnotes) > 0 && footnoteLink.MatchString(value)
+	if hasBr || hasFootnote {
+		return replaceValues(ctx, request, value, hasBr, hasFootnote)
+	}
+	// Create Nodes
+	nodes, _ := html.ParseFragment(strings.NewReader(value), &html.Node{
+		Type:     html.ElementNode,
+		Data:     "body",
+		DataAtom: atom.Body})
+	return nodes
 }
 
 // replaceValues uses regexp to replace new lines and footnotes with <br/> and <a>.../<a> tags, then parses the result into an array of nodes

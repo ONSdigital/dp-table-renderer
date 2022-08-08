@@ -311,4 +311,17 @@ func TestGetText(t *testing.T) {
 		result := GetText(node)
 		So(result, ShouldEqual, "hello world!")
 	})
+
+	Convey("GetText should keep anchor tags", t, func() {
+
+		node := CreateNode("div", atom.Div,
+			"\n",
+			CreateNode("p", atom.P, "this paragraph "),
+			CreateNode("div", atom.Div, CreateNode("p", atom.P, "includes ")),
+			CreateNode("a", atom.A, html.Attribute{Key: "href", Val: "http://www.ons.gov.uk"}, "a link"),
+			" and more text")
+
+		result := GetText(node)
+		So(result, ShouldEqual, "this paragraph includes <a href=\"http://www.ons.gov.uk\">a link</a> and more text")
+	})
 }

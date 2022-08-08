@@ -39,8 +39,8 @@ func TestCreateRenderRequestWithValidJSON(t *testing.T) {
 
 		So(err, ShouldBeNil)
 		So(request.ValidateRenderRequest(), ShouldBeNil)
-		So(request.Title, ShouldEqual, "This is an example table")
-		So(request.Subtitle, ShouldEqual, "with a subtitle")
+		So(request.Title, ShouldEqual, "This is an <a href=\"title-link\">example</a> table")
+		So(request.Subtitle, ShouldEqual, "with a <a href=\"subtitle-link\">subtitle</a>")
 		So(len(request.RowFormats), ShouldEqual, 2)
 		So(len(request.ColumnFormats), ShouldEqual, 2)
 		So(len(request.CellFormats), ShouldEqual, 3)

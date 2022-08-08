@@ -150,6 +150,9 @@ func GetText(n *html.Node) string {
 	for c := n.FirstChild; c != nil; c = c.NextSibling {
 		if c.Type == html.TextNode {
 			buffer.WriteString(c.Data)
+		} else if c.Type == html.ElementNode && c.Data == "a" {
+			// Retain anchor html code
+			html.Render(&buffer, c)
 		} else {
 			buffer.WriteString(GetText(c))
 		}

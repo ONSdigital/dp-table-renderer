@@ -55,6 +55,14 @@ func TestRenderHTML(t *testing.T) {
 
 		// new line characters are converted to <br/> tags
 		So(responseHTML, ShouldContainSubstring, "CPIH 12-<br/>month rate")
+
+		// Anchor tags in cells are not stripped
+		So(responseHTML, ShouldContainSubstring, "<a href=\"cell-link\">link</a>")
+
+		// Anchor tags in caption and footer are stripped
+		So(responseHTML, ShouldNotContainSubstring, "<a href=\"foot-link\">")
+		So(responseHTML, ShouldNotContainSubstring, "<a href=\"title-link\">")
+		So(responseHTML, ShouldNotContainSubstring, "<a href=\"subtitle-link\">")
 	})
 }
 
