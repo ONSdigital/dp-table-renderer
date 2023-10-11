@@ -11,7 +11,7 @@ require (
 	github.com/gorilla/mux v1.8.0
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/smartystreets/goconvey v1.7.2
-	golang.org/x/net v0.0.0-20220812174116-3211cb980234
+	golang.org/x/net v0.17.0
 )
 
 require (
@@ -30,5 +30,5 @@ require (
 	github.com/mattn/go-isatty v0.0.16 // indirect
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826 // indirect
 	github.com/smartystreets/assertions v1.13.0 // indirect
-	golang.org/x/sys v0.0.0-20220811171246-fbc7d0a398ab // indirect
+	golang.org/x/sys v0.13.0 // indirect
 )
