@@ -6,11 +6,15 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"errors"
 
 	"github.com/ONSdigital/dp-healthcheck/healthcheck"
 	"github.com/ONSdigital/dp-table-renderer/api"
 	"github.com/ONSdigital/dp-table-renderer/config"
 	"github.com/ONSdigital/log.go/v2/log"
+	"github.com/ONSdigital/dp-otel-go"
+	// "github.com/uptrace/opentelemetry-go-extra/otelplay"
+
 )
 
 var (
@@ -30,6 +34,8 @@ func main() {
 		log.Fatal(ctx, "unable to run application", err)
 		os.Exit(1)
 	}
+	
+	
 }
 
 func run(ctx context.Context) error {
@@ -41,6 +47,17 @@ func run(ctx context.Context) error {
 		log.Fatal(ctx, "unable to retrieve service configuration", err)
 		return err
 	}
+
+	//Set up OpenTelemetry
+	otelShutdown, err := dpotelgo.SetupOTelSDK(ctx)
+	if err != nil {
+		log.Fatal(ctx, "error setting up OpenTelemetry - hint: ensure OTEL_EXPORTER_OTLP_ENDPOINT is set", err)
+		return err
+	}
+	// Handle shutdown properly so nothing leaks.
+	defer func() {
+		err = errors.Join(err, otelShutdown(context.Background()))
+	}()
 
 	log.Info(ctx, "got service configuration", log.Data{"config": cfg})
 

@@ -2,13 +2,14 @@ package api
 
 import (
 	"context"
-
+	// "os"
 	"github.com/ONSdigital/dp-healthcheck/healthcheck"
 	dphttp "github.com/ONSdigital/dp-net/http"
 	"github.com/ONSdigital/log.go/v2/log"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
-
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	// "go.opentelemetry.io/contrib/instrumentation/github.com/gorilla/mux/otelmux"
 	"net/http"
 )
 
@@ -23,8 +24,10 @@ type RendererAPI struct {
 func CreateRendererAPI(ctx context.Context, bindAddr string, allowedOrigins string, errorChan chan error, hc *healthcheck.HealthCheck) {
 	router := mux.NewRouter()
 	routes(router, hc)
+	otelhandler := otelhttp.NewHandler(router,"/")
 
-	httpServer = dphttp.NewServer(bindAddr, router)
+
+	httpServer = dphttp.NewServer(bindAddr, otelhandler)
 	// Disable this here to allow main to manage graceful shutdown of the entire app.
 	httpServer.HandleOSSignals = false
 
@@ -50,11 +53,19 @@ func createCORSHandler(allowedOrigins string, router *mux.Router) http.Handler {
 func routes(router *mux.Router, hc *healthcheck.HealthCheck) *RendererAPI {
 	api := RendererAPI{router: router}
 
+	handleFunc := func(pattern string, handlerFunc func(http.ResponseWriter, *http.Request)) {
+		// Configure the "http.route" for the HTTP instrumentation.
+		handler := otelhttp.WithRouteTag(pattern, http.HandlerFunc(handlerFunc))
+		api.router.Handle(pattern, handler)
+	}
+
 	api.router.StrictSlash(true).Path("/health").HandlerFunc(hc.Handler)
-	api.router.HandleFunc("/render/{render_type}", api.renderTable).Methods("POST")
-	api.router.HandleFunc("/parse/html", api.parseHTML).Methods("POST")
+	handleFunc("/render/{render_type}", api.renderTable)
+	handleFunc("/parse/html", api.parseHTML)
 	return &api
 }
+
+
 
 // Close represents the graceful shutting down of the http server
 func Close(ctx context.Context) error {
