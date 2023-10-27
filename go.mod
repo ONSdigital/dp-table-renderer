@@ -2,7 +2,6 @@ module github.com/ONSdigital/dp-table-renderer
 
 go 1.19
 
-
 require (
 	github.com/360EntSecGroup-Skylar/excelize v1.4.1
 	github.com/ONSdigital/dp-healthcheck v1.5.0
@@ -19,6 +18,7 @@ require (
 	github.com/ONSdigital/dp-api-clients-go v1.43.0 // indirect
 	github.com/ONSdigital/dp-api-clients-go/v2 v2.187.0 // indirect
 	github.com/ONSdigital/dp-net/v2 v2.6.0 // indirect
+	github.com/ONSdigital/dp-otel-go v0.0.1 // indirect
 	github.com/aws/aws-sdk-go v1.44.76 // indirect
 	github.com/cenkalti/backoff/v4 v4.2.1 // indirect
 	github.com/fatih/color v1.13.0 // indirect

@@ -2,15 +2,15 @@ package api
 
 import (
 	"context"
-	// "os"
 	"github.com/ONSdigital/dp-healthcheck/healthcheck"
 	dphttp "github.com/ONSdigital/dp-net/http"
 	"github.com/ONSdigital/log.go/v2/log"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
-	// "go.opentelemetry.io/contrib/instrumentation/github.com/gorilla/mux/otelmux"
 	"net/http"
+	"go.opentelemetry.io/otel/trace"
+	"github.com/ONSdigital/dp-net/v2/request"
 )
 
 var httpServer *dphttp.Server
@@ -55,7 +55,7 @@ func routes(router *mux.Router, hc *healthcheck.HealthCheck) *RendererAPI {
 
 	handleFunc := func(pattern string, handlerFunc func(http.ResponseWriter, *http.Request)) {
 		// Configure the "http.route" for the HTTP instrumentation.
-		handler := otelhttp.WithRouteTag(pattern, http.HandlerFunc(handlerFunc))
+		handler := otelhttp.WithRouteTag(pattern, insertTraceIdInContext(http.HandlerFunc(handlerFunc)))
 		api.router.Handle(pattern, handler)
 	}
 
@@ -65,6 +65,14 @@ func routes(router *mux.Router, hc *healthcheck.HealthCheck) *RendererAPI {
 	return &api
 }
 
+func insertTraceIdInContext(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		traceId := trace.SpanFromContext(r.Context()).SpanContext().TraceID().String()
+		ctx := context.WithValue(r.Context(), request.RequestIdKey, traceId)
+		newReq := r.WithContext(ctx)
+		next.ServeHTTP(w, newReq)
+	})
+}
 
 
 // Close represents the graceful shutting down of the http server
