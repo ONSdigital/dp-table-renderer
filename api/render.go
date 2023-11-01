@@ -34,6 +34,9 @@ func (api *RendererAPI) renderTable(w http.ResponseWriter, r *http.Request) {
 	renderType := vars["render_type"]
 	ctx := r.Context()
 
+	tracer := otel.GetTracerProvider().Tracer("tablerenderer")
+	ctx, span := tracer.Start(r.Context(), "table render span")
+
 	renderRequest, err := models.CreateRenderRequest(ctx, r.Body)
 	if err != nil {
 		log.Error(ctx, "error with creating model render request", err)
@@ -77,8 +80,7 @@ func (api *RendererAPI) renderTable(w http.ResponseWriter, r *http.Request) {
 		setErrorCode(ctx, w, err)
 		return
 	}
-	tracer := otel.GetTracerProvider().Tracer("tablerenderer")
-	ctx, span := tracer.Start(r.Context(), "table render span")
+
 	defer span.End()
 
 	log.Info(ctx, "rendered a table", log.Data{"file_name": renderRequest.Filename, "response_bytes": len(bytes)})
