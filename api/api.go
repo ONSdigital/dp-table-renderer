@@ -9,8 +9,7 @@ import (
 	"github.com/gorilla/mux"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"net/http"
-	"go.opentelemetry.io/otel/trace"
-	"github.com/ONSdigital/dp-net/v2/request"
+	"github.com/ONSdigital/dp-otel-go"
 )
 
 var httpServer *dphttp.Server
@@ -24,7 +23,7 @@ type RendererAPI struct {
 func CreateRendererAPI(ctx context.Context, bindAddr string, allowedOrigins string, errorChan chan error, hc *healthcheck.HealthCheck) {
 	router := mux.NewRouter()
 	routes(router, hc)
-	otelhandler := otelhttp.NewHandler(router,"/")
+	otelhandler := otelhttp.NewHandler(dpotelgo.OtelLoggingMiddleware(router),"/")
 
 
 	httpServer = dphttp.NewServer(bindAddr, otelhandler)
@@ -55,7 +54,7 @@ func routes(router *mux.Router, hc *healthcheck.HealthCheck) *RendererAPI {
 
 	handleFunc := func(pattern string, handlerFunc func(http.ResponseWriter, *http.Request)) {
 		// Configure the "http.route" for the HTTP instrumentation.
-		handler := otelhttp.WithRouteTag(pattern, insertTraceIdInContext(http.HandlerFunc(handlerFunc)))
+		handler := otelhttp.WithRouteTag(pattern, http.HandlerFunc(handlerFunc))
 		api.router.Handle(pattern, handler)
 	}
 
@@ -64,16 +63,6 @@ func routes(router *mux.Router, hc *healthcheck.HealthCheck) *RendererAPI {
 	handleFunc("/parse/html", api.parseHTML)
 	return &api
 }
-
-func insertTraceIdInContext(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		traceId := trace.SpanFromContext(r.Context()).SpanContext().TraceID().String()
-		ctx := context.WithValue(r.Context(), request.RequestIdKey, traceId)
-		newReq := r.WithContext(ctx)
-		next.ServeHTTP(w, newReq)
-	})
-}
-
 
 // Close represents the graceful shutting down of the http server
 func Close(ctx context.Context) error {

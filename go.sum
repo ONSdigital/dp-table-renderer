@@ -24,6 +24,8 @@ github.com/ONSdigital/dp-net/v2 v2.6.0 h1:orxdb0SVDrJgz/zma0QXgQCAGJdLDhp6g2XqH6
 github.com/ONSdigital/dp-net/v2 v2.6.0/go.mod h1:4/2ZyId//hFa7AtbbRNQctY729C1Vbw4UEdOliRvpZI=
 github.com/ONSdigital/dp-otel-go v0.0.1 h1:L9+lFx4hmdmPssc/jBcwkESf9ljGEnsNnMhwkGkTMPM=
 github.com/ONSdigital/dp-otel-go v0.0.1/go.mod h1:/9D6JxcOjPQ19EVLYkyGpU6IFtODXRBMRQUg+GNE7FU=
+github.com/ONSdigital/dp-otel-go v0.0.2 h1:pBxJ3LXucXNLnBDOmBRw56ES8FAV0wa48dWQiSEdhR8=
+github.com/ONSdigital/dp-otel-go v0.0.2/go.mod h1:/9D6JxcOjPQ19EVLYkyGpU6IFtODXRBMRQUg+GNE7FU=
 github.com/ONSdigital/go-ns v0.0.0-20191104121206-f144c4ec2e58/go.mod h1:iWos35il+NjbvDEqwtB736pyHru0MPFE/LqcwkV1wDc=
 github.com/ONSdigital/log.go v1.0.0/go.mod h1:UnGu9Q14gNC+kz0DOkdnLYGoqugCvnokHBRBxFRpVoQ=
 github.com/ONSdigital/log.go v1.0.1-0.20200805084515-ee61165ea36a/go.mod h1:dDnQATFXCBOknvj6ZQuKfmDhbOWf3e8mtV+dPEfWJqs=
