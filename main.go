@@ -13,7 +13,6 @@ import (
 	"github.com/ONSdigital/dp-table-renderer/config"
 	"github.com/ONSdigital/log.go/v2/log"
 	"github.com/ONSdigital/dp-otel-go"
-
 )
 
 var (
@@ -33,8 +32,6 @@ func main() {
 		log.Fatal(ctx, "unable to run application", err)
 		os.Exit(1)
 	}
-	
-	
 }
 
 func run(ctx context.Context) error {
