@@ -81,7 +81,7 @@ func run(ctx context.Context) error {
 		}
 
 		cancel()
-
+		otelShutdown(ctx)
 		log.Info(ctx, "Shutdown complete")
 		return nil
 	}
