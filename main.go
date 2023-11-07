@@ -9,10 +9,10 @@ import (
 	"errors"
 
 	"github.com/ONSdigital/dp-healthcheck/healthcheck"
+	"github.com/ONSdigital/dp-otel-go"
 	"github.com/ONSdigital/dp-table-renderer/api"
 	"github.com/ONSdigital/dp-table-renderer/config"
 	"github.com/ONSdigital/log.go/v2/log"
-	"github.com/ONSdigital/dp-otel-go"
 )
 
 var (
