@@ -13,6 +13,10 @@ type Config struct {
 	ShutdownTimeout            time.Duration `envconfig:"SHUTDOWN_TIMEOUT"`
 	HealthCheckInterval        time.Duration `envconfig:"HEALTHCHECK_INTERVAL"`
 	HealthCheckCriticalTimeout time.Duration `envconfig:"HEALTHCHECK_CRITICAL_TIMEOUT"`
+	OTExporterOTLPEndpoint		string		  `encconfig:"OTEL_EXPORTER_OTLP_ENDPOINT"`
+	OTServiceName				string		  `encconfig:"OTEL_SERVICE_NAME"`
+	OTBatchTimeout				time.Duration `encconfig:"OTEL_BATCH_TIMEOUT"`
+
 }
 
 var cfg *Config

@@ -45,7 +45,14 @@ func run(ctx context.Context) error {
 	}
 
 	//Set up OpenTelemetry
-	otelShutdown, err := dpotelgo.SetupOTelSDK(ctx, cfg)
+	otelConfig := dpotelgo.Config{
+		OtelServiceName: cfg.OTServiceName,
+		OtelExporterOtlpEndpoint: cfg.OTExporterOTLPEndpoint,
+		OtelBatchTimeout: cfg.OTBatchTimeout,
+	}
+
+	otelShutdown, err := dpotelgo.SetupOTelSDK(ctx, otelConfig)
+
 	if err != nil {
 		log.Fatal(ctx, "error setting up OpenTelemetry - hint: ensure OTEL_EXPORTER_OTLP_ENDPOINT is set", err)
 		return err
