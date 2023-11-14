@@ -13,10 +13,9 @@ type Config struct {
 	ShutdownTimeout            time.Duration `envconfig:"SHUTDOWN_TIMEOUT"`
 	HealthCheckInterval        time.Duration `envconfig:"HEALTHCHECK_INTERVAL"`
 	HealthCheckCriticalTimeout time.Duration `envconfig:"HEALTHCHECK_CRITICAL_TIMEOUT"`
-	OTExporterOTLPEndpoint		string		  `envconfig:"OTEL_EXPORTER_OTLP_ENDPOINT"`
-	OTServiceName				string		  `envconfig:"OTEL_SERVICE_NAME"`
-	OTBatchTimeout				time.Duration `envconfig:"OTEL_BATCH_TIMEOUT"`
-
+	OTExporterOTLPEndpoint     string        `envconfig:"OTEL_EXPORTER_OTLP_ENDPOINT"`
+	OTServiceName              string        `envconfig:"OTEL_SERVICE_NAME"`
+	OTBatchTimeout             time.Duration `envconfig:"OTEL_BATCH_TIMEOUT"`
 }
 
 var cfg *Config
@@ -33,9 +32,9 @@ func Get() (*Config, error) {
 		ShutdownTimeout:            5 * time.Second,
 		HealthCheckInterval:        30 * time.Second,
 		HealthCheckCriticalTimeout: 90 * time.Second,
-		OTExporterOTLPEndpoint:		"localhost:4317",
-		OTServiceName:				"dp-table-renderer",
-		OTBatchTimeout:				5 * time.Second,
+		OTExporterOTLPEndpoint:     "localhost:4317",
+		OTServiceName:              "dp-table-renderer",
+		OTBatchTimeout:             5 * time.Second,
 	}
 
 	return cfg, envconfig.Process("", cfg)

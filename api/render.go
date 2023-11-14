@@ -82,8 +82,6 @@ func (api *RendererAPI) renderTable(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	
-
 	log.Info(ctx, "rendered a table", log.Data{"file_name": renderRequest.Filename, "response_bytes": len(bytes)})
 }
 

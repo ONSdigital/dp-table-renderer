@@ -2,11 +2,11 @@ package main
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
-	"errors"
 
 	"github.com/ONSdigital/dp-healthcheck/healthcheck"
 	"github.com/ONSdigital/dp-otel-go"
@@ -46,9 +46,9 @@ func run(ctx context.Context) error {
 
 	//Set up OpenTelemetry
 	otelConfig := dpotelgo.Config{
-		OtelServiceName: cfg.OTServiceName,
+		OtelServiceName:          cfg.OTServiceName,
 		OtelExporterOtlpEndpoint: cfg.OTExporterOTLPEndpoint,
-		OtelBatchTimeout: cfg.OTBatchTimeout,
+		OtelBatchTimeout:         cfg.OTBatchTimeout,
 	}
 
 	otelShutdown, err := dpotelgo.SetupOTelSDK(ctx, otelConfig)
