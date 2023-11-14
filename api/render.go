@@ -8,6 +8,7 @@ import (
 	"github.com/ONSdigital/dp-table-renderer/models"
 	"github.com/ONSdigital/dp-table-renderer/renderer"
 	"github.com/ONSdigital/log.go/v2/log"
+	"go.opentelemetry.io/otel"
 
 	"github.com/gorilla/mux"
 )
@@ -32,6 +33,10 @@ func (api *RendererAPI) renderTable(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	renderType := vars["render_type"]
 	ctx := r.Context()
+
+	tracer := otel.GetTracerProvider().Tracer("tablerenderer")
+	ctx, span := tracer.Start(r.Context(), "table render span")
+	defer span.End()
 
 	renderRequest, err := models.CreateRenderRequest(ctx, r.Body)
 	if err != nil {
@@ -76,6 +81,7 @@ func (api *RendererAPI) renderTable(w http.ResponseWriter, r *http.Request) {
 		setErrorCode(ctx, w, err)
 		return
 	}
+
 	log.Info(ctx, "rendered a table", log.Data{"file_name": renderRequest.Filename, "response_bytes": len(bytes)})
 }
 

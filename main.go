@@ -2,12 +2,14 @@ package main
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 
 	"github.com/ONSdigital/dp-healthcheck/healthcheck"
+	"github.com/ONSdigital/dp-otel-go"
 	"github.com/ONSdigital/dp-table-renderer/api"
 	"github.com/ONSdigital/dp-table-renderer/config"
 	"github.com/ONSdigital/log.go/v2/log"
@@ -42,6 +44,23 @@ func run(ctx context.Context) error {
 		return err
 	}
 
+	//Set up OpenTelemetry
+	otelConfig := dpotelgo.Config{
+		OtelServiceName:          cfg.OTServiceName,
+		OtelExporterOtlpEndpoint: cfg.OTExporterOTLPEndpoint,
+		OtelBatchTimeout:         cfg.OTBatchTimeout,
+	}
+
+	otelShutdown, err := dpotelgo.SetupOTelSDK(ctx, otelConfig)
+
+	if err != nil {
+		log.Error(ctx, "error setting up OpenTelemetry - hint: ensure OTEL_EXPORTER_OTLP_ENDPOINT is set", err)
+	}
+	// Handle shutdown properly so nothing leaks.
+	defer func() {
+		err = errors.Join(err, otelShutdown(context.Background()))
+	}()
+
 	log.Info(ctx, "got service configuration", log.Data{"config": cfg})
 
 	// Create healthcheck
@@ -60,6 +79,7 @@ func run(ctx context.Context) error {
 	gracefulShutdown := func() error {
 		log.Info(ctx, "shutdown with timeout", log.Data{"timeout": cfg.ShutdownTimeout})
 		ctx, cancel := context.WithTimeout(context.Background(), cfg.ShutdownTimeout)
+		defer cancel()
 
 		if err = api.Close(ctx); err != nil {
 			log.Error(ctx, "error with graceful shutdown", err)
@@ -67,8 +87,7 @@ func run(ctx context.Context) error {
 			return err
 		}
 
-		cancel()
-
+		otelShutdown(ctx)
 		log.Info(ctx, "Shutdown complete")
 		return nil
 	}
