@@ -79,6 +79,7 @@ func run(ctx context.Context) error {
 	gracefulShutdown := func() error {
 		log.Info(ctx, "shutdown with timeout", log.Data{"timeout": cfg.ShutdownTimeout})
 		ctx, cancel := context.WithTimeout(context.Background(), cfg.ShutdownTimeout)
+		defer cancel()
 
 		if err = api.Close(ctx); err != nil {
 			log.Error(ctx, "error with graceful shutdown", err)
@@ -86,7 +87,6 @@ func run(ctx context.Context) error {
 			return err
 		}
 
-		cancel()
 		otelShutdown(ctx)
 		log.Info(ctx, "Shutdown complete")
 		return nil
