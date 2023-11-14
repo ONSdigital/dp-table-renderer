@@ -8,10 +8,10 @@ import (
 	"github.com/ONSdigital/log.go/v2/log"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
-	
+
+	"github.com/ONSdigital/dp-otel-go"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"net/http"
-	"github.com/ONSdigital/dp-otel-go"
 )
 
 var httpServer *dphttp.Server
@@ -25,8 +25,7 @@ type RendererAPI struct {
 func CreateRendererAPI(ctx context.Context, bindAddr string, allowedOrigins string, errorChan chan error, hc *healthcheck.HealthCheck) {
 	router := mux.NewRouter()
 	routes(router, hc)
-	otelhandler := otelhttp.NewHandler(dpotelgo.OtelLoggingMiddleware(router),"/")
-
+	otelhandler := otelhttp.NewHandler(dpotelgo.OtelLoggingMiddleware(router), "/")
 
 	httpServer = dphttp.NewServer(bindAddr, otelhandler)
 	// Disable this here to allow main to manage graceful shutdown of the entire app.
