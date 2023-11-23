@@ -13,6 +13,9 @@ Given json defining a table, capable of rendering a table in multiple formats
 | HEALTH_CHECK_CRITICAL_TIMEOUT    | Amount of time to pass since last healthy health check to be deemed a critical failure    |    90 seconds |
 | CORS_ALLOWED_ORIGINS       | *                        | The allowed origins for CORS requests                  |
 | SHUTDOWN_TIMEOUT           | 5s                       | The graceful shutdown timeout ([`time.Duration`](https://golang.org/pkg/time/#Duration) format) |
+| OTEL_EXPORTER_OTLP_ENDPOINT      | localhost:4317                            | Host and port for the OpenTelemetry endpoint                                             |
+| OTEL_SERVICE_NAME                | dp-table-renderer                         | Service name to report to telemetry tools                                                |
+| OTEL_BATCH_TIMEOUT               | 5s                                        | Interval between pushes to OT Collector                                                  |
 
 ### Endpoints
 
