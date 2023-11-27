@@ -7,7 +7,7 @@ require (
 	github.com/ONSdigital/dp-healthcheck v1.6.0
 	github.com/ONSdigital/dp-net v1.5.0
 	github.com/ONSdigital/dp-otel-go v0.0.6
-	github.com/ONSdigital/log.go/v2 v2.4.0
+	github.com/ONSdigital/log.go/v2 v2.4.2
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.0
 	github.com/kelseyhightower/envconfig v1.4.0
