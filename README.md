@@ -11,7 +11,7 @@ Given json defining a table, capable of rendering a table in multiple formats
 | BIND_ADDR                      | :23300                   | The host and port to bind to                                                                    |
 | HEALTH_CHECK_INTERVAL          | 30 seconds               | Interval between health checks                                                                  |     
 | HEALTH_CHECK_CRITICAL_TIMEOUT  | 90 seconds               | Amount of time to pass since last healthy health check to be deemed a critical failure          |     
-| CORS_ALLOWED_ORIGINS           | *                        | The allowed origins for CORS requests                  |
+| CORS_ALLOWED_ORIGINS           | *                        | The allowed origins for CORS requests                                                           |
 | SHUTDOWN_TIMEOUT               | 5s                       | The graceful shutdown timeout ([`time.Duration`](https://golang.org/pkg/time/#Duration) format) |
 | OTEL_EXPORTER_OTLP_ENDPOINT    | localhost:4317           | Host and port for the OpenTelemetry endpoint                                                    |
 | OTEL_SERVICE_NAME              | dp-table-renderer        | Service name to report to telemetry tools                                                       |
