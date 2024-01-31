@@ -61,6 +61,8 @@ func run(ctx context.Context) error {
 		defer func() {
 			err = errors.Join(err, otelShutdown(context.Background()))
 		}()
+
+		otelShutdown(ctx)
 	}
 
 	log.Info(ctx, "got service configuration", log.Data{"config": cfg})
@@ -89,7 +91,6 @@ func run(ctx context.Context) error {
 			return err
 		}
 
-		//otelShutdown(ctx)
 		log.Info(ctx, "Shutdown complete")
 		return nil
 	}
