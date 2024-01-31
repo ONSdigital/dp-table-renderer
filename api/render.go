@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/ONSdigital/dp-table-renderer/config"
 	"github.com/ONSdigital/dp-table-renderer/models"
 	"github.com/ONSdigital/dp-table-renderer/renderer"
 	"github.com/ONSdigital/log.go/v2/log"
@@ -34,9 +35,18 @@ func (api *RendererAPI) renderTable(w http.ResponseWriter, r *http.Request) {
 	renderType := vars["render_type"]
 	ctx := r.Context()
 
-	tracer := otel.GetTracerProvider().Tracer("tablerenderer")
-	ctx, span := tracer.Start(r.Context(), "table render span")
-	defer span.End()
+	cfg, err := config.Get()
+	if err != nil {
+		log.Error(ctx, "error getting config", err)
+		return
+	}
+
+	if cfg.OtelEnabled {
+		tracer := otel.GetTracerProvider().Tracer("tablerenderer")
+		// Need to test the removal of ctx to _
+		_, span := tracer.Start(r.Context(), "table render span")
+		defer span.End()
+	}
 
 	renderRequest, err := models.CreateRenderRequest(ctx, r.Body)
 	if err != nil {

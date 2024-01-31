@@ -9,7 +9,7 @@ import (
 	"syscall"
 
 	"github.com/ONSdigital/dp-healthcheck/healthcheck"
-	"github.com/ONSdigital/dp-otel-go"
+	dpotelgo "github.com/ONSdigital/dp-otel-go"
 	"github.com/ONSdigital/dp-table-renderer/api"
 	"github.com/ONSdigital/dp-table-renderer/config"
 	"github.com/ONSdigital/log.go/v2/log"
@@ -44,22 +44,24 @@ func run(ctx context.Context) error {
 		return err
 	}
 
-	//Set up OpenTelemetry
-	otelConfig := dpotelgo.Config{
-		OtelServiceName:          cfg.OTServiceName,
-		OtelExporterOtlpEndpoint: cfg.OTExporterOTLPEndpoint,
-		OtelBatchTimeout:         cfg.OTBatchTimeout,
-	}
+	if cfg.OtelEnabled {
+		//Set up OpenTelemetry
+		otelConfig := dpotelgo.Config{
+			OtelServiceName:          cfg.OTServiceName,
+			OtelExporterOtlpEndpoint: cfg.OTExporterOTLPEndpoint,
+			OtelBatchTimeout:         cfg.OTBatchTimeout,
+		}
 
-	otelShutdown, err := dpotelgo.SetupOTelSDK(ctx, otelConfig)
+		otelShutdown, err := dpotelgo.SetupOTelSDK(ctx, otelConfig)
 
-	if err != nil {
-		log.Error(ctx, "error setting up OpenTelemetry - hint: ensure OTEL_EXPORTER_OTLP_ENDPOINT is set", err)
+		if err != nil {
+			log.Error(ctx, "error setting up OpenTelemetry - hint: ensure OTEL_EXPORTER_OTLP_ENDPOINT is set", err)
+		}
+		// Handle shutdown properly so nothing leaks.
+		defer func() {
+			err = errors.Join(err, otelShutdown(context.Background()))
+		}()
 	}
-	// Handle shutdown properly so nothing leaks.
-	defer func() {
-		err = errors.Join(err, otelShutdown(context.Background()))
-	}()
 
 	log.Info(ctx, "got service configuration", log.Data{"config": cfg})
 
@@ -87,7 +89,7 @@ func run(ctx context.Context) error {
 			return err
 		}
 
-		otelShutdown(ctx)
+		//otelShutdown(ctx)
 		log.Info(ctx, "Shutdown complete")
 		return nil
 	}

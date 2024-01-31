@@ -5,12 +5,14 @@ import (
 
 	"github.com/ONSdigital/dp-healthcheck/healthcheck"
 	dphttp "github.com/ONSdigital/dp-net/http"
+	"github.com/ONSdigital/dp-table-renderer/config"
 	"github.com/ONSdigital/log.go/v2/log"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 
-	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"net/http"
+
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
 var httpServer *dphttp.Server
@@ -24,9 +26,20 @@ type RendererAPI struct {
 func CreateRendererAPI(ctx context.Context, bindAddr string, allowedOrigins string, errorChan chan error, hc *healthcheck.HealthCheck) {
 	router := mux.NewRouter()
 	routes(router, hc)
-	otelhandler := otelhttp.NewHandler(router, "/")
 
-	httpServer = dphttp.NewServer(bindAddr, otelhandler)
+	cfg, err := config.Get()
+	if err != nil {
+		log.Error(ctx, "error occurred when getting config", err)
+		return
+	}
+
+	if cfg.OtelEnabled {
+		otelhandler := otelhttp.NewHandler(router, "/")
+		httpServer = dphttp.NewServer(bindAddr, otelhandler)
+	} else {
+		httpServer = dphttp.NewServer(bindAddr, router)
+	}
+
 	// Disable this here to allow main to manage graceful shutdown of the entire app.
 	httpServer.HandleOSSignals = false
 
@@ -52,15 +65,28 @@ func createCORSHandler(allowedOrigins string, router *mux.Router) http.Handler {
 func routes(router *mux.Router, hc *healthcheck.HealthCheck) *RendererAPI {
 	api := RendererAPI{router: router}
 
-	handleFunc := func(pattern string, handlerFunc func(http.ResponseWriter, *http.Request)) {
-		// Configure the "http.route" for the HTTP instrumentation.
-		handler := otelhttp.WithRouteTag(pattern, http.HandlerFunc(handlerFunc))
-		api.router.Handle(pattern, handler)
+	cfg, err := config.Get()
+	if err != nil {
+		log.Error(context.Background(), "error occurred when getting config", err)
+		return nil
+	}
+
+	if cfg.OtelEnabled {
+		handleFunc := func(pattern string, handlerFunc func(http.ResponseWriter, *http.Request)) {
+			// Configure the "http.route" for the HTTP instrumentation.
+			handler := otelhttp.WithRouteTag(pattern, http.HandlerFunc(handlerFunc))
+			api.router.Handle(pattern, handler)
+		}
+
+		handleFunc("/render/{render_type}", api.renderTable)
+		handleFunc("/parse/html", api.parseHTML)
+	} else {
+		api.router.HandleFunc("/render/{render_type}", api.renderTable).Methods("POST")
+		api.router.HandleFunc("/parse/html", api.parseHTML).Methods("POST")
 	}
 
 	api.router.StrictSlash(true).Path("/health").HandlerFunc(hc.Handler)
-	handleFunc("/render/{render_type}", api.renderTable)
-	handleFunc("/parse/html", api.parseHTML)
+
 	return &api
 }
 

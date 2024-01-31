@@ -16,6 +16,7 @@ Given json defining a table, capable of rendering a table in multiple formats
 | OTEL_EXPORTER_OTLP_ENDPOINT      | localhost:4317                            | Host and port for the OpenTelemetry endpoint                                             |
 | OTEL_SERVICE_NAME                | dp-table-renderer                         | Service name to report to telemetry tools                                                |
 | OTEL_BATCH_TIMEOUT               | 5s                                        | Interval between pushes to OT Collector                                                  |
+| OTEL_ENABLED                 | false                   | Feature flag to enable OpenTelemetry
 
 ### Endpoints
 
