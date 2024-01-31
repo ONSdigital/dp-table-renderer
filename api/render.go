@@ -43,7 +43,6 @@ func (api *RendererAPI) renderTable(w http.ResponseWriter, r *http.Request) {
 
 	if cfg.OtelEnabled {
 		tracer := otel.GetTracerProvider().Tracer("tablerenderer")
-		// Need to test the removal of ctx to _
 		_, span := tracer.Start(r.Context(), "table render span")
 		defer span.End()
 	}
