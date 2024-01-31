@@ -71,19 +71,20 @@ func routes(router *mux.Router, hc *healthcheck.HealthCheck) *RendererAPI {
 		return nil
 	}
 
-	if cfg.OtelEnabled {
-		handleFunc := func(pattern string, handlerFunc func(http.ResponseWriter, *http.Request)) {
-			// Configure the "http.route" for the HTTP instrumentation.
-			handler := otelhttp.WithRouteTag(pattern, http.HandlerFunc(handlerFunc))
-			api.router.Handle(pattern, handler)
-		}
+	var handler http.Handler
 
-		handleFunc("/render/{render_type}", api.renderTable)
-		handleFunc("/parse/html", api.parseHTML)
-	} else {
-		api.router.HandleFunc("/render/{render_type}", api.renderTable).Methods("POST")
-		api.router.HandleFunc("/parse/html", api.parseHTML).Methods("POST")
+	handleFunc := func(pattern string, handlerFunc func(http.ResponseWriter, *http.Request)) {
+		// Configure the "http.route" for the HTTP instrumentation.
+		if cfg.OtelEnabled {
+			handler = otelhttp.WithRouteTag(pattern, http.HandlerFunc(handlerFunc))
+		} else {
+			handler = HttpHandlerTag(pattern, http.HandlerFunc(handlerFunc))
+		}
+		api.router.Handle(pattern, handler)
 	}
+
+	handleFunc("/render/{render_type}", api.renderTable)
+	handleFunc("/parse/html", api.parseHTML)
 
 	api.router.StrictSlash(true).Path("/health").HandlerFunc(hc.Handler)
 
@@ -98,4 +99,10 @@ func Close(ctx context.Context) error {
 
 	log.Info(ctx, "graceful shutdown of http server complete")
 	return nil
+}
+
+func HttpHandlerTag(route string, h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		h.ServeHTTP(w, r)
+	})
 }
