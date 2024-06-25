@@ -2,6 +2,8 @@ module github.com/ONSdigital/dp-table-renderer
 
 go 1.21
 
+replace google.golang.org/protobuf => google.golang.org/protobuf v1.33.0
+
 require (
 	github.com/360EntSecGroup-Skylar/excelize v1.4.1
 	github.com/ONSdigital/dp-healthcheck v1.6.2
