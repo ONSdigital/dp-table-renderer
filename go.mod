@@ -1,6 +1,6 @@
 module github.com/ONSdigital/dp-table-renderer
 
-go 1.23
+go 1.24
 
 require (
 	github.com/360EntSecGroup-Skylar/excelize v1.4.1
