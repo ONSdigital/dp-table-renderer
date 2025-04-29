@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/ONSdigital/dp-healthcheck/healthcheck"
-	dphttp "github.com/ONSdigital/dp-net/http"
+	dphttp "github.com/ONSdigital/dp-net/v3/http"
 	"github.com/ONSdigital/dp-table-renderer/config"
 	"github.com/ONSdigital/log.go/v2/log"
 	"github.com/gorilla/handlers"
