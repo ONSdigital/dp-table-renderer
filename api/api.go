@@ -13,6 +13,8 @@ import (
 	"net/http"
 
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 )
 
 var httpServer *dphttp.Server
@@ -76,7 +78,7 @@ func routes(router *mux.Router, hc *healthcheck.HealthCheck) *RendererAPI {
 	handleFunc := func(pattern string, handlerFunc func(http.ResponseWriter, *http.Request)) {
 		// Configure the "http.route" for the HTTP instrumentation.
 		if cfg.OtelEnabled {
-			handler = otelhttp.WithRouteTag(pattern, http.HandlerFunc(handlerFunc))
+			handler = tagRoute(pattern, http.HandlerFunc(handlerFunc))
 		} else {
 			handler = HttpHandlerTag(pattern, http.HandlerFunc(handlerFunc))
 		}
@@ -89,6 +91,18 @@ func routes(router *mux.Router, hc *healthcheck.HealthCheck) *RendererAPI {
 	api.router.StrictSlash(true).Path("/health").HandlerFunc(hc.Handler)
 
 	return &api
+}
+
+func tagRoute(route string, handler http.Handler) http.Handler {
+	attr := attribute.String("http.route", route)
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		trace.SpanFromContext(r.Context()).SetAttributes(attr)
+
+		labeler, _ := otelhttp.LabelerFromContext(r.Context())
+		labeler.Add(attr)
+
+		handler.ServeHTTP(w, r)
+	})
 }
 
 // Close represents the graceful shutting down of the http server
